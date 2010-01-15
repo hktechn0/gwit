@@ -1,6 +1,21 @@
+//////////////////////////////////////////////////
+
+ ::::::::  :::       ::: ::::::::::: ::::::::::: 
+:+:    :+: :+:       :+:     :+:         :+:     
++:+        +:+       +:+     +:+         +:+     
+:#:        +#+  +:+  +#+     +#+         +#+     
++#+   +#+# +#+ +#+#+ +#+     +#+         +#+     
+#+#    #+#  #+#+# #+#+#      #+#         #+#     
+ ########    ###   ###   ###########     ###     
+
+//////////////////////////////////////////////////
+
 NAME: gwit
-DESCRIPTION:
-  `gwit` or Gtk tWITter client is an open source twitter client made with usability in mind. gwit uses pyGtk <http://www.pygtk.org/> and python-twoauth <http://www.techno-st.net/python-twoauth/> library.  
+
+DESCRIPTION: 
+`gwit` or Gtk tWITter client is an open source twitter client made with usability in mind. gwit uses pyGtk <http://www.pygtk.org/> and python-twoauth <http://www.techno-st.net/python-twoauth/> library.
+
+WWW: http://dev.tsukuba-linux.org/gwit
 
 INSTALL: see INSTALL
 
@@ -11,7 +26,10 @@ Patches / bug reports should be submitted to the core developer at techno@tsukub
 
 AUTHOR(S):
 This project is part of the "TsukuLUG Make" from University of Tsukuba Linux User Group <http://www.tsukuba-linux.org/>
+
 Listed are the core developers:
--who
+- Hirotaka Kawata <techno[at]tsukuba-linux.org>
+- Takaki Yoneyama <monoqlo[at]tsukuba-linux.org>
+
 Other contributers:
--who
+- Takayuki Horimoto <opentaka[at]tsukuba-linux.org>
