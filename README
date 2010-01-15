@@ -1,0 +1,17 @@
+NAME: gwit
+DESCRIPTION:
+  `gwit` or Gtk tWITter client is an open source twitter client made with usability in mind. gwit uses pyGtk <http://www.pygtk.org/> and python-twoauth <http://www.techno-st.net/python-twoauth/> library.  
+
+INSTALL: see INSTALL
+
+LICENCE: `gwit` is licensed under GNU General Public License (GPL) version 3. Please refer to COPYING for more information.
+
+BUGS:
+Patches / bug reports should be submitted to the core developer at techno@tsukuba-linux.org
+
+AUTHOR(S):
+This project is part of the "TsukuLUG Make" from University of Tsukuba Linux User Group <http://www.tsukuba-linux.org/>
+Listed are the core developers:
+-who
+Other contributers:
+-who
