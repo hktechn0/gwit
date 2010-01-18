@@ -1,0 +1,36 @@
+//////////////////////////////////////////////////
+
+ ::::::::  :::       ::: ::::::::::: ::::::::::: 
+:+:    :+: :+:       :+:     :+:         :+:     
++:+        +:+       +:+     +:+         +:+     
+:#:        +#+  +:+  +#+     +#+         +#+     
++#+   +#+# +#+ +#+#+ +#+     +#+         +#+     
+#+#    #+#  #+#+# #+#+#      #+#         #+#     
+ ########    ###   ###   ###########     ###     
+
+//////////////////////////////////////////////////
+
+名前: gwit
+
+説明: 
+”gwit”（Gtk tWITter client）はオープンソースなTwitterクライアントです。
+gwitはpyGtk <http://www.pygtk.org/> and python-twoauth <http://www.techno-st.net/python-twoauth/> ライブラリを使っています。
+
+WWW: http://dev.tsukuba-linux.org/gwit
+
+インストール方法: ”INSTALL”を読んでください。
+
+ライセンス: ”gwit”はGNU General Public License (GPL) version 3に基づいています. より詳しく知りたい方はCOPYINGを参照してください。
+
+バグについて:
+Patches / bug の報告は”techno@tsukuba-linux.org”の主要開発者までお願いします。
+
+企画:
+このプロジェクトはつくらぐ（筑波Linuxユーザーグループ）<http://www.tsukuba-linux.org/>による"TsukuLUG Make"の一部です。
+
+主要開発者:
+- 川田 裕貴（Hirotaka Kawata） <techno[at]tsukuba-linux.org>
+- 米山 隆貴（Takaki Yoneyama） <monoqlo[at]tsukuba-linux.org>
+
+開発協力者:
+- 堀本 貴幸（Takayuki Horimoto） <opentaka[at]tsukuba-linux.org>
