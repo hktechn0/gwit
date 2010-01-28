@@ -11,7 +11,7 @@
     </columns>
   </object>
   <object class="GtkWindow" id="window1">
-    <property name="width_request">320</property>
+    <property name="width_request">400</property>
     <property name="height_request">480</property>
     <signal name="destroy" handler="close"/>
     <child>
@@ -72,6 +72,7 @@
                         <property name="visible">True</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
+                        <signal name="activate" handler="close"/>
                       </object>
                     </child>
                   </object>
@@ -183,35 +184,9 @@
                 <child type="tab">
                   <object class="GtkLabel" id="label1">
                     <property name="visible">True</property>
-                    <property name="label" translatable="yes">page 1</property>
+                    <property name="label" translatable="yes">Home</property>
                   </object>
                   <packing>
-                    <property name="tab_fill">False</property>
-                  </packing>
-                </child>
-                <child>
-                  <placeholder/>
-                </child>
-                <child type="tab">
-                  <object class="GtkLabel" id="label2">
-                    <property name="visible">True</property>
-                    <property name="label" translatable="yes">page 2</property>
-                  </object>
-                  <packing>
-                    <property name="position">1</property>
-                    <property name="tab_fill">False</property>
-                  </packing>
-                </child>
-                <child>
-                  <placeholder/>
-                </child>
-                <child type="tab">
-                  <object class="GtkLabel" id="label3">
-                    <property name="visible">True</property>
-                    <property name="label" translatable="yes">page 3</property>
-                  </object>
-                  <packing>
-                    <property name="position">2</property>
                     <property name="tab_fill">False</property>
                   </packing>
                 </child>
@@ -246,7 +221,6 @@
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
-                        <signal name="clicked" handler="refresh"/>
                       </object>
                       <packing>
                         <property name="expand">False</property>

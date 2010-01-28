@@ -59,7 +59,6 @@ class Main:
     
     # Window close event
     def close(self, widget):
-        print threading.activeCount()
         gtk.main_quit()
 
 if __name__ == "__main__":
@@ -67,4 +66,3 @@ if __name__ == "__main__":
     gladefile = "gwit.glade"
     gwit = Main(gladefile)
     gwit.main()
-    exit()
