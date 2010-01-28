@@ -2,9 +2,18 @@
 <interface>
   <requires lib="gtk+" version="2.16"/>
   <!-- interface-naming-policy project-wide -->
+  <object class="GtkListStore" id="liststore1">
+    <columns>
+      <!-- column-name gchararray1 -->
+      <column type="gchararray"/>
+      <!-- column-name gchararray2 -->
+      <column type="gchararray"/>
+    </columns>
+  </object>
   <object class="GtkWindow" id="window1">
     <property name="width_request">320</property>
     <property name="height_request">480</property>
+    <signal name="destroy" handler="close"/>
     <child>
       <object class="GtkVBox" id="vbox1">
         <property name="visible">True</property>
@@ -165,6 +174,8 @@
                       <object class="GtkTreeView" id="treeview1">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
+                        <property name="model">liststore1</property>
+                        <property name="headers_visible">False</property>
                       </object>
                     </child>
                   </object>
@@ -235,6 +246,7 @@
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
+                        <signal name="clicked" handler="refresh"/>
                       </object>
                       <packing>
                         <property name="expand">False</property>
