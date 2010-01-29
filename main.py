@@ -36,7 +36,7 @@ class Main:
         for i in tcol:
             self.obj.treeview1.append_column(i)
     
-    def main(self):
+    def main(self, keys):
         # Twitter class instance
         self.twitter = twitterapi(keys)
         # Set Event Hander (exec in every get home_timeline
@@ -60,9 +60,3 @@ class Main:
     # Window close event
     def close(self, widget):
         gtk.main_quit()
-
-if __name__ == "__main__":
-    execfile("config")
-    gladefile = "gwit.glade"
-    gwit = Main(gladefile)
-    gwit.main()

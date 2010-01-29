@@ -10,6 +10,7 @@ class twitterapi(threading.Thread):
     def __init__(self, keys):
         # init Thread
         threading.Thread.__init__(self)
+        self.setDaemon(True)
 
         # Generate API Library instance
         self.keys = keys
