@@ -10,27 +10,51 @@
 
 //////////////////////////////////////////////////
 
-名前: gwit
+【ソフト名】 gwit
+【製作者】 川田 裕貴（Hirotaka Kawata） 、米山 隆貴（Takaki Yoneyama）
+【開発協力】堀本 貴幸（Takayuki Horimoto）
+【種別】フリーウェア
+【開発言語】Python 2.6
+【開発環境】pyGtk <http://www.pygtk.org/> 、python-twoauth <http://www.techno-st.net/python-twoauth/> 
+【動作環境】Linux(debian,gentoo,ubuntuにて確認)		//ここはだれか直してください
+【バージョン】1.0
+【最終更新日】2010/x/x
+【WEB】http://dev.tsukuba-linux.org/gwit
 
-説明: 
-”gwit”（Gtk tWITter client）はオープンソースなTwitterクライアントです。
-gwitはpyGtk <http://www.pygtk.org/> and python-twoauth <http://www.techno-st.net/python-twoauth/> ライブラリを使っています。
+------------------------------------------------
 
-WWW: http://dev.tsukuba-linux.org/gwit
+◇ 概要 ◇
+	「gwit」（Gtk tWITter client）はオープンソースなTwitterクライアントです。
 
-インストール方法: ”INSTALL”を読んでください。
+◇ 動作条件 ◇
+	//technoたん頼みます
+	
+◇ インストール ・アンインストール ◇
+	「INSTALL」に記載してあります。こちらをお読みください。
 
-ライセンス: ”gwit”はGNU General Public License (GPL) version 3に基づいています. より詳しく知りたい方はCOPYINGを参照してください。
+◇ ライセンス ◇
+	「gwit」はGNU General Public License (GPL) version 3に基づいています。
+	より詳しく知りたい方はCOPYINGを参照してください。
 
-バグについて:
-Patches / bug の報告は”techno@tsukuba-linux.org”の主要開発者までお願いします。
+◇ バグ ◇
+	パッチやバグの報告は製作者までお願いします。
+	
+◇ 免責 ◇
+	このソフトを使用することにより発生した
+	いかなる損害についても、製作者は責任を負いません。
+	
+◇ 転載 ◇
+	//だれか頼みます
 
-企画:
-このプロジェクトはつくらぐ（筑波Linuxユーザーグループ）<http://www.tsukuba-linux.org/>による"TsukuLUG Make"の一部です。
+------------------------------------------------
+◇ 企画 ◇
+「gwit」は「TsukuLUG Make」の企画の一部です。
+「TsukuLUG Make」については以下のwebサイトをご覧ください。
 
-主要開発者:
-- 川田 裕貴（Hirotaka Kawata） <techno[at]tsukuba-linux.org>
-- 米山 隆貴（Takaki Yoneyama） <monoqlo[at]tsukuba-linux.org>
+http://www.tsukuba-linux.org/mediawiki/index.php?title=つくらぐ_Make
 
-開発協力者:
-- 堀本 貴幸（Takayuki Horimoto） <opentaka[at]tsukuba-linux.org>
+◇ 連絡先 ◇
+	つくらぐ：http://www.tsukuba-linux.org/
+		川田 裕貴（Hirotaka Kawata）	 ：techno[at]tsukuba-linux.org
+	 	米山 隆貴（Takaki Yoneyama）	 ：monoqlo[at]tsukuba-linux.org
+	 	堀本 貴幸（Takayuki Horimoto）：opentaka[at]tsukuba-linux.org
