@@ -1,0 +1,59 @@
+#!/usr/bin/env python
+#-*- coding: utf-8 -*-
+
+import os
+
+from ConfigParser import SafeConfigParser
+from main import Main
+
+if __name__ == "__main__":
+   # Config Parser
+   confp = SafeConfigParser()
+
+   # Config file absolute path
+   conf_path = os.path.join(
+      os.path.dirname(__file__), "gwit.conf")
+
+   # config file exist?
+   if os.path.isfile(conf_path):
+      # readfile
+      confp.read(conf_path)
+   else:
+      # Run Setup Wizard
+      from setupwizard import SetupWizard
+      setup = SetupWizard()
+      setup.main()
+
+      if setup.ok:
+         # if setup ok, set settings
+         confp.set("DEFAULT", "default_user", setup.screen_name)
+         confp.add_section(setup.screen_name)
+         confp.set(setup.screen_name, "ckey", setup.keys[0])
+         confp.set(setup.screen_name, "csecret", setup.keys[1])
+         confp.set(setup.screen_name, "atoken", setup.keys[2])
+         confp.set(setup.screen_name, "asecret", setup.keys[3])
+         del setup
+
+         # write config
+         fp = open(conf_path, "w")
+         confp.write(fp)
+         fp.close()
+      else:
+         # or die
+         exit()
+   
+   # Settings dict
+   settings = dict()
+   settings["DEFAULT"] = dict(confp.items("DEFAULT"))
+   for i in confp.sections():
+      settings[i] = dict(confp.items(i))
+
+   # Read settings
+   user = settings["DEFAULT"]["default_user"]
+   keys = (settings[user]["ckey"], settings[user]["csecret"], 
+    settings[user]["atoken"], settings[user]["asecret"])
+   
+   # Run Main()
+   gladefile = "gwit.glade"
+   gwit = Main(gladefile)
+   gwit.main(keys)
