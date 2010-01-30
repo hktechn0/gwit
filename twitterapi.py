@@ -15,12 +15,14 @@ class twitterapi(threading.Thread):
         # init id
         self.lastid = None
 
-        # Generate API Library instance
+        # OAuth key, token, secrets
         self.keys = keys
-        self.api = twoauth.api(*self.keys)
-    
+
+    # Start Thread
     def run(self):
-        # Start Thread
+        # Generate API Library instance
+        self.api = twoauth.api(*self.keys)
+
         while True:
             # Get home_timeline -> Exec EventHandler (Refresh TreeView)
             # Every 30 sec
