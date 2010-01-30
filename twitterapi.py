@@ -11,6 +11,9 @@ class twitterapi(threading.Thread):
         # init Thread
         threading.Thread.__init__(self)
         self.setDaemon(True)
+        
+        # init id
+        self.lastid = None
 
         # Generate API Library instance
         self.keys = keys
@@ -27,4 +30,5 @@ class twitterapi(threading.Thread):
     
     def autoreload(self):
         # Get Home Timeline
-        self.home = self.api.home_timeline()
+        self.home = self.api.home_timeline(since_id = self.lastid, count = 200)
+        self.lastid = self.home[-1].id
