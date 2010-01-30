@@ -53,8 +53,8 @@ class Main:
     def refresh(self, *args):
         gtk.gdk.threads_enter()
         for i in self.twitter.home:
-            self.obj.liststore1.append(
-                (i.user.screen_name, i.text))
+            self.obj.liststore1.insert(
+                0, (i.user.screen_name, i.text))
         gtk.gdk.threads_leave()
     
     # Window close event
