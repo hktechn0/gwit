@@ -23,6 +23,9 @@ class Main:
         # usage: self.obj.`objectname`
         # ex) self.obj.button1
         self.obj = GtkObjects(builder.get_objects())
+
+        self.tladj = gtk.Adjustment(value = 0)
+        self.obj.scrolledwindow1.set_vadjustment(self.tladj)
         
         # Setting TreeView Column
         cr_txt = gtk.CellRendererText()
@@ -52,9 +55,28 @@ class Main:
     # Refresh TreeView
     def refresh(self, *args):
         gtk.gdk.threads_enter()
+        
+        # Insert New Status
         for i in self.twitter.home:
             self.obj.liststore1.insert(
                 0, (i.user.screen_name, i.text))
+        
+        gtk.gdk.threads_leave()
+        
+        while True:
+            gtk.gdk.threads_enter()
+            if gtk.events_pending():
+                gtk.main_iteration()
+                gtk.gdk.threads_leave()
+            else:
+                gtk.gdk.threads_leave()
+                break
+        
+        gtk.gdk.threads_enter()
+        
+        # Scroll to top
+        self.tladj.set_value(0)
+        
         gtk.gdk.threads_leave()
     
     # Window close event
