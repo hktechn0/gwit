@@ -33,4 +33,5 @@ class twitterapi(threading.Thread):
     def autoreload(self):
         # Get Home Timeline
         self.home = self.api.home_timeline(since_id = self.lastid, count = 200)
-        self.lastid = self.home[-1].id
+        if self.home:
+            self.lastid = self.home[-1].id
