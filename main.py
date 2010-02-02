@@ -24,9 +24,6 @@ class Main:
         # ex) self.obj.button1
         self.obj = GtkObjects(builder.get_objects())
 
-        self.tladj = gtk.Adjustment(value = 0)
-        self.obj.scrolledwindow1.set_vadjustment(self.tladj)
-        
         # Setting TreeView Column
         cr_txt = gtk.CellRendererText()
         tcol = list()
@@ -44,13 +41,17 @@ class Main:
         self.twitter = twitterapi(keys)
         # Set Event Hander (exec in every get home_timeline
         self.twitter.EventHandler = self.refresh
+        
+        self.obj.window1.show_all()
+        
+        # Gtk Multithread Setup
+        gtk.gdk.threads_init()
+        gtk.gdk.threads_enter()
         # Twitter class thread start
         self.twitter.start()
-        
-        # Start gtk main loop
-        self.obj.window1.show_all()
-        gtk.gdk.threads_init()
+        # Start gtk main loop        
         gtk.main()
+        gtk.gdk.threads_leave()
     
     # Refresh TreeView
     def refresh(self, *args):
@@ -61,22 +62,20 @@ class Main:
             self.obj.liststore1.insert(
                 0, (i.user.screen_name, i.text))
         
+        self.obj.treeview1.show_all()
+        self.obj.scrolledwindow1.show_all()
+        self.obj.window1.show_all()
+ 
+        gtk.gdk.flush()
         gtk.gdk.threads_leave()
-        
-        while True:
-            gtk.gdk.threads_enter()
-            if gtk.events_pending():
-                gtk.main_iteration()
-                gtk.gdk.threads_leave()
-            else:
-                gtk.gdk.threads_leave()
-                break
         
         gtk.gdk.threads_enter()
         
         # Scroll to top
-        self.tladj.set_value(0)
-        
+        vadj = self.obj.scrolledwindow1.get_vadjustment()
+        vadj.set_value(0)
+        self.obj.scrolledwindow1.set_vadjustment(vadj)
+
         gtk.gdk.threads_leave()
     
     # Window close event

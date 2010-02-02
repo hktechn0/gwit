@@ -27,11 +27,11 @@ class twitterapi(threading.Thread):
             # Get home_timeline -> Exec EventHandler (Refresh TreeView)
             # Every 30 sec
             self.autoreload()
-            self.EventHandler()
-            time.sleep(30)
+            time.sleep(10)
     
     def autoreload(self):
         # Get Home Timeline
         self.home = self.api.home_timeline(since_id = self.lastid, count = 200)
         if self.home:
             self.lastid = self.home[-1].id
+            self.EventHandler()
