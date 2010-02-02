@@ -220,11 +220,7 @@
                     <property name="layout_style">center</property>
                     <child>
                       <object class="GtkButton" id="button1">
-<<<<<<< HEAD:gwit.glade
-                        <property name="label" translatable="yes">update</property>
-=======
                         <property name="label" translatable="yes">Update</property>
->>>>>>> 2a6b5138601b48703f733176b057b0c3db874546:gwit.glade
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
