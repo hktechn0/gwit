@@ -170,13 +170,16 @@
                   <object class="GtkScrolledWindow" id="scrolledwindow1">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
+                    <property name="resize_mode">immediate</property>
                     <property name="hscrollbar_policy">never</property>
                     <child>
                       <object class="GtkTreeView" id="treeview1">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
+                        <property name="resize_mode">immediate</property>
                         <property name="model">liststore1</property>
                         <property name="headers_visible">False</property>
+                        <property name="rules_hint">True</property>
                       </object>
                     </child>
                   </object>
@@ -217,7 +220,11 @@
                     <property name="layout_style">center</property>
                     <child>
                       <object class="GtkButton" id="button1">
+<<<<<<< HEAD:gwit.glade
                         <property name="label" translatable="yes">update</property>
+=======
+                        <property name="label" translatable="yes">Update</property>
+>>>>>>> 2a6b5138601b48703f733176b057b0c3db874546:gwit.glade
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
@@ -230,7 +237,7 @@
                     </child>
                     <child>
                       <object class="GtkButton" id="button2">
-                        <property name="label" translatable="yes">button</property>
+                        <property name="label" translatable="yes">Image</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>

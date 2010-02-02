@@ -7,4 +7,7 @@ class GtkObjects:
             try:
                 setattr(self, i.name, i)
             except:
-                setattr(self, i.get_name(), i)
+                try:
+                    setattr(self, i.get_name(), i)
+                except:
+                    pass

@@ -28,11 +28,14 @@ class SetupWizard:
         
         self.oauth = twoauth.oauth(*self.keys)
         self.rtoken = self.oauth.request_token()
-        authurl = self.oauth.authorize_url(self.rtoken)
-        
-        lbutt = gtk.LinkButton(authurl, "Please Allow This Application")
+        self.authurl = self.oauth.authorize_url(self.rtoken)
+
+        # Unmask lbutt once clicked
+        lbutt = gtk.LinkButton(self.authurl, "Please Allow This Application")
+        lbutt.connect("clicked", self.show_and_enable_pin)
+
         self.obj.table1.attach(lbutt, 1, 2, 0, 1)
-    
+        
     def main(self):
         self.obj.window1.show_all()
         gtk.main()
@@ -40,6 +43,16 @@ class SetupWizard:
     def close(self, widget):
         gtk.main_quit()
 
+    def show_and_enable_pin(self, widget):
+        
+        urldlg = gtk.MessageDialog(buttons = gtk.BUTTONS_OK, message_format = self.authurl)
+        urldlg.connect("response", self.show_and_enable_pin_close)
+        urldlg.run()
+        self.obj.entry1.set_sensitive(True)
+
+    def show_and_enable_pin_close(self, dialog, response_id):
+        dialog.destroy()
+        
     def on_button1_clicked(self, widget):
         pin = int(self.obj.entry1.get_text())
         
