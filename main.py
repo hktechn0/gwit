@@ -55,8 +55,8 @@ class Main:
         for i in self.twitter.home:
             self.obj.liststore1.insert(
                 0, (i.user.screen_name, i.text))
-        gtk.gdk.threads_leave()
-    
+        gtk.gdk.throeads_leave()
+
     # Window close event
     def close(self, widget):
         gtk.main_quit()
