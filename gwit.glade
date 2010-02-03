@@ -172,6 +172,7 @@
                     <property name="can_focus">True</property>
                     <property name="resize_mode">immediate</property>
                     <property name="hscrollbar_policy">never</property>
+                    <property name="shadow_type">out</property>
                     <child>
                       <object class="GtkTreeView" id="treeview1">
                         <property name="visible">True</property>

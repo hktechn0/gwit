@@ -7,6 +7,7 @@ import gtk
 
 from objects import GtkObjects
 from twitterapi import twitterapi
+from statusview import statusview
 
 # Main Class
 class Main:
@@ -40,6 +41,9 @@ class Main:
         vadj = self.obj.scrolledwindow1.get_vadjustment()
         vadj.connect("changed", self.vadj_changed)
         self.vadj_upper = vadj.get_upper()
+
+        mentions = statusview()
+        mentions.add(self.obj.notebook1, "Mentions")
     
     def main(self, keys):
         # Twitter class instance
@@ -86,4 +90,3 @@ class Main:
         txt = buf.get_text(start, end)
         self.twitter.api.status_update(txt)
         buf.set_text("")
- 
