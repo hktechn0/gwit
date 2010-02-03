@@ -69,6 +69,11 @@ class Main:
         
         gtk.gdk.threads_leave()
     
+    # Status Update
+    def on_button1_clicked(self, widget):
+        txt = self.obj.textview1.get_buffer()
+        self.twitter.api.status_update(txt.get_text(txt.get_start_iter(), txt.get_end_iter()))
+    
     # Window close event
     def close(self, widget):
         gtk.main_quit()
