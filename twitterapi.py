@@ -27,7 +27,7 @@ class twitterapi(threading.Thread):
             # Get home_timeline -> Exec EventHandler (Refresh TreeView)
             # Every 30 sec
             self.autoreload()
-            time.sleep(10)
+            time.sleep(30)
     
     def autoreload(self):
         # Get Home Timeline
