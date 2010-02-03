@@ -85,8 +85,30 @@ class Main:
 
     # Status Update
     def on_button1_clicked(self, widget):
+        txt = self.get_text()
+        if self.re == 1:
+            self.twitter.api.status_update(
+                txt, in_reply_to_status_id = None)
+            self.clear_buf()
+            self.re = 0
+        else:
+            self.twitter.api.status_update(txt)
+            self.clear_buf()
+
+    # Reply
+    def on_treeview1_row_activated(self, treeview, path, view_column):
+        self.re = 1
+        path_name = self.obj.liststore1[path]
+        buf = self.obj.textview1.get_buffer()
+        buf.set_text("@%s " %(path_name[0]))
+
+    # Get text
+    def get_text(self):
         buf = self.obj.textview1.get_buffer()
         start, end = buf.get_start_iter(), buf.get_end_iter()
-        txt = buf.get_text(start, end)
-        self.twitter.api.status_update(txt)
+        return  buf.get_text(start, end)
+
+    # Clear Buf
+    def clear_buf(self):
+        buf = self.obj.textview1.get_buffer()
         buf.set_text("")

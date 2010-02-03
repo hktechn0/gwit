@@ -181,6 +181,7 @@
                         <property name="model">liststore1</property>
                         <property name="headers_visible">False</property>
                         <property name="rules_hint">True</property>
+                        <signal name="row_activated" handler="on_treeview1_row_activated"/>
                       </object>
                     </child>
                   </object>
