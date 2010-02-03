@@ -54,7 +54,7 @@ class Main:
         gtk.gdk.threads_enter()
         # Twitter class thread start
         self.twitter.start()
-        # Start gtk main loop        
+        # Start gtk main loop
         gtk.main()
         gtk.gdk.threads_leave()
     
@@ -69,17 +69,21 @@ class Main:
         
         gtk.gdk.threads_leave()
     
-    # Status Update
-    def on_button1_clicked(self, widget):
-        txt = self.obj.textview1.get_buffer()
-        self.twitter.api.status_update(txt.get_text(txt.get_start_iter(), txt.get_end_iter()))
-    
     # Window close event
     def close(self, widget):
         gtk.main_quit()
-
+    
     def vadj_changed(self, adj):
         # Scroll to top if upper(list length) changed
         if self.vadj_upper < adj.get_upper():
             self.vadj_upper = adj.get_upper()
             adj.set_value(0)
+
+    # Status Update
+    def on_button1_clicked(self, widget):
+        buf = self.obj.textview1.get_buffer()
+        start, end = buf.get_start_iter(), buf.get_end_iter()
+        txt = buf.get_text(start, end)
+        self.twitter.api.status_update(txt)
+        buf.set_text("")
+ 
