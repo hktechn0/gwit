@@ -35,6 +35,11 @@ class Main:
         # Add Column
         for i in tcol:
             self.obj.treeview1.append_column(i)
+        
+        # Auto scroll to top setup
+        vadj = self.obj.scrolledwindow1.get_vadjustment()
+        vadj.connect("changed", self.vadj_changed)
+        self.vadj_upper = vadj.get_upper()
     
     def main(self, keys):
         # Twitter class instance
@@ -59,25 +64,17 @@ class Main:
         
         # Insert New Status
         for i in self.twitter.home:
-            self.obj.liststore1.insert(
-                0, (i.user.screen_name, i.text))
+            self.obj.liststore1.prepend(
+                (i.user.screen_name, i.text))
         
-        self.obj.treeview1.show_all()
-        self.obj.scrolledwindow1.show_all()
-        self.obj.window1.show_all()
- 
-        gtk.gdk.flush()
-        gtk.gdk.threads_leave()
-        
-        gtk.gdk.threads_enter()
-        
-        # Scroll to top
-        vadj = self.obj.scrolledwindow1.get_vadjustment()
-        vadj.set_value(0)
-        self.obj.scrolledwindow1.set_vadjustment(vadj)
-
         gtk.gdk.threads_leave()
     
     # Window close event
     def close(self, widget):
         gtk.main_quit()
+
+    def vadj_changed(self, adj):
+        # Scroll to top if upper(list length) changed
+        if self.vadj_upper < adj.get_upper():
+            self.vadj_upper = adj.get_upper()
+            adj.set_value(0)
