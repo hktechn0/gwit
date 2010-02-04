@@ -60,6 +60,7 @@ class Main:
         for i in data:
             self.views[index].store.prepend(
                 (i.user.screen_name ,i.text))
+        print self.twitter.threads[index].timeline[0].id
         
         gtk.gdk.threads_leave()
     
@@ -104,7 +105,7 @@ class Main:
     def clear_buf(self):
         buf = self.obj.textview1.get_buffer()
         buf.set_text("")
-
+    
     # Tab append
     def tab_append(self, name, method, sleep):
         # Generate Views

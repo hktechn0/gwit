@@ -9,11 +9,16 @@ import gobject
 class statusview:
     def __init__(self):
         self.scrwin = gtk.ScrolledWindow()
-        self.store = gtk.ListStore(gobject.TYPE_STRING, gobject.TYPE_STRING)
+        
+        # Liststore column setting
+        self.store = gtk.ListStore(
+            gobject.TYPE_STRING, gobject.TYPE_STRING)
         self.treeview = gtk.TreeView(self.store)
         
+        # Add treeview to scrolledwindow
         self.scrwin.add(self.treeview)
         self.scrwin.set_shadow_type(gtk.SHADOW_IN)
+        # Scrollbar policy
         self.scrwin.set_policy(
             gtk.POLICY_NEVER, gtk.POLICY_ALWAYS)
         

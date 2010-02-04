@@ -36,20 +36,23 @@ class autoreload(threading.Thread):
         self.func = func
         self.sleep = sleep
         self.lastid = None
+        self.timeline = list()
     
     # Thread run
     def run(self):
         while True:
             # Get Timeline
-            self.data = self.func(
+            self.last = self.func(
                 count = 200, since_id = self.lastid)
             
             # If Timeline update
-            if self.data:
+            if self.last:
+                # append new statuses to timeline buffer
+                self.timeline.extend(self.last)
                 # update lastid
-                self.lastid = self.data[-1].id
+                self.lastid = self.last[-1].id
                 # exec EventHander (TreeView Refresh
-                self.EventHandler(self.data, self.index)
+                self.EventHandler(self.last, self.index)
             
             # Sleep
             time.sleep(self.sleep)
