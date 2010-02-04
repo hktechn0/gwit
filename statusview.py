@@ -40,7 +40,7 @@ class statusview:
         # Auto scroll to top setup
         vadj = self.scrwin.get_vadjustment()
         vadj.connect("changed", self.vadj_changed)
-        self.vadj_upper = vadj.get_upper()
+        self.vadj_upper = vadj.upper
     
     def add(self, notebook, name = None):
         label = gtk.Label(name)
@@ -48,6 +48,6 @@ class statusview:
     
     def vadj_changed(self, adj):
         # Scroll to top if upper(list length) changed
-        if self.vadj_upper < adj.get_upper():
-            self.vadj_upper = adj.get_upper()
+        if self.vadj_upper < adj.upper:
+            self.vadj_upper = adj.upper
             adj.set_value(0)

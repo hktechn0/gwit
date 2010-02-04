@@ -68,12 +68,6 @@ class Main:
     def close(self, widget):
         gtk.main_quit()
     
-    def vadj_changed(self, adj):
-        # Scroll to top if upper(list length) changed
-        if self.vadj_upper < adj.get_upper():
-            self.vadj_upper = adj.get_upper()
-            adj.set_value(0)
-    
     # Status Update
     def on_button1_clicked(self, widget):
         txt = self.get_text()
