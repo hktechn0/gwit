@@ -6,32 +6,50 @@ import threading
 import time
 
 # Twitter API Class
-class twitterapi(threading.Thread):
+class twitterapi():
     def __init__(self, keys):
-        # init Thread
-        threading.Thread.__init__(self)
-        self.setDaemon(True)
-        
         # init id
         self.lastid = None
-
         # OAuth key, token, secrets
         self.keys = keys
-
-    # Start Thread
-    def run(self):
         # Generate API Library instance
         self.api = twoauth.api(*self.keys)
 
-        while True:
-            # Get home_timeline -> Exec EventHandler (Refresh TreeView)
-            # Every 30 sec
-            self.autoreload()
-            time.sleep(30)
+        self.threads = list()
     
-    def autoreload(self):
-        # Get Home Timeline
-        self.home = self.api.home_timeline(since_id = self.lastid, count = 200)
-        if self.home:
-            self.lastid = self.home[-1].id
-            self.EventHandler()
+    def add(self, func, sleep):
+        # Add New Timeline Thread
+        th = autoreload(
+            len(self.threads), getattr(self.api, func), sleep)
+        th.EventHandler = self.EventHandler
+        th.start()
+        self.threads.append(th)
+
+# Timeline Thread
+class autoreload(threading.Thread):
+    def __init__(self, index, func, sleep):
+        # Thread Initialize
+        threading.Thread.__init__(self)
+        self.setDaemon(True)
+        
+        self.index = index
+        self.func = func
+        self.sleep = sleep
+        self.lastid = None
+    
+    # Thread run
+    def run(self):
+        while True:
+            # Get Timeline
+            self.data = self.func(
+                count = 200, since_id = self.lastid)
+            
+            # If Timeline update
+            if self.data:
+                # update lastid
+                self.lastid = self.data[-1].id
+                # exec EventHander (TreeView Refresh
+                self.EventHandler(self.data, self.index)
+            
+            # Sleep
+            time.sleep(self.sleep)

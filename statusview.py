@@ -4,12 +4,14 @@
 import pygtk
 pygtk.require('2.0')
 import gtk
+import gobject
 
 class statusview:
     def __init__(self):
         self.scrwin = gtk.ScrolledWindow()
-        self.treeview = gtk.TreeView()
-
+        self.store = gtk.ListStore(gobject.TYPE_STRING, gobject.TYPE_STRING)
+        self.treeview = gtk.TreeView(self.store)
+        
         self.scrwin.add(self.treeview)
         self.scrwin.set_shadow_type(gtk.SHADOW_IN)
         self.scrwin.set_policy(
