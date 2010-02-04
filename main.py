@@ -52,6 +52,9 @@ class Main:
         self.twitter.EventHandler = self.refresh
         
         self.obj.window1.show_all()
+
+        # Set Default Mention Flag
+        self.re = 0
         
         # Gtk Multithread Setup
         gtk.gdk.threads_init()
