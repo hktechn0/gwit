@@ -6,8 +6,8 @@ pygtk.require('2.0')
 import gtk
 
 from objects import GtkObjects
+from timeline import timeline
 from twitterapi import twitterapi
-from statusview import statusview
 
 # Main Class
 class Main:
@@ -28,41 +28,35 @@ class Main:
         # Set Default Mention Flag
         self.re = 0
         
-        # Setup status views
-        self.views = list()
+        # init status timelines
+        self.timelines = list()
     
     def main(self, keys):
         # Twitter class instance
         self.twitter = twitterapi(keys)
-        # Set Event Hander (exec in every get timeline
-        self.twitter.EventHandler = self.refresh
-
+        
         # Set Status Views
         for i in (("Home", "home_timeline", 30),
                   ("Mentions", "mentions", 300)):
-            self.tab_append(*i)
+            # Create Timeline Object
+            tl = timeline(self.twitter)
+            self.timelines.append(tl)
+            # Start sync timeline
+            tl.start_sync(*i[1:])
+            # Add Notebook (Tab view)
+            tl.add_notebook(self.obj.notebook1, i[0])
+            # row-activated signal connect
+            tl.treeview.connect(
+                "row-activated", 
+                self.on_treeview_row_activated)
         
         self.obj.window1.show_all()
         
         # Gtk Multithread Setup
         gtk.gdk.threads_init()
         gtk.gdk.threads_enter()
-        
         # Start gtk main loop
         gtk.main()
-        gtk.gdk.threads_leave()
-    
-    # Refresh TreeView
-    def refresh(self, data, index):
-        gtk.gdk.threads_enter()
-        
-        # Insert New Status
-        for i in data:
-            self.views[index].store.prepend(
-                (i.user.screen_name ,i.text))
-        
-        #print self.twitter.threads[index].timeline[0].id
-        
         gtk.gdk.threads_leave()
     
     # Window close event
@@ -100,19 +94,3 @@ class Main:
     def clear_buf(self):
         buf = self.obj.textview1.get_buffer()
         buf.set_text("")
-    
-    # Tab append
-    def tab_append(self, name, method, sleep):
-        # Generate Views
-        view = statusview()
-        view.add(self.obj.notebook1, name)
-        
-        # row-activated signal connect
-        view.treeview.connect(
-            "row-activated", 
-            self.on_treeview_row_activated)
-        
-        # View append
-        self.views.append(view)
-        # Timeline append
-        self.twitter.add(method, sleep)

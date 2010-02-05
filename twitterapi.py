@@ -8,31 +8,23 @@ import time
 # Twitter API Class
 class twitterapi():
     def __init__(self, keys):
-        # init id
-        self.lastid = None
-        # OAuth key, token, secrets
-        self.keys = keys
         # Generate API Library instance
-        self.api = twoauth.api(*self.keys)
-
+        self.api = twoauth.api(*keys)
         self.threads = list()
     
-    def add(self, func, sleep):
+    def create_timeline(self, func, sleep):
         # Add New Timeline Thread
-        th = autoreload(
-            len(self.threads), getattr(self.api, func), sleep)
-        th.EventHandler = self.EventHandler
-        th.start()
+        th = timeline_thread(getattr(self.api, func), sleep)
         self.threads.append(th)
+        return th
 
 # Timeline Thread
-class autoreload(threading.Thread):
-    def __init__(self, index, func, sleep):
+class timeline_thread(threading.Thread):
+    def __init__(self, func, sleep):
         # Thread Initialize
         threading.Thread.__init__(self)
         self.setDaemon(True)
         
-        self.index = index
         self.func = func
         self.sleep = sleep
         self.lastid = None
@@ -52,7 +44,7 @@ class autoreload(threading.Thread):
                 # update lastid
                 self.lastid = self.last[-1].id
                 # exec EventHander (TreeView Refresh
-                self.EventHandler(self.last, self.index)
+                self.reloadEventHandler(self.last)
             
             # Sleep
             time.sleep(self.sleep)
