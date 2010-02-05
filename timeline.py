@@ -7,6 +7,8 @@ import gtk
 import gobject
 import pango
 
+import urllib2
+
 class timeline:
     def __init__(self, api):
         self.api = api
@@ -16,6 +18,7 @@ class timeline:
         
         # Liststore column setting
         self.store = gtk.ListStore(
+            gtk.gdk.Pixbuf,
             gobject.TYPE_STRING, gobject.TYPE_STRING)
         self.treeview = gtk.TreeView(self.store)
         
@@ -32,16 +35,18 @@ class timeline:
                               self._treeview_width_changed)
         
         # Setting TreeView Column
-        #crpix_icon = gtk.CellRendererPixbuf()
+        crpix_icon = gtk.CellRendererPixbuf()
         crtxt_name = gtk.CellRendererText()
         crtxt_text = gtk.CellRendererText()
         crtxt_text.set_property("wrap-mode", pango.WRAP_WORD)
         
         tcol = list()
         tcol.append(
-            gtk.TreeViewColumn("Name", crtxt_name, text = 0))
+            gtk.TreeViewColumn("Icon", crpix_icon, pixbuf = 0))
         tcol.append(
-            gtk.TreeViewColumn("Text", crtxt_text, text = 1))
+            gtk.TreeViewColumn("Name", crtxt_name, text = 1))
+        tcol.append(
+            gtk.TreeViewColumn("Text", crtxt_text, text = 2))
         
         # Add Column
         for i in tcol:
@@ -75,11 +80,13 @@ class timeline:
         
         columns = treeview.get_columns()
         
-        # Get "Name" width
-        width2 = columns[0].get_property("width")
-
+        # Get !("Text") width
+        width2 = 0
+        for i in columns[:2]:
+            width2 += i.get_property("width")
+        
         # Set "Text" width
-        cellr = columns[1].get_cell_renderers()
+        cellr = columns[2].get_cell_renderers()
         cellr[0].set_property("wrap-width", width - width2)
     
     # Scroll to top if upper(list length) changed Event
@@ -89,13 +96,28 @@ class timeline:
             adj.set_value(0)
 
     # Prepend new statuses
-    def _prepend_new_statuses(self, data):
+    def _prepend_new_statuses(self, new_timeline):
         gtk.gdk.threads_enter()
         
         # Insert New Status
-        for i in data:
+        for i in new_timeline:
+            # Icon Data Get
+            ico = urllib2.urlopen(i.user.profile_image_url)
+            icodat = ico.read()
+            
+            # Load Pixbuf Loader and Create Pixbuf
+            icoldr = gtk.gdk.PixbufLoader()
+            icoldr.write(icodat)
+            icopix = icoldr.get_pixbuf()
+            icoldr.close()
+
+            # Resize
+            if icopix != None and icopix.get_property("width") > 48:
+                icopix = icopix.scale_simple(48, 48, gtk.gdk.INTERP_NEAREST)
+            
+            # New Status Prepend to Liststore (Add row)
             self.store.prepend(
-                (i.user.screen_name ,i.text))
+                (icopix, i.user.screen_name, i.text))
         
         #print self.timeline.timeline[-1].id
         
