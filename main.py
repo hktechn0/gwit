@@ -60,7 +60,8 @@ class Main:
         for i in data:
             self.views[index].store.prepend(
                 (i.user.screen_name ,i.text))
-        print self.twitter.threads[index].timeline[0].id
+        
+        #print self.twitter.threads[index].timeline[0].id
         
         gtk.gdk.threads_leave()
     
@@ -87,7 +88,7 @@ class Main:
         liststore = treeview.get_model()
         path_name = liststore[path]
         buf = self.obj.textview1.get_buffer()
-        buf.set_text("@%s " %(path_name[0]))
+        buf.set_text("@%s " % (path_name[0]))
     
     # Get text
     def get_text(self):
