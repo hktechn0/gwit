@@ -7,11 +7,10 @@ import gtk
 import gobject
 import pango
 
-import urllib2
-
 class timeline:
-    def __init__(self, api):
+    def __init__(self, api, icons):
         self.api = api
+        self.icons = icons
         
         # Base scrolledwindow
         self.scrwin = gtk.ScrolledWindow()
@@ -101,23 +100,9 @@ class timeline:
         
         # Insert New Status
         for i in new_timeline:
-            # Icon Data Get
-            ico = urllib2.urlopen(i.user.profile_image_url)
-            icodat = ico.read()
-            
-            # Load Pixbuf Loader and Create Pixbuf
-            icoldr = gtk.gdk.PixbufLoader()
-            icoldr.write(icodat)
-            icopix = icoldr.get_pixbuf()
-            icoldr.close()
-
-            # Resize
-            if icopix != None and icopix.get_property("width") > 48:
-                icopix = icopix.scale_simple(48, 48, gtk.gdk.INTERP_NEAREST)
-            
             # New Status Prepend to Liststore (Add row)
             self.store.prepend(
-                (icopix, i.user.screen_name, i.text))
+                (self.icons.get(i.user), i.user.screen_name, i.text))
         
         #print self.timeline.timeline[-1].id
         

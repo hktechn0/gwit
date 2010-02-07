@@ -8,6 +8,7 @@ import gtk
 from objects import GtkObjects
 from timeline import timeline
 from twitterapi import twitterapi
+from iconstore import IconStore
 
 # Main Class
 class Main:
@@ -30,6 +31,8 @@ class Main:
         
         # init status timelines
         self.timelines = list()
+        # init icon store
+        self.icons = IconStore()
     
     def main(self, keys):
         # Twitter class instance
@@ -39,7 +42,7 @@ class Main:
         for i in (("Home", "home_timeline", 30),
                   ("Mentions", "mentions", 300)):
             # Create Timeline Object
-            tl = timeline(self.twitter)
+            tl = timeline(self.twitter, self.icons)
             self.timelines.append(tl)
             # Start sync timeline
             tl.start_sync(*i[1:])
