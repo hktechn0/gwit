@@ -96,14 +96,13 @@ class timeline:
 
     # Prepend new statuses
     def _prepend_new_statuses(self, new_timeline):
-        gtk.gdk.threads_enter()
-        
         # Insert New Status
         for i in new_timeline:
             # New Status Prepend to Liststore (Add row)
+            gtk.gdk.threads_enter()
             self.store.prepend(
-                (self.icons.get(i.user), i.user.screen_name, i.text))
+                (self.icons.get(i.user, self.store),
+                 i.user.screen_name, i.text))
+            gtk.gdk.threads_leave()
         
         #print self.timeline.timeline[-1].id
-        
-        gtk.gdk.threads_leave()
