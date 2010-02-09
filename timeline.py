@@ -51,10 +51,14 @@ class timeline:
         for i in tcol:
             self.treeview.append_column(i)
         
+        # Add ListStore to IconStore
+        self.icons.add_store(self.store)
+        
         # Auto scroll to top setup
         vadj = self.scrwin.get_vadjustment()
-        vadj.connect("changed", self._vadj_changed)
         self.vadj_upper = vadj.upper
+        self.vadj_lock = False
+        vadj.connect("changed", self._vadj_changed)
     
     # Start Sync Timeline (new twitter timeline thread create)
     def start_sync(self, method, time):
@@ -76,7 +80,7 @@ class timeline:
     def _treeview_width_changed(self, treeview, allocate):
         # Get Treeview Width
         width = treeview.get_allocation().width
-        
+        # Get Treeview Columns
         columns = treeview.get_columns()
         
         # Get !("Text") width
@@ -90,18 +94,22 @@ class timeline:
     
     # Scroll to top if upper(list length) changed Event
     def _vadj_changed(self, adj):
-        if self.vadj_upper < adj.upper:
+        if not self.vadj_lock and self.vadj_upper < adj.upper:
+            self.treeview.scroll_to_cell((0,))
             self.vadj_upper = adj.upper
-            adj.set_value(0)
-
+    
     # Prepend new statuses
     def _prepend_new_statuses(self, new_timeline):
+        # Auto scroll lock if adjustment changed manually
+        vadj = self.scrwin.get_vadjustment()
+        self.vadj_lock = True if vadj.value != 0.0 else False
+        
         # Insert New Status
         for i in new_timeline:
             # New Status Prepend to Liststore (Add row)
             gtk.gdk.threads_enter()
             self.store.prepend(
-                (self.icons.get(i.user, self.store),
+                (self.icons.get(i.user),
                  i.user.screen_name, i.text))
             gtk.gdk.threads_leave()
         
