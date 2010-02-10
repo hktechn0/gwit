@@ -58,11 +58,11 @@ class NewIcon(threading.Thread):
         
         # Add iconstore
         self.icons[self.user.id] = icopix
-        
+
         # Icon Refresh
-        gtk.gdk.threads_enter()
         for store in self.stores:
             for i, j in enumerate(iter(store)):
                 if j[1] == self.user.screen_name:
+                    gtk.gdk.threads_enter()
                     store[(i,)] = (icopix, j[1], j[2])
-        gtk.gdk.threads_leave()
+                    gtk.gdk.threads_leave()
