@@ -90,8 +90,12 @@ class timeline:
         
         # Set "Text" width
         cellr = columns[2].get_cell_renderers()
-        cellr[0].set_property("wrap-width", width - width2)
+        cellr[0].set_property("wrap-width", width - width2 - 10)
     
+        # Reset all data to change row height
+        for i, j in enumerate(iter(self.store)):
+            self.store[(i,)] = (j[0], j[1], j[2])
+        
     # Scroll to top if upper(list length) changed Event
     def _vadj_changed(self, adj):
         if not self.vadj_lock and self.vadj_upper < adj.upper:
