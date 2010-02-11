@@ -6,6 +6,8 @@ pygtk.require('2.0')
 import gtk
 
 import threading
+import random
+import time
 
 from objects import GtkObjects
 from timeline import timeline
@@ -66,6 +68,7 @@ class Main:
             tl.treeview.connect(
                 "row-activated", 
                 self.on_treeview_row_activated)
+            time.sleep(random.random())
     
     # Window close event
     def close(self, widget):
