@@ -109,7 +109,8 @@ class timeline:
     def _vadj_changed(self, adj):
         if not self.vadj_lock and \
                 self.vadj_upper < adj.upper:
-            self.treeview.scroll_to_cell((0,))
+            if len(self.store):
+                self.treeview.scroll_to_cell((0,))
             self.vadj_upper = adj.upper
     
     # Prepend new statuses
