@@ -50,6 +50,7 @@ class Main:
         gtk.main()
         gtk.gdk.threads_leave()
 
+    # Initialize Twitter API and Tabs (in another thread)
     def initialize(self, *keys):
         # Twitter class instance
         self.twitter = twitterapi(keys)
@@ -60,48 +61,64 @@ class Main:
             # Create Timeline Object
             tl = timeline(self.twitter, self.icons)
             self.timelines.append(tl)
+
             # Start sync timeline
             tl.start_sync(*i[1:])
             # Add Notebook (Tab view)
             tl.add_notebook(self.obj.notebook1, i[0])
+
             # row-activated signal connect
             tl.treeview.connect(
-                "row-activated", 
+                "row-activated",
                 self.on_treeview_row_activated)
+            tl.treeview.connect(
+                "button-press-event",
+                self.on_treeview_button_press)
+            
+            # insert littledelay
             time.sleep(random.random())
     
     # Window close event
     def close(self, widget):
         gtk.main_quit()
+
+    # Get text
+    def _get_text(self):
+        buf = self.obj.textview1.get_buffer()
+        start, end = buf.get_start_iter(), buf.get_end_iter()
+        return  buf.get_text(start, end)
+    
+    # Clear Buf
+    def _clear_buf(self):
+        buf = self.obj.textview1.get_buffer()
+        buf.set_text("")
+
+
+    ########################################
+    # Gtk Signal Events
     
     # Status Update
     def on_button1_clicked(self, widget):
-        txt = self.get_text()
+        txt = self._get_text()
         if self.re == 1:
             # in_reply_to is for future
             self.twitter.api.status_update(
                 txt, in_reply_to_status_id = None)
-            self.clear_buf()
+            self._clear_buf()
             self.re = 0
         else:
             self.twitter.api.status_update(txt)
-            self.clear_buf()
+            self._clear_buf()
     
-    # Reply
+    # Reply if double-clicked status
     def on_treeview_row_activated(self, treeview, path, view_column):
         self.re = 1
         liststore = treeview.get_model()
         path_name = liststore[path]
         buf = self.obj.textview1.get_buffer()
         buf.set_text("@%s " % (path_name[0]))
-    
-    # Get text
-    def get_text(self):
-        buf = self.obj.textview1.get_buffer()
-        start, end = buf.get_start_iter(), buf.get_end_iter()
-        return  buf.get_text(start, end)
-    
-    # Clear Buf
-    def clear_buf(self):
-        buf = self.obj.textview1.get_buffer()
-        buf.set_text("")
+
+    # Menu popup
+    def on_treeview_button_press(self, widget, event):
+        if event.button == 3:
+            self.obj.menu_timeline.popup(None, None, None, event.button, event.time)
