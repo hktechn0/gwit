@@ -19,8 +19,6 @@ class timeline:
         self.store = gtk.ListStore(
             gtk.gdk.Pixbuf,
             gobject.TYPE_STRING, gobject.TYPE_STRING)
-        self.store.connect("row-inserted",
-                           self._store_row_inserted)
         self.treeview = gtk.TreeView(self.store)
         
         # Add treeview to scrolledwindow
@@ -58,8 +56,9 @@ class timeline:
         
         # Auto scroll to top setup
         vadj = self.scrwin.get_vadjustment()
-        self.vadj_ok = False
-        self.vadj_lock = False
+        self.vadj_upper = vadj.upper
+        self.vadj_count = 0
+        vadj.lock = False
         vadj.connect("changed", self._vadj_changed)
     
     # Start Sync Timeline (new twitter timeline thread create)
@@ -103,19 +102,24 @@ class timeline:
             txt = self.store.get_value(i, 2)
             self.store.set_value(i, 2, txt)
             i = self.store.iter_next(i)
+        
+        vadj = self.scrwin.get_vadjustment()
+        self.vadj_upper = vadj.upper
     
     # Scroll to top if upper(list length) changed Event
     def _vadj_changed(self, adj):
-        # no scroll lock and after prepend status
-        if not self.vadj_lock and self.vadj_ok:
+        if not adj.lock and \
+                self.vadj_upper < adj.upper and \
+                self.vadj_count < len(self.store):
             self.treeview.scroll_to_cell((0,))
-            self.vadj_ok = False
+            self.vadj_upper = adj.upper
+            self.vadj_count = len(self.store)
     
     # Prepend new statuses
     def _prepend_new_statuses(self, new_timeline):
         # Auto scroll lock if adjustment changed manually
         vadj = self.scrwin.get_vadjustment()
-        self.vadj_lock = True if vadj.value != 0.0 else False
+        vadj.lock = True if vadj.value != 0.0 else False
         
         # Insert New Status
         for i in new_timeline:
@@ -127,7 +131,3 @@ class timeline:
             gtk.gdk.threads_leave()
         
         #print self.timeline.timeline[-1].id
-
-    # if status prepend, auto scroll ok flg changed
-    def _store_row_inserted(self, store, path, iter):
-        self.vadj_ok = True
