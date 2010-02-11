@@ -57,8 +57,7 @@ class timeline:
         # Auto scroll to top setup
         vadj = self.scrwin.get_vadjustment()
         self.vadj_upper = vadj.upper
-        self.vadj_count = 0
-        vadj.lock = False
+        self.vadj_lock = False
         vadj.connect("changed", self._vadj_changed)
     
     # Start Sync Timeline (new twitter timeline thread create)
@@ -108,18 +107,16 @@ class timeline:
     
     # Scroll to top if upper(list length) changed Event
     def _vadj_changed(self, adj):
-        if not adj.lock and \
-                self.vadj_upper < adj.upper and \
-                self.vadj_count < len(self.store):
+        if not self.vadj_lock and \
+                self.vadj_upper < adj.upper:
             self.treeview.scroll_to_cell((0,))
             self.vadj_upper = adj.upper
-            self.vadj_count = len(self.store)
     
     # Prepend new statuses
     def _prepend_new_statuses(self, new_timeline):
         # Auto scroll lock if adjustment changed manually
         vadj = self.scrwin.get_vadjustment()
-        vadj.lock = True if vadj.value != 0.0 else False
+        self.vadj_lock = True if vadj.value != 0.0 else False
         
         # Insert New Status
         for i in new_timeline:

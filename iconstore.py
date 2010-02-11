@@ -29,9 +29,8 @@ class IconStore:
         
         self.data[user.id] = None
         
-        # Return None
-        #return gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, 48, 48)
-        return None
+        # Return Nothing Image
+        return gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, 48, 48)
     
     def add_store(self, store):
         self.stores.append(store)
