@@ -71,6 +71,9 @@ class timeline:
     def add_notebook(self, notebook, name = None):
         label = gtk.Label(name)
         notebook.append_page(self.scrwin, label)
+        gtk.gdk.threads_enter()
+        notebook.show_all()
+        gtk.gdk.threads_leave()
     
     
     ########################################

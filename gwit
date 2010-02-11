@@ -55,5 +55,5 @@ if __name__ == "__main__":
    
    # Run Main()
    gladefile = "gwit.glade"
-   gwit = Main(gladefile)
-   gwit.main(keys)
+   gwit = Main(gladefile, keys)
+   gwit.main()

@@ -5,6 +5,8 @@ import pygtk
 pygtk.require('2.0')
 import gtk
 
+import threading
+
 from objects import GtkObjects
 from timeline import timeline
 from twitterapi import twitterapi
@@ -13,7 +15,7 @@ from iconstore import IconStore
 # Main Class
 class Main:
     # Constractor
-    def __init__(self, glade):
+    def __init__(self, glade, keys):
         # GtkBuilder instance
         builder = gtk.Builder()
         # Glade file input
@@ -33,8 +35,20 @@ class Main:
         self.timelines = list()
         # init icon store
         self.icons = IconStore()
+
+        init = threading.Thread(target=self.initialize, args=(keys))
+        init.start()
     
-    def main(self, keys):
+    def main(self):        
+        # Gtk Multithread Setup
+        gtk.gdk.threads_init()
+        gtk.gdk.threads_enter()
+        self.obj.window1.show_all()
+        # Start gtk main loop
+        gtk.main()
+        gtk.gdk.threads_leave()
+
+    def initialize(self, *keys):
         # Twitter class instance
         self.twitter = twitterapi(keys)
         
@@ -52,15 +66,6 @@ class Main:
             tl.treeview.connect(
                 "row-activated", 
                 self.on_treeview_row_activated)
-        
-        self.obj.window1.show_all()
-        
-        # Gtk Multithread Setup
-        gtk.gdk.threads_init()
-        gtk.gdk.threads_enter()
-        # Start gtk main loop
-        gtk.main()
-        gtk.gdk.threads_leave()
     
     # Window close event
     def close(self, widget):
