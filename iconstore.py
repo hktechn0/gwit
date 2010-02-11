@@ -7,6 +7,7 @@ import gtk
 
 import threading
 import urllib2
+import cStringIO
 
 class IconStore:
     def __init__(self):
@@ -41,19 +42,37 @@ class NewIcon(threading.Thread):
         self.user = user
         self.stores = stores
         self.icons = icons
-        
-    def run(self):
-        # Icon Data Get
-        ico = urllib2.urlopen(self.user.profile_image_url).read()
-        
+    
+    def _to_pixbuf(self, ico):
         # Load Pixbuf Loader and Create Pixbuf
         icoldr = gtk.gdk.PixbufLoader()
         icoldr.write(ico)
         icopix = icoldr.get_pixbuf()
-        icoldr.close()
+        try:
+            icoldr.close()
+        except:
+            icopix = None
+        return icopix
+        
+    def run(self):
+        # Icon Data Get
+        ico = urllib2.urlopen(self.user.profile_image_url).read()  
+        icopix = self._to_pixbuf(ico)
         
         # Resize
-        if icopix != None and icopix.get_property("width") > 48:
+        if icopix == None:
+            # Try convert PIL, if installed Python Imaging Library
+            try:
+                import Image
+            except:
+                icopix = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, 48, 48)
+            else:
+                img = Image.open(cStringIO.StringIO(ico))
+                nimg = img.resize((48, 48))
+                nico = cStringIO.StringIO()
+                nimg.save(nico, "png")
+                icopix = self._to_pixbuf(nico.getvalue())
+        elif icopix.get_property("width") > 48:
             icopix = icopix.scale_simple(48, 48, gtk.gdk.INTERP_BILINEAR)
         
         # Add iconstore
@@ -61,8 +80,8 @@ class NewIcon(threading.Thread):
 
         # Icon Refresh
         for store in self.stores:
+            gtk.gdk.threads_enter()
             for i, j in enumerate(iter(store)):
                 if j[1] == self.user.screen_name:
-                    gtk.gdk.threads_enter()
                     store[(i,)] = (icopix, j[1], j[2])
-                    gtk.gdk.threads_leave()
+            gtk.gdk.threads_leave()
