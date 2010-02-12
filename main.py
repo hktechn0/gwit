@@ -58,23 +58,7 @@ class Main:
         # Set Status Views
         for i in (("Home", "home_timeline", 30),
                   ("Mentions", "mentions", 300)):
-            # Create Timeline Object
-            tl = timeline(self.twitter, self.icons)
-            self.timelines.append(tl)
-
-            # Start sync timeline
-            tl.start_sync(*i[1:])
-            # Add Notebook (Tab view)
-            tl.add_notebook(self.obj.notebook1, i[0])
-
-            # row-activated signal connect
-            tl.treeview.connect(
-                "row-activated",
-                self.on_treeview_row_activated)
-            tl.treeview.connect(
-                "button-press-event",
-                self.on_treeview_button_press)
-            
+            self._tab_append(*i)
             # insert littledelay
             time.sleep(random.random())
     
@@ -92,8 +76,25 @@ class Main:
     def _clear_buf(self):
         buf = self.obj.textview1.get_buffer()
         buf.set_text("")
-
-
+    
+    def _tab_append(self, name, method, sleep, *args, **kwargs):
+        # Create Timeline Object
+        tl = timeline(self.twitter, self.icons)
+        self.timelines.append(tl)
+        
+        # Start sync timeline
+        tl.start_sync(method, sleep, args, kwargs)
+        
+        # Add Notebook (Tab view)
+        tl.add_notebook(self.obj.notebook1, name)
+        # Add Popup Menu
+        tl.add_popup(self.obj.menu_timeline)
+        
+        # row-activated signal connect
+        tl.treeview.connect(
+            "row-activated",
+            self.on_treeview_row_activated)
+    
     ########################################
     # Gtk Signal Events
     
@@ -118,7 +119,8 @@ class Main:
         buf = self.obj.textview1.get_buffer()
         buf.set_text("@%s " % (path_name[0]))
 
-    # Menu popup
-    def on_treeview_button_press(self, widget, event):
-        if event.button == 3:
-            self.obj.menu_timeline.popup(None, None, None, event.button, event.time)
+    def on_menuitem_usertl_activate(self, menuitem):
+        n = self.obj.notebook1.get_current_page()
+        status = self.timelines[n].get_selected_status()
+        sname = status.user.screen_name
+        self._tab_append("@%s" % sname, "user_timeline", 60, user = sname)

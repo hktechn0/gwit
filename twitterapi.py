@@ -12,15 +12,16 @@ class twitterapi():
         self.api = twoauth.api(*keys)
         self.threads = list()
     
-    def create_timeline(self, func, sleep):
+    def create_timeline(self, func, sleep, args, kwargs):
         # Add New Timeline Thread
-        th = timeline_thread(getattr(self.api, func), sleep)
+        th = timeline_thread(getattr(self.api, func),
+                             sleep, args, kwargs)
         self.threads.append(th)
         return th
 
 # Timeline Thread
 class timeline_thread(threading.Thread):
-    def __init__(self, func, sleep):
+    def __init__(self, func, sleep, args, kwargs):
         # Thread Initialize
         threading.Thread.__init__(self)
         self.setDaemon(True)
@@ -29,13 +30,17 @@ class timeline_thread(threading.Thread):
         self.sleep = sleep
         self.lastid = None
         self.timeline = list()
+
+        # API Arguments
+        self.args = args
+        self.kwargs = kwargs
+        self.kwargs["count"] = 200
     
     # Thread run
     def run(self):
         while True:
             # Get Timeline
-            self.last = self.func(
-                count = 200, since_id = self.lastid)
+            self.last = self.func(*self.args, **self.kwargs)
             
             # If Timeline update
             if self.last:
@@ -43,6 +48,7 @@ class timeline_thread(threading.Thread):
                 self.timeline.extend(self.last)
                 # update lastid
                 self.lastid = self.last[-1].id
+                self.kwargs["since_id"] = self.lastid
                 # exec EventHander (TreeView Refresh
                 self.reloadEventHandler(self.last)
             

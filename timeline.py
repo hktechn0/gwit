@@ -61,8 +61,9 @@ class timeline:
         vadj.connect("changed", self._vadj_changed)
     
     # Start Sync Timeline (new twitter timeline thread create)
-    def start_sync(self, method, time):
-        self.timeline = self.api.create_timeline(method, time)
+    def start_sync(self, method, time, args, kwargs):
+        self.timeline = self.api.create_timeline(
+            method, time, args, kwargs)
         # Set Event Hander (exec in every get timeline
         self.timeline.reloadEventHandler = self._prepend_new_statuses
         self.timeline.start()
@@ -71,10 +72,20 @@ class timeline:
     def add_notebook(self, notebook, name = None):
         label = gtk.Label(name)
         notebook.append_page(self.scrwin, label)
-        gtk.gdk.threads_enter()
         notebook.show_all()
-        gtk.gdk.threads_leave()
     
+    def add_popup(self, menu):
+        self.pmenu = menu
+        self.treeview.connect(
+            "button-press-event",
+            self.on_treeview_button_press)
+    
+    def get_timeline(self):
+        return self.timeline.timeline
+    
+    def get_selected_status(self):
+        return self.timeline.timeline[
+            -1 - self.treeview.get_cursor()[0][0]]
     
     ########################################
     # Gtk Signal Events
@@ -132,3 +143,8 @@ class timeline:
             gtk.gdk.threads_leave()
         
         #print self.timeline.timeline[-1].id
+
+    # Menu popup
+    def on_treeview_button_press(self, widget, event):
+        if event.button == 3:
+            self.pmenu.popup(None, None, None, event.button, event.time)
