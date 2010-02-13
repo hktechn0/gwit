@@ -101,26 +101,28 @@ class Main:
     # Status Update
     def on_button1_clicked(self, widget):
         txt = self._get_text()
-        if self.re == 1:
+        if self.re:
             # in_reply_to is for future
             self.twitter.api.status_update(
-                txt, in_reply_to_status_id = None)
+                txt, in_reply_to_status_id = self.re)
             self._clear_buf()
-            self.re = 0
+            self.re = None
         else:
             self.twitter.api.status_update(txt)
             self._clear_buf()
     
     # Reply if double-clicked status
     def on_treeview_row_activated(self, treeview, path, view_column):
-        self.re = 1
-        liststore = treeview.get_model()
-        path_name = liststore[path]
+        n = self.obj.notebook1.get_current_page()
+        status = self.timelines[n].get_status(path)
+        self.re = status.id
+        name = status.user.screen_name
         buf = self.obj.textview1.get_buffer()
-        buf.set_text("@%s " % (path_name[0]))
+        buf.set_text("@%s " % (name))
     
     def on_menuitem_usertl_activate(self, menuitem):
         n = self.obj.notebook1.get_current_page()
         status = self.timelines[n].get_selected_status()
         sname = status.user.screen_name
         self._tab_append("@%s" % sname, "user_timeline", 60, user = sname)
+
