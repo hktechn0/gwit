@@ -126,3 +126,10 @@ class Main:
         sname = status.user.screen_name
         self._tab_append("@%s" % sname, "user_timeline", 60, user = sname)
 
+    def on_menuitem_reply_activate(self, menuitem):
+        n = self.obj.notebook1.get_current_page()
+        status = self.timelines[n].get_selected_status()
+        self.re = status.id
+        name = status.user.screen_name
+        buf = self.obj.textview1.get_buffer()
+        buf.set_text("@%s " % (name))        

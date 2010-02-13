@@ -259,6 +259,7 @@
         <property name="visible">True</property>
         <property name="image">image1</property>
         <property name="use_stock">False</property>
+        <signal name="activate" handler="on_menuitem_reply_activate"/>
       </object>
     </child>
     <child>
