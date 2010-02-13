@@ -57,7 +57,8 @@ class Main:
         
         # Set Status Views
         for i in (("Home", "home_timeline", 30),
-                  ("Mentions", "mentions", 300)):
+                  ("Mentions", "mentions", 300),
+                  ("Nations", "", 300)):
             self._tab_append(*i)
             # insert littledelay
             time.sleep(random.random())
@@ -83,7 +84,8 @@ class Main:
         self.timelines.append(tl)
         
         # Start sync timeline
-        tl.start_sync(method, sleep, args, kwargs)
+        if method:
+            tl.start_sync(method, sleep, args, kwargs)
         
         # Add Notebook (Tab view)
         tl.add_notebook(self.obj.notebook1, name)
