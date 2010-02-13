@@ -86,6 +86,9 @@ class timeline:
     def get_selected_status(self):
         return self.timeline.timeline[
             -1 - self.treeview.get_cursor()[0][0]]
+
+    def get_status(self, path):
+        return self.timeline.timeline[path[0]]
     
     ########################################
     # Gtk Signal Events

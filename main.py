@@ -118,7 +118,7 @@ class Main:
         path_name = liststore[path]
         buf = self.obj.textview1.get_buffer()
         buf.set_text("@%s " % (path_name[0]))
-
+    
     def on_menuitem_usertl_activate(self, menuitem):
         n = self.obj.notebook1.get_current_page()
         status = self.timelines[n].get_selected_status()
