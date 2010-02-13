@@ -18,7 +18,7 @@ class timeline:
         # Liststore column setting
         self.store = gtk.ListStore(
             gtk.gdk.Pixbuf,
-            gobject.TYPE_STRING, gobject.TYPE_STRING)
+            gobject.TYPE_STRING)
         self.treeview = gtk.TreeView(self.store)
         
         # Add treeview to scrolledwindow
@@ -34,18 +34,15 @@ class timeline:
                               self._treeview_width_changed)
         
         # Setting TreeView Column
-        crpix_icon = gtk.CellRendererPixbuf()
-        crtxt_name = gtk.CellRendererText()
-        crtxt_text = gtk.CellRendererText()
-        crtxt_text.set_property("wrap-mode", pango.WRAP_WORD)
+        crpix = gtk.CellRendererPixbuf()
+        crtxt = gtk.CellRendererText()
+        crtxt.set_property("wrap-mode", pango.WRAP_WORD)
         
         tcol = list()
         tcol.append(
-            gtk.TreeViewColumn("Icon", crpix_icon, pixbuf = 0))
+            gtk.TreeViewColumn("Icon", crpix, pixbuf = 0))
         tcol.append(
-            gtk.TreeViewColumn("Name", crtxt_name, text = 1))
-        tcol.append(
-            gtk.TreeViewColumn("Text", crtxt_text, text = 2))
+            gtk.TreeViewColumn("Status", crtxt, markup = 1))
         
         # Add Column
         for i in tcol:
@@ -79,7 +76,7 @@ class timeline:
         self.treeview.connect(
             "button-press-event",
             self.on_treeview_button_press)
-    
+
     def get_timeline(self):
         return self.timeline.timeline
     
@@ -100,13 +97,13 @@ class timeline:
         # Get Treeview Columns
         columns = treeview.get_columns()
         
-        # Get !("Text") width
+        # Get !("Status") width
         width2 = 0
-        for i in columns[:2]:
+        for i in columns[:1]:
             width2 += i.get_property("width")
         
-        # Set "Text" width
-        cellr = columns[2].get_cell_renderers()
+        # Set "Status" width
+        cellr = columns[1].get_cell_renderers()
         cellr[0].set_property("wrap-width", width - width2 - 10)
         
         # Reset all data to change row height
@@ -115,8 +112,8 @@ class timeline:
             # Maybe no affects performance
             # if treeview.allocation.width != width:
             #     break
-            txt = self.store.get_value(i, 2)
-            self.store.set_value(i, 2, txt)
+            txt = self.store.get_value(i, 1)
+            self.store.set_value(i, 1, txt)
             i = self.store.iter_next(i)
         
         vadj = self.scrwin.get_vadjustment()
@@ -138,15 +135,16 @@ class timeline:
         
         # Insert New Status
         for i in new_timeline:
+            t = "<b>%s</b>\n%s" % (i.user.screen_name,
+                                   i.text.replace("&", "&amp;"))
             # New Status Prepend to Liststore (Add row)
             gtk.gdk.threads_enter()
             self.store.prepend(
-                (self.icons.get(i.user),
-                 i.user.screen_name, i.text))
+                (self.icons.get(i.user), t))
             gtk.gdk.threads_leave()
         
         #print self.timeline.timeline[-1].id
-
+    
     # Menu popup
     def on_treeview_button_press(self, widget, event):
         if event.button == 3:
