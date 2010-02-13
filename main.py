@@ -133,3 +133,8 @@ class Main:
         name = status.user.screen_name
         buf = self.obj.textview1.get_buffer()
         buf.set_text("@%s " % (name))        
+
+    def on_menuitem_retweet_activate(self, memuitem):
+        n = self.obj.notebook1.get_current_page()
+        status = self.timelines[n].get_selected_status()
+        self.twitter.api.status_retweet(status.id)
