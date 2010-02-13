@@ -17,8 +17,7 @@ class timeline:
         
         # Liststore column setting
         self.store = gtk.ListStore(
-            gtk.gdk.Pixbuf,
-            gobject.TYPE_STRING)
+            gtk.gdk.Pixbuf, str, int)
         self.treeview = gtk.TreeView(self.store)
         
         # Add treeview to scrolledwindow
@@ -48,9 +47,6 @@ class timeline:
         for i in tcol:
             self.treeview.append_column(i)
         
-        # Add ListStore to IconStore
-        self.icons.add_store(self.store)
-        
         # Auto scroll to top setup
         vadj = self.scrwin.get_vadjustment()
         self.vadj_upper = vadj.upper
@@ -64,6 +60,9 @@ class timeline:
         # Set Event Hander (exec in every get timeline
         self.timeline.reloadEventHandler = self._prepend_new_statuses
         self.timeline.start()
+        
+        # Add timeline to IconStore
+        self.icons.add_store(self.store)
     
     # Add Notebook
     def add_notebook(self, notebook, name = None):
@@ -135,12 +134,14 @@ class timeline:
         
         # Insert New Status
         for i in new_timeline:
-            t = "<b>%s</b>\n%s" % (i.user.screen_name,
-                                   i.text.replace("&", "&amp;"))
+            t = "<b>%s</b>\n%s" % (
+                i.user.screen_name,
+                i.text.replace("&", "&amp;"))
             # New Status Prepend to Liststore (Add row)
             gtk.gdk.threads_enter()
             self.store.prepend(
-                (self.icons.get(i.user), t))
+                (self.icons.get(i.user), t,
+                 i.user.id))
             gtk.gdk.threads_leave()
         
         #print self.timeline.timeline[-1].id

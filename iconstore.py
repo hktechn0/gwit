@@ -30,7 +30,8 @@ class IconStore:
         self.data[user.id] = None
         
         # Return Nothing Image
-        return gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, 48, 48)
+        return gtk.gdk.Pixbuf(
+            gtk.gdk.COLORSPACE_RGB, True, 8, 48, 48)
     
     def add_store(self, store):
         self.stores.append(store)
@@ -52,10 +53,10 @@ class NewIcon(threading.Thread):
         except:
             icopix = None
         return icopix
-        
+    
     def run(self):
         # Icon Data Get
-        ico = urllib2.urlopen(self.user.profile_image_url).read()  
+        ico = urllib2.urlopen(self.user.profile_image_url).read()
         icopix = self._to_pixbuf(ico)
         
         # Resize
@@ -64,7 +65,8 @@ class NewIcon(threading.Thread):
             try:
                 import Image
             except:
-                icopix = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, 48, 48)
+                icopix = gtk.gdk.Pixbuf(
+                    gtk.gdk.COLORSPACE_RGB, True, 8, 48, 48)
             else:
                 img = Image.open(cStringIO.StringIO(ico))
                 nimg = img.resize((48, 48))
@@ -76,11 +78,14 @@ class NewIcon(threading.Thread):
         
         # Add iconstore
         self.icons[self.user.id] = icopix
-
+        
         # Icon Refresh
+        gtk.gdk.threads_enter()
         for store in self.stores:
-            gtk.gdk.threads_enter()
-            for i, j in enumerate(iter(store)):
-                if j[1] == self.user.screen_name:
-                    store[(i,)] = (icopix, j[1], j[2])
-            gtk.gdk.threads_leave()
+            i = store.get_iter_first()
+            while i:
+                uid = store.get_value(i, 2)
+                if uid == self.user.id:
+                    store.set_value(i, 0, icopix)
+                i = store.iter_next(i)
+        gtk.gdk.threads_leave()
