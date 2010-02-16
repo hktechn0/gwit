@@ -4,7 +4,7 @@
 import re
 
 class urlregex:
-    urlpattern = '''(?P<url>(http|https):\/\/[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(([0-9]{1,5})?\/.*)?)'''
+    urlpattern = '''(?P<url>(http|https):\/\/[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(([0-9]{1,5})?\/[^ \]\[]*)?)'''
     
     def __init__(self):
         self.url = re.compile(self.urlpattern)
