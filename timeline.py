@@ -7,6 +7,8 @@ import gtk
 import gobject
 import pango
 
+import urlregex
+
 class timeline:
     def __init__(self, api, icons):
         self.api = api
@@ -52,6 +54,8 @@ class timeline:
         self.vadj_upper = vadj.upper
         self.vadj_lock = False
         vadj.connect("changed", self._vadj_changed)
+
+        self.urlre = urlregex.urlregex()
     
     # Start Sync Timeline (new twitter timeline thread create)
     def start_sync(self, method, time, args, kwargs):
@@ -131,12 +135,12 @@ class timeline:
         # Auto scroll lock if adjustment changed manually
         vadj = self.scrwin.get_vadjustment()
         self.vadj_lock = True if vadj.value != 0.0 else False
-        
         # Insert New Status
         for i in new_timeline:
+            text = self.urlre.get_colored(i.text.replace("&", "&amp;"))
             t = "<b>%s</b>\n%s" % (
-                i.user.screen_name,
-                i.text.replace("&", "&amp;"))
+                i.user.screen_name, text)
+            
             # New Status Prepend to Liststore (Add row)
             gtk.gdk.threads_enter()
             self.store.prepend(
