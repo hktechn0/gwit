@@ -7,6 +7,7 @@ import gtk
 import gobject
 import pango
 
+import re
 import urlregex
 
 class timeline:
@@ -55,7 +56,9 @@ class timeline:
         self.vadj_lock = False
         vadj.connect("changed", self._vadj_changed)
 
+        # Regex setup
         self.urlre = urlregex.urlregex()
+        self.noent_amp = re.compile("&(?![A-Za-z]+;)")
     
     # Start Sync Timeline (new twitter timeline thread create)
     def start_sync(self, method, time, args, kwargs):
@@ -89,6 +92,20 @@ class timeline:
 
     def get_status(self, path):
         return self.timeline.timeline[-1 - path[0]]
+    
+    def _replace_amp(self, string):
+        amp = string.find('&')
+        if amp == -1:
+            return string
+                
+        entity_match = self.noent_amp.finditer(string)
+        
+        for i, e in enumerate(entity_match):
+            string = "%s&amp;%s" % (
+                string[:e.start() + (4 * i)],
+                string[e.start() + (4 * i) + 1:])
+        
+        return string
     
     ########################################
     # Gtk Signal Events
@@ -137,7 +154,8 @@ class timeline:
         self.vadj_lock = True if vadj.value != 0.0 else False
         # Insert New Status
         for i in new_timeline:
-            text = self.urlre.get_colored(i.text.replace("&", "&amp;"))
+            text = self.urlre.get_colored(i.text)
+            text = self._replace_amp(text)
             t = "<b>%s</b>\n%s" % (
                 i.user.screen_name, text)
             
