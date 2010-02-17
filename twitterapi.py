@@ -4,6 +4,7 @@
 import twoauth
 import threading
 import time
+import sys
 
 # Twitter API Class
 class twitterapi():
@@ -39,8 +40,12 @@ class timeline_thread(threading.Thread):
     # Thread run
     def run(self):
         while True:
-            # Get Timeline
-            self.last = self.func(*self.args, **self.kwargs)
+            try:
+                # Get Timeline
+                self.last = self.func(*self.args, **self.kwargs)
+            except Exception, e:
+                self.last = list()
+                print >>sys.stderr, "Error", e
             
             # If Timeline update
             if self.last:
