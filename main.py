@@ -92,7 +92,10 @@ class Main:
         # Add Popup Menu
         tl.add_popup(self.obj.menu_timeline)
         
-        # row-activated signal connect
+        # Click, Double Click signal connect
+        tl.treeview.connect(
+            "cursor-changed",
+            self.on_treeview_cursor_changed)
         tl.treeview.connect(
             "row-activated",
             self.on_treeview_row_activated)
@@ -150,3 +153,42 @@ class Main:
         text = status.text
         buf = self.obj.textview1.get_buffer()
         buf.set_text("RT @%s: %s" % (name, text))
+
+    # Status Clicked
+    def on_treeview_cursor_changed(self, treeview):
+        n = self.obj.notebook1.get_current_page()
+        status = self.timelines[n].get_selected_status()
+
+        id = status.id
+        uid = status.user.id
+        to = status.in_reply_to_status_id
+        to_uid = status.in_reply_to_user_id
+        
+        me = self.twitter.api.user.id
+        
+        store = self.timelines[n].store
+        i = store.get_iter_first()
+        
+        # Colord status
+        while i:
+            iid, iuid, ito, ito_uid = store.get(i, 2, 3, 4, 5)
+            if iuid == me:
+                # My status (Green)
+                bg = "#CCFFCC"
+            elif ito_uid == me:
+                # Reply to me (Red)
+                bg = "#FFCCCC"
+            elif iid == to:
+                # Reply to (Orange)
+                bg = "#FFCC99"
+            elif iuid == to_uid:
+                # Reply to other (Yellow)
+                bg = "#FFFFCC"
+            elif iuid == uid:
+                # Selected user (Blue)
+                bg = "#CCCCFF"
+            else:
+                bg = None
+            
+            store.set_value(i, 6, bg)
+            i = store.iter_next(i)

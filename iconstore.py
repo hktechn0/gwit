@@ -84,7 +84,7 @@ class NewIcon(threading.Thread):
         for store in self.stores:
             i = store.get_iter_first()
             while i:
-                uid = store.get_value(i, 2)
+                uid = store.get_value(i, 3)
                 if uid == self.user.id:
                     store.set_value(i, 0, icopix)
                 i = store.iter_next(i)

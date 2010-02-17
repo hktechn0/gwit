@@ -20,7 +20,9 @@ class timeline:
         
         # Liststore column setting
         self.store = gtk.ListStore(
-            gtk.gdk.Pixbuf, str, int, str)
+            gtk.gdk.Pixbuf, str,
+            long, long, object, object,
+            str)
         self.treeview = gtk.TreeView(self.store)
         
         # Add treeview to scrolledwindow
@@ -49,7 +51,7 @@ class timeline:
         # Add Column
         for i in tcol:
             i.add_attribute(
-                i.get_cell_renderers()[0], "cell-background", 3)
+                i.get_cell_renderers()[0], "cell-background", 6)
             self.treeview.append_column(i)
         
         # Auto scroll to top setup
@@ -182,11 +184,14 @@ class timeline:
             # New Status Prepend to Liststore (Add row)
             gtk.gdk.threads_enter()
             self.store.prepend(
-                (self.icons.get(i.user), t,
-                 i.user.id, background))
+                (self.icons.get(i.user),
+                 t,
+                 i.id,
+                 i.user.id,
+                 i.in_reply_to_status_id,
+                 i.in_reply_to_user_id,
+                 background))
             gtk.gdk.threads_leave()
-        
-        #print self.timeline.timeline[-1].id
     
     # Menu popup
     def on_treeview_button_press(self, widget, event):
