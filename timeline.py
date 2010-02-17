@@ -20,7 +20,7 @@ class timeline:
         
         # Liststore column setting
         self.store = gtk.ListStore(
-            gtk.gdk.Pixbuf, str, int)
+            gtk.gdk.Pixbuf, str, int, str)
         self.treeview = gtk.TreeView(self.store)
         
         # Add treeview to scrolledwindow
@@ -48,6 +48,8 @@ class timeline:
         
         # Add Column
         for i in tcol:
+            i.add_attribute(
+                i.get_cell_renderers()[0], "cell-background", 3)
             self.treeview.append_column(i)
         
         # Auto scroll to top setup
@@ -77,27 +79,32 @@ class timeline:
         notebook.append_page(self.scrwin, label)
         notebook.show_all()
     
+    # Add popup menu
     def add_popup(self, menu):
         self.pmenu = menu
         self.treeview.connect(
             "button-press-event",
             self.on_treeview_button_press)
 
+    # Get timeline list
     def get_timeline(self):
         return self.timeline.timeline
     
+    # Get selected status
     def get_selected_status(self):
         return self.timeline.timeline[
             -1 - self.treeview.get_cursor()[0][0]]
 
+    # Get status from treeview path
     def get_status(self, path):
         return self.timeline.timeline[-1 - path[0]]
     
+    # Replace & -> &amp;
     def _replace_amp(self, string):
         amp = string.find('&')
         if amp == -1:
             return string
-                
+        
         entity_match = self.noent_amp.finditer(string)
         
         for i, e in enumerate(entity_match):
@@ -152,18 +159,29 @@ class timeline:
         # Auto scroll lock if adjustment changed manually
         vadj = self.scrwin.get_vadjustment()
         self.vadj_lock = True if vadj.value != 0.0 else False
+        
         # Insert New Status
         for i in new_timeline:
+            # colord url
             text = self.urlre.get_colored(i.text)
+            # replace no entity & -> &amp;
             text = self._replace_amp(text)
+            
+            # Bold screen_name
             t = "<b>%s</b>\n%s" % (
                 i.user.screen_name, text)
+            
+            # If my status, change background color
+            if i.user.id == self.api.api.user.id:
+                background = "#CCFFCC"
+            else:
+                background = None
             
             # New Status Prepend to Liststore (Add row)
             gtk.gdk.threads_enter()
             self.store.prepend(
                 (self.icons.get(i.user), t,
-                 i.user.id))
+                 i.user.id, background))
             gtk.gdk.threads_leave()
         
         #print self.timeline.timeline[-1].id
