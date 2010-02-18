@@ -124,6 +124,7 @@ class Main:
         name = status.user.screen_name
         buf = self.obj.textview1.get_buffer()
         buf.set_text("@%s " % (name))
+        self.obj.textview1.grab_focus()
     
     def on_menuitem_usertl_activate(self, menuitem):
         n = self.obj.notebook1.get_current_page()
@@ -138,7 +139,7 @@ class Main:
         name = status.user.screen_name
         buf = self.obj.textview1.get_buffer()
         buf.set_text("@%s " % (name)) 
-        self.callback(textview1, gtk.DIR_TAB_FORWARD)
+        self.obj.textview1.grab_focus()
 
     def on_menuitem_retweet_activate(self, memuitem):
         n = self.obj.notebook1.get_current_page()
@@ -153,6 +154,7 @@ class Main:
         text = status.text
         buf = self.obj.textview1.get_buffer()
         buf.set_text("RT @%s: %s" % (name, text))
+        self.obj.textview1.grab_focus()
 
     # Status Clicked
     def on_treeview_cursor_changed(self, treeview):
