@@ -211,8 +211,12 @@ class timeline:
             if urls:
                 # if exist url in text, add menu
                 for i in urls:
+                    if len(i) > 50:
+                        label = "%s..." % i[:47]
+                    else:
+                        label = i
                     # Menuitem create
-                    item = gtk.MenuItem(i)
+                    item = gtk.MenuItem(label)
                     # Connect click event (open browser)
                     item.connect("activate",
                                  self._menuitem_url_clicked, i)
