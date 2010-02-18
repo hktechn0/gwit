@@ -22,7 +22,7 @@ class timeline:
         self.store = gtk.ListStore(
             gtk.gdk.Pixbuf, str,
             object, object, object, object,
-            str)
+            str, object)
         self.treeview = gtk.TreeView(self.store)
         
         # Add treeview to scrolledwindow
@@ -165,12 +165,12 @@ class timeline:
         # Insert New Status
         for i in new_timeline:
             # colord url
-            text = self.urlre.get_colored(i.text)
+            text, urls = self.urlre.get_colored(i.text)
             # replace no entity & -> &amp;
             text = self._replace_amp(text)
             
             # Bold screen_name
-            t = "<b>%s</b>\n%s" % (
+            text = "<b>%s</b>\n%s" % (
                 i.user.screen_name, text)
             
             # If my status, change background color
@@ -185,15 +185,30 @@ class timeline:
             gtk.gdk.threads_enter()
             self.store.prepend(
                 (self.icons.get(i.user),
-                 t,
+                 text,
                  i.id,
                  i.user.id,
                  i.in_reply_to_status_id,
                  i.in_reply_to_user_id,
-                 background))
+                 background,
+                 urls))
             gtk.gdk.threads_leave()
     
     # Menu popup
     def on_treeview_button_press(self, widget, event):
         if event.button == 3:
+            # Link URLs
+            m = gtk.Menu()
+            it = self.store.get_iter(self.treeview.get_cursor()[0])
+            urls = self.store.get_value(it, 7)
+            
+            if urls:
+                for i in urls:
+                    mi = gtk.MenuItem(i)
+                    m.append(mi)
+            else:
+                m.append(gtk.MenuItem("None"))
+            
+            m.show_all()
+            self.pmenu.get_children()[-1].set_submenu(m)
             self.pmenu.popup(None, None, None, event.button, event.time)

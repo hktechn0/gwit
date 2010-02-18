@@ -57,8 +57,7 @@ class Main:
         
         # Set Status Views
         for i in (("Home", "home_timeline", 30),
-                  ("Mentions", "mentions", 300),
-                  ("Nations", "", 300)):
+                  ("Mentions", "mentions", 300)):
             self._tab_append(*i)
             # insert littledelay
             time.sleep(random.random())

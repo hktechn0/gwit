@@ -13,4 +13,11 @@ class urlregex:
         return self.url.sub('<a href="\g<url>">\g<url></a>', string)
 
     def get_colored(self, string):
-        return self.url.sub('<span foreground="#0000FF" underline="single">\g<url></span>', string)
+        url_iter = self.url.finditer(string)
+        urls = list()
+        for i in url_iter:
+            urls.append(i.group('url'))
+        
+        string = self.url.sub('<span foreground="#0000FF" underline="single">\g<url></span>', string)
+        
+        return string, tuple(urls)
