@@ -10,6 +10,8 @@ import pango
 import re
 import urlregex
 
+import webbrowser
+
 class timeline:
     def __init__(self, api, icons):
         self.api = api
@@ -197,18 +199,35 @@ class timeline:
     # Menu popup
     def on_treeview_button_press(self, widget, event):
         if event.button == 3:
-            # Link URLs
-            m = gtk.Menu()
+            # Get Urls
             it = self.store.get_iter(self.treeview.get_cursor()[0])
             urls = self.store.get_value(it, 7)
             
-            if urls:
-                for i in urls:
-                    mi = gtk.MenuItem(i)
-                    m.append(mi)
-            else:
-                m.append(gtk.MenuItem("None"))
+            m = gtk.Menu()
             
-            m.show_all()
+            if urls:
+                # if exist url in text, add menu
+                for i in urls:
+                    # Menuitem create
+                    item = gtk.MenuItem(i)
+                    # Connect click event (open browser)
+                    item.connect("activate",
+                                 self._menuitem_url_clicked, i)
+                    # append to menu
+                    m.append(item)
+            else:
+                # not, show None
+                item = gtk.MenuItem("None")
+                item.set_sensitive(False)
+                m.append(item)
+            
+            # urls submenu append
             self.pmenu.get_children()[-1].set_submenu(m)
+
+            # Show popup menu
+            m.show_all()
             self.pmenu.popup(None, None, None, event.button, event.time)
+    
+    # Open Web browser if url menuitem clicked
+    def _menuitem_url_clicked(self, menuitem, url):
+        webbrowser.open_new_tab(url)
