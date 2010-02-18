@@ -13,7 +13,7 @@ import urlregex
 import webbrowser
 
 class timeline:
-    def __init__(self, api, icons):
+    def __init__(self, api, icons, iconmode = True):
         self.api = api
         self.icons = icons
         
@@ -47,6 +47,8 @@ class timeline:
         tcol = list()
         tcol.append(
             gtk.TreeViewColumn("Icon", crpix, pixbuf = 0))
+        # visible is False if no-icon
+        tcol[-1].set_visible(iconmode)
         tcol.append(
             gtk.TreeViewColumn("Status", crtxt, markup = 1))
         

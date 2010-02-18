@@ -8,21 +8,22 @@ import sys
 
 # Twitter API Class
 class twitterapi():
-    def __init__(self, keys):
+    def __init__(self, keys, maxn):
         # Generate API Library instance
         self.api = twoauth.api(*keys)
+        self.maxn = maxn
         self.threads = list()
     
     def create_timeline(self, func, sleep, args, kwargs):
         # Add New Timeline Thread
         th = timeline_thread(getattr(self.api, func),
-                             sleep, args, kwargs)
+                             sleep, self.maxn, args, kwargs)
         self.threads.append(th)
         return th
 
 # Timeline Thread
 class timeline_thread(threading.Thread):
-    def __init__(self, func, sleep, args, kwargs):
+    def __init__(self, func, sleep, maxn, args, kwargs):
         # Thread Initialize
         threading.Thread.__init__(self)
         self.setDaemon(True)
@@ -35,7 +36,7 @@ class timeline_thread(threading.Thread):
         # API Arguments
         self.args = args
         self.kwargs = kwargs
-        self.kwargs["count"] = 200
+        self.kwargs["count"] = maxn
     
     # Thread run
     def run(self):

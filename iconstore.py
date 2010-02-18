@@ -10,7 +10,8 @@ import urllib2
 import cStringIO
 
 class IconStore:
-    def __init__(self):
+    def __init__(self, iconmode = True):
+        self.iconmode = iconmode
         self.data = dict()
         self.stores = list()
     
@@ -25,7 +26,9 @@ class IconStore:
     def new(self, user):
         # New Icon thread start
         newico = NewIcon(user, self.stores, self.data)
-        newico.start()
+        if self.iconmode:
+            # start thread for wget icon if iconmode is True
+            newico.start()
         
         self.data[user.id] = None
         

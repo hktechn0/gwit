@@ -17,7 +17,7 @@ from iconstore import IconStore
 # Main Class
 class Main:
     # Constractor
-    def __init__(self, glade, keys):
+    def __init__(self, glade, keys, maxn = 200, iconmode = True):
         # GtkBuilder instance
         builder = gtk.Builder()
         # Glade file input
@@ -32,13 +32,14 @@ class Main:
         
         # Set Default Mention Flag
         self.re = 0
+        self.iconmode = iconmode
         
         # init status timelines
         self.timelines = list()
         # init icon store
-        self.icons = IconStore()
-
-        init = threading.Thread(target=self.initialize, args=(keys))
+        self.icons = IconStore(iconmode)
+        
+        init = threading.Thread(target=self.initialize, args=(keys, maxn))
         init.start()
     
     def main(self):        
@@ -49,11 +50,11 @@ class Main:
         # Start gtk main loop
         gtk.main()
         gtk.gdk.threads_leave()
-
+    
     # Initialize Twitter API and Tabs (in another thread)
-    def initialize(self, *keys):
+    def initialize(self, keys, maxn):
         # Twitter class instance
-        self.twitter = twitterapi(keys)
+        self.twitter = twitterapi(keys, maxn)
         
         # Set Status Views
         for i in (("Home", "home_timeline", 30),
@@ -79,7 +80,7 @@ class Main:
     
     def _tab_append(self, name, method, sleep, *args, **kwargs):
         # Create Timeline Object
-        tl = timeline(self.twitter, self.icons)
+        tl = timeline(self.twitter, self.icons, self.iconmode)
         self.timelines.append(tl)
         
         # Start sync timeline

@@ -2,18 +2,34 @@
 #-*- coding: utf-8 -*-
 
 import os
+import optparse
 
 from ConfigParser import SafeConfigParser
 from main import Main
 
 if __name__ == "__main__":
+   # Option Parser
+   p = optparse.OptionParser()
+   p.add_option("-u", "--user", dest="user", 
+                help="choose auth user", metavar="USER")
+   p.add_option("--add", dest="add", action="store_true", 
+                help="add new user")
+   p.add_option("-v", "--version", dest="version", 
+                action="store_true", help="print version")
+   p.add_option("--no-icon", dest="noicon", default=True,
+                action="store_false", help="no icon mode")
+   p.add_option("-n", "--maxn", dest="max",
+                help="max number of status of once", metavar="N")
+   
+   (options, args) = p.parse_args()
+   
    # Config Parser
    confp = SafeConfigParser()
-
+   
    # Config file absolute path
    conf_path = os.path.join(
       os.path.dirname(__file__), "gwit.conf")
-
+   
    # config file exist?
    if os.path.isfile(conf_path):
       # readfile
@@ -23,7 +39,7 @@ if __name__ == "__main__":
       from setupwizard import SetupWizard
       setup = SetupWizard()
       setup.main()
-
+       
       if setup.ok:
          # if setup ok, set settings
          confp.set("DEFAULT", "default_user", setup.screen_name)
@@ -33,7 +49,7 @@ if __name__ == "__main__":
          confp.set(setup.screen_name, "atoken", setup.keys[2])
          confp.set(setup.screen_name, "asecret", setup.keys[3])
          del setup
-
+         
          # write config
          fp = open(conf_path, "w")
          confp.write(fp)
@@ -47,13 +63,17 @@ if __name__ == "__main__":
    settings["DEFAULT"] = dict(confp.items("DEFAULT"))
    for i in confp.sections():
       settings[i] = dict(confp.items(i))
-
+      
    # Read settings
    user = settings["DEFAULT"]["default_user"]
    keys = (settings[user]["ckey"], settings[user]["csecret"], 
-    settings[user]["atoken"], settings[user]["asecret"])
+           settings[user]["atoken"], settings[user]["asecret"])
    
    # Run Main()
    gladefile = "gwit.glade"
-   gwit = Main(gladefile, keys)
+   if options.max and int(options.max) <= 200:
+      maxn = int(options.max)
+   else:
+      maxn = 200
+   gwit = Main(gladefile, keys, maxn, options.noicon)
    gwit.main()
