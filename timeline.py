@@ -180,7 +180,8 @@ class timeline:
             # If my status, change background color
             if i.user.id == self.api.api.user.id:
                 background = "#CCFFCC"
-            elif i.in_reply_to_user_id == self.api.api.user.id:
+            elif i.in_reply_to_user_id == self.api.api.user.id or \
+                    i.text.find(self.api.api.user.screen_name) != -1:
                 background = "#FFCCCC"
             else:
                 background = None

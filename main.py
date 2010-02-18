@@ -165,17 +165,18 @@ class Main:
         to_uid = status.in_reply_to_user_id
         
         me = self.twitter.api.user.id
+        myname = self.twitter.api.user.screen_name
         
         store = self.timelines[n].store
         i = store.get_iter_first()
         
         # Colord status
         while i:
-            iid, iuid, ito, ito_uid = store.get(i, 2, 3, 4, 5)
+            itext, iid, iuid, ito, ito_uid = store.get(i, 1, 2, 3, 4, 5)
             if iuid == me:
                 # My status (Green)
                 bg = "#CCFFCC"
-            elif ito_uid == me:
+            elif ito_uid == me or itext.find(myname) != -1:
                 # Reply to me (Red)
                 bg = "#FFCCCC"
             elif iid == to:
