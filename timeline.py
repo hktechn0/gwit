@@ -21,7 +21,7 @@ class timeline:
         # Liststore column setting
         self.store = gtk.ListStore(
             gtk.gdk.Pixbuf, str,
-            long, long, object, object,
+            object, object, object, object,
             str)
         self.treeview = gtk.TreeView(self.store)
         
