@@ -92,10 +92,7 @@ class Main:
         # Add Popup Menu
         tl.add_popup(self.obj.menu_timeline)
         
-        # Click, Double Click signal connect
-        tl.treeview.connect(
-            "cursor-changed",
-            self.on_treeview_cursor_changed)
+        # Treeview double click signal connect
         tl.treeview.connect(
             "row-activated",
             self.on_treeview_row_activated)
@@ -160,41 +157,3 @@ class Main:
         status = self.get_selected_status()
         sname = status.user.screen_name
         self._tab_append("@%s" % sname, "user_timeline", 60, user = sname)
-    
-    # Status Clicked
-    def on_treeview_cursor_changed(self, treeview):
-        status = self.get_selected_status()
-        user = status.user
-        
-        me = self.twitter.users[self.twitter.myid]
-        
-        store = self.timelines[self.get_current_tab()].store
-        i = store.get_iter_first()
-        
-        # Colord status
-        while i:
-            id = store.get_value(i, 2)
-            s = self.twitter.statuses[id]
-            u = s.user
-            
-            if u.id == me.id:
-                # My status (Green)
-                bg = "#CCFFCC"
-            elif s.in_reply_to_user_id == me.id or \
-                    s.text.find("@%s" % me.screen_name) != -1:
-                # Reply to me (Red)
-                bg = "#FFCCCC"
-            elif s.id == status.in_reply_to_status_id:
-                # Reply to (Orange)
-                bg = "#FFCC99"
-            elif u.id == status.in_reply_to_user_id:
-                # Reply to other (Yellow)
-                bg = "#FFFFCC"
-            elif u.id == user.id:
-                # Selected user (Blue)
-                bg = "#CCCCFF"
-            else:
-                bg = None
-            
-            store.set_value(i, 5, bg)
-            i = store.iter_next(i)

@@ -35,7 +35,9 @@ class timeline:
         self.treeview.set_headers_visible(False)
         self.treeview.set_rules_hint(True)
         self.treeview.connect("size-allocate",
-                              self._treeview_width_changed)
+                              self.on_treeview_width_changed)
+        self.treeview.connect("cursor-changed",
+                              self.on_treeview_cursor_changed)
         
         # Setting TreeView Column
         crpix = gtk.CellRendererPixbuf()
@@ -118,11 +120,45 @@ class timeline:
         
         return string
     
+    # Color status
+    def color_status(self, status = None):
+        me = self.twitter.users[self.twitter.myid]
+        
+        i = self.store.get_iter_first()
+        while i:
+            bg = None            
+            
+            id = self.store.get_value(i, 2)
+            s = self.twitter.statuses[id]
+            u = s.user
+            
+            if u.id == me.id:
+                # My status (Blue)
+                bg = "#CCCCFF"
+            elif status and s.id == status.in_reply_to_status_id:
+                # Reply to (Orange)
+                bg = "#FFCC99"
+            elif s.in_reply_to_user_id == me.id or \
+                    s.text.find("@%s" % me.screen_name) != -1:
+                # Reply to me (Red)
+                bg = "#FFCCCC"
+            elif status:
+                if u.id == status.in_reply_to_user_id:
+                    # Reply to other (Yellow)
+                    bg = "#FFFFCC"
+                elif u.id == status.user.id:
+                    # Selected user (Green)
+                    bg = "#CCFFCC"
+            
+            self.store.set_value(i, 4, bg)
+            i = self.store.iter_next(i)
+    
+    
     ########################################
     # Gtk Signal Events
     
     # Treeview width changed Event (text-wrap-width change)
-    def _treeview_width_changed(self, treeview, allocate):
+    def on_treeview_width_changed(self, treeview, allocate):
         # Get Treeview Width
         width = treeview.get_allocation().width
         # Get Treeview Columns
@@ -175,25 +211,18 @@ class timeline:
             # Bold screen_name
             text = "<b>%s</b>\n%s" % (
                 i.user.screen_name, text)
-            
-            # If my status, change background color
-            if i.user.id == self.twitter.myid:
-                background = "#CCFFCC"
-            elif i.in_reply_to_user_id == self.twitter.myid or \
-                    i.text.find(myname) != -1:
-                background = "#FFCCCC"
-            else:
-                background = None
-            
+
             # New Status Prepend to Liststore (Add row)
             gtk.gdk.threads_enter()
             self.store.prepend(
                 (self.icons.get(i.user),
                  text,
                  i.id, i.user.id,
-                 background,
+                 None, # background
                  urls))
             gtk.gdk.threads_leave()
+
+        self.color_status()
     
     # Menu popup
     def on_treeview_button_press(self, widget, event):
@@ -232,3 +261,8 @@ class timeline:
     # Open Web browser if url menuitem clicked
     def _menuitem_url_clicked(self, menuitem, url):
         webbrowser.open_new_tab(url)
+
+    # Status Clicked
+    def on_treeview_cursor_changed(self, treeview):
+        status = self.get_selected_status()
+        self.color_status(status)
