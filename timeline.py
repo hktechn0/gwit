@@ -14,7 +14,7 @@ import webbrowser
 
 class timeline:
     def __init__(self, api, icons, iconmode = True):
-        self.api = api
+        self.twitter = api
         self.icons = icons
         
         # Base scrolledwindow
@@ -22,9 +22,7 @@ class timeline:
         
         # Liststore column setting
         self.store = gtk.ListStore(
-            gtk.gdk.Pixbuf, str,
-            object, object, object, object,
-            str, object)
+            gtk.gdk.Pixbuf, str, object, object, str, object)
         self.treeview = gtk.TreeView(self.store)
         
         # Add treeview to scrolledwindow
@@ -55,7 +53,7 @@ class timeline:
         # Add Column
         for i in tcol:
             i.add_attribute(
-                i.get_cell_renderers()[0], "cell-background", 6)
+                i.get_cell_renderers()[0], "cell-background", 4)
             self.treeview.append_column(i)
         
         # Auto scroll to top setup
@@ -70,8 +68,9 @@ class timeline:
     
     # Start Sync Timeline (new twitter timeline thread create)
     def start_sync(self, method, time, args, kwargs):
-        self.timeline = self.api.create_timeline(
+        self.timeline = self.twitter.create_timeline(
             method, time, args, kwargs)
+
         # Set Event Hander (exec in every get timeline
         self.timeline.reloadEventHandler = self._prepend_new_statuses
         self.timeline.start()
@@ -88,28 +87,27 @@ class timeline:
     # Add popup menu
     def add_popup(self, menu):
         self.pmenu = menu
-        self.treeview.connect(
-            "button-press-event",
-            self.on_treeview_button_press)
-
-    # Get timeline list
-    def get_timeline(self):
+        self.treeview.connect("button-press-event",
+                              self.on_treeview_button_press)
+    
+    # Get timeline ids
+    def get_timeline_ids(self):
         return self.timeline.timeline
     
     # Get selected status
     def get_selected_status(self):
-        return self.timeline.timeline[
-            -1 - self.treeview.get_cursor()[0][0]]
-
+        path = self.treeview.get_cursor()[0]
+        return self.get_status(path)
+    
     # Get status from treeview path
     def get_status(self, path):
-        return self.timeline.timeline[-1 - path[0]]
+        id = self.store[path][2]
+        return self.twitter.statuses[id]
     
     # Replace & -> &amp;
     def _replace_amp(self, string):
         amp = string.find('&')
-        if amp == -1:
-            return string
+        if amp == -1: return string
         
         entity_match = self.noent_amp.finditer(string)
         
@@ -154,8 +152,7 @@ class timeline:
     
     # Scroll to top if upper(list length) changed Event
     def _vadj_changed(self, adj):
-        if not self.vadj_lock and \
-                self.vadj_upper < adj.upper:
+        if not self.vadj_lock and self.vadj_upper < adj.upper:
             if len(self.store):
                 self.treeview.scroll_to_cell((0,))
             self.vadj_upper = adj.upper
@@ -165,6 +162,8 @@ class timeline:
         # Auto scroll lock if adjustment changed manually
         vadj = self.scrwin.get_vadjustment()
         self.vadj_lock = True if vadj.value != 0.0 else False
+        
+        myname = self.twitter.users[self.twitter.myid].screen_name
         
         # Insert New Status
         for i in new_timeline:
@@ -178,10 +177,10 @@ class timeline:
                 i.user.screen_name, text)
             
             # If my status, change background color
-            if i.user.id == self.api.api.user.id:
+            if i.user.id == self.twitter.myid:
                 background = "#CCFFCC"
-            elif i.in_reply_to_user_id == self.api.api.user.id or \
-                    i.text.find(self.api.api.user.screen_name) != -1:
+            elif i.in_reply_to_user_id == self.twitter.myid or \
+                    i.text.find(myname) != -1:
                 background = "#FFCCCC"
             else:
                 background = None
@@ -191,10 +190,7 @@ class timeline:
             self.store.prepend(
                 (self.icons.get(i.user),
                  text,
-                 i.id,
-                 i.user.id,
-                 i.in_reply_to_status_id,
-                 i.in_reply_to_user_id,
+                 i.id, i.user.id,
                  background,
                  urls))
             gtk.gdk.threads_leave()
@@ -204,17 +200,15 @@ class timeline:
         if event.button == 3:
             # Get Urls
             it = self.store.get_iter(self.treeview.get_cursor()[0])
-            urls = self.store.get_value(it, 7)
+            urls = self.store.get_value(it, 5)
             
             m = gtk.Menu()
             
             if urls:
                 # if exist url in text, add menu
                 for i in urls:
-                    if len(i) > 50:
-                        label = "%s..." % i[:47]
-                    else:
-                        label = i
+                    label = "%s..." % i[:47] if len(i) > 50 else i
+                    
                     # Menuitem create
                     item = gtk.MenuItem(label)
                     # Connect click event (open browser)
@@ -230,7 +224,7 @@ class timeline:
             
             # urls submenu append
             self.pmenu.get_children()[-1].set_submenu(m)
-
+            
             # Show popup menu
             m.show_all()
             self.pmenu.popup(None, None, None, event.button, event.time)

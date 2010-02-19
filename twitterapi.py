@@ -11,15 +11,34 @@ class twitterapi():
     def __init__(self, keys, maxn):
         # Generate API Library instance
         self.api = twoauth.api(*keys)
-        self.maxn = maxn
         self.threads = list()
+        
+        # User, Status Buffer
+        self.users = dict()
+        self.statuses = dict()
+
+        self.maxn = maxn
+        self.myid = self.api.user.id
+        self.users[self.myid] = self.api.user
     
     def create_timeline(self, func, sleep, args, kwargs):
         # Add New Timeline Thread
         th = timeline_thread(getattr(self.api, func),
                              sleep, self.maxn, args, kwargs)
+        th.added_event = self.add_status
         self.threads.append(th)
         return th
+    
+    def add_statuses(self, slist):
+        for i in slist:
+            self.add_status(i)
+    
+    def add_status(self, status):
+        self.statuses[status.id] = status
+        self.add_user(status.user)
+    
+    def add_user(self, user):
+        self.users[user.id] = user
 
 # Timeline Thread
 class timeline_thread(threading.Thread):
@@ -32,7 +51,7 @@ class timeline_thread(threading.Thread):
         self.sleep = sleep
         self.lastid = None
         self.timeline = list()
-
+        
         # API Arguments
         self.args = args
         self.kwargs = kwargs
@@ -50,11 +69,15 @@ class timeline_thread(threading.Thread):
             
             # If Timeline update
             if self.last:
-                # append new statuses to timeline buffer
-                self.timeline.extend(self.last)
+                for i in self.last:
+                    # append new statuses to timeline buffer
+                    self.timeline.append(i.id)
+                    self.added_event(i)
+                
                 # update lastid
                 self.lastid = self.last[-1].id
                 self.kwargs["since_id"] = self.lastid
+                
                 # exec EventHander (TreeView Refresh
                 self.reloadEventHandler(self.last)
             

@@ -66,7 +66,7 @@ class Main:
     # Window close event
     def close(self, widget):
         gtk.main_quit()
-
+    
     # Get text
     def _get_text(self):
         buf = self.obj.textview1.get_buffer()
@@ -99,6 +99,13 @@ class Main:
         tl.treeview.connect(
             "row-activated",
             self.on_treeview_row_activated)
+
+    def get_selected_status(self):
+        n = self.obj.notebook1.get_current_page()
+        return self.timelines[n].get_selected_status()
+
+    def get_current_tab(self):
+        return self.obj.notebook1.get_current_page()
     
     ########################################
     # Gtk Signal Events
@@ -118,80 +125,76 @@ class Main:
     
     # Reply if double-clicked status
     def on_treeview_row_activated(self, treeview, path, view_column):
-        n = self.obj.notebook1.get_current_page()
-        status = self.timelines[n].get_status(path)
+        status = self.get_selected_status()
         self.re = status.id
         name = status.user.screen_name
         buf = self.obj.textview1.get_buffer()
         buf.set_text("@%s " % (name))
         self.obj.textview1.grab_focus()
-    
-    def on_menuitem_usertl_activate(self, menuitem):
-        n = self.obj.notebook1.get_current_page()
-        status = self.timelines[n].get_selected_status()
-        sname = status.user.screen_name
-        self._tab_append("@%s" % sname, "user_timeline", 60, user = sname)
-
+    # Same....
     def on_menuitem_reply_activate(self, menuitem):
-        n = self.obj.notebook1.get_current_page()
-        status = self.timelines[n].get_selected_status()
+        status = self.get_selected_status()
         self.re = status.id
         name = status.user.screen_name
         buf = self.obj.textview1.get_buffer()
         buf.set_text("@%s " % (name)) 
         self.obj.textview1.grab_focus()
-
+    
+    # Retweet menu clicked
     def on_menuitem_retweet_activate(self, memuitem):
-        n = self.obj.notebook1.get_current_page()
-        status = self.timelines[n].get_selected_status()
+        status = self.get_selected_status()
         self.twitter.api.status_retweet(status.id)
-
+        
+    # Retweet with comment menu clicked
     def on_menuitem_reteet_with_comment_activate(self, memuitem):
-        n = self.obj.notebook1.get_current_page()
-        status = self.timelines[n].get_selected_status()
+        status = self.get_selected_status()
         self.re = status.id
         name = status.user.screen_name
         text = status.text
         buf = self.obj.textview1.get_buffer()
         buf.set_text("RT @%s: %s" % (name, text))
-        self.obj.textview1.grab_focus()
-
+        self.obj.textview1.grab_focus()    
+        
+    # Added user timeline tab
+    def on_menuitem_usertl_activate(self, menuitem):
+        status = self.get_selected_status()
+        sname = status.user.screen_name
+        self._tab_append("@%s" % sname, "user_timeline", 60, user = sname)
+    
     # Status Clicked
     def on_treeview_cursor_changed(self, treeview):
-        n = self.obj.notebook1.get_current_page()
-        status = self.timelines[n].get_selected_status()
-
-        id = status.id
-        uid = status.user.id
-        to = status.in_reply_to_status_id
-        to_uid = status.in_reply_to_user_id
+        status = self.get_selected_status()
+        user = status.user
         
-        me = self.twitter.api.user.id
-        myname = self.twitter.api.user.screen_name
+        me = self.twitter.users[self.twitter.myid]
         
-        store = self.timelines[n].store
+        store = self.timelines[self.get_current_tab()].store
         i = store.get_iter_first()
         
         # Colord status
         while i:
-            itext, iid, iuid, ito, ito_uid = store.get(i, 1, 2, 3, 4, 5)
-            if iuid == me:
+            id = store.get_value(i, 2)
+            s = self.twitter.statuses[id]
+            u = s.user
+            
+            if u.id == me.id:
                 # My status (Green)
                 bg = "#CCFFCC"
-            elif ito_uid == me or itext.find(myname) != -1:
+            elif s.in_reply_to_user_id == me.id or \
+                    s.text.find("@%s" % me.screen_name) != -1:
                 # Reply to me (Red)
                 bg = "#FFCCCC"
-            elif iid == to:
+            elif s.id == status.in_reply_to_status_id:
                 # Reply to (Orange)
                 bg = "#FFCC99"
-            elif iuid == to_uid:
+            elif u.id == status.in_reply_to_user_id:
                 # Reply to other (Yellow)
                 bg = "#FFFFCC"
-            elif iuid == uid:
+            elif u.id == user.id:
                 # Selected user (Blue)
                 bg = "#CCCCFF"
             else:
                 bg = None
             
-            store.set_value(i, 6, bg)
+            store.set_value(i, 5, bg)
             i = store.iter_next(i)
