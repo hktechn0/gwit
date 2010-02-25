@@ -157,3 +157,7 @@ class Main:
         status = self.get_selected_status()
         sname = status.user.screen_name
         self._tab_append("@%s" % sname, "user_timeline", 60, user = sname)
+
+    def on_menuitem_fav_activate(self, menuitem):
+        status = self.get_selected_status()
+        self.twitter.api.favorite_create(status.id)
