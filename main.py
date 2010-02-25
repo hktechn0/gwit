@@ -141,7 +141,7 @@ class Main:
     def on_menuitem_retweet_activate(self, memuitem):
         status = self.get_selected_status()
         self.twitter.api.status_retweet(status.id)
-        
+    
     # Retweet with comment menu clicked
     def on_menuitem_reteet_with_comment_activate(self, memuitem):
         status = self.get_selected_status()

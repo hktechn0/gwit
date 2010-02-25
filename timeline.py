@@ -10,6 +10,7 @@ import pango
 import re
 import urlregex
 
+import time
 import webbrowser
 
 class timeline:
@@ -227,8 +228,11 @@ class timeline:
     # Menu popup
     def on_treeview_button_press(self, widget, event):
         if event.button == 3:
+            # get path from point
+            path = self.treeview.get_path_at_pos(event.x, event.y)
+            
             # Get Urls
-            it = self.store.get_iter(self.treeview.get_cursor()[0])
+            it = self.store.get_iter(path[0])
             urls = self.store.get_value(it, 5)
             
             m = gtk.Menu()
