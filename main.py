@@ -78,7 +78,6 @@ class Main:
     # Window close event
     def close(self, widget):
         # Save Allocation (window position, size)
-        print widget.get_position()
         alloc = repr(widget.allocation)
         save_config("DEFAULT", "allocation", alloc)
         
