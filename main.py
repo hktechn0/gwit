@@ -5,6 +5,7 @@ import pygtk
 pygtk.require('2.0')
 import gtk
 
+import sys
 import threading
 import random
 import time
@@ -13,6 +14,7 @@ from objects import GtkObjects
 from timeline import timeline
 from twitterapi import twitterapi
 from iconstore import IconStore
+from saveconfig import save_configs, save_config, get_config
 
 # Main Class
 class Main:
@@ -42,11 +44,21 @@ class Main:
         init = threading.Thread(target=self.initialize, args=(keys, maxn))
         init.start()
     
-    def main(self):        
+    def main(self):
         # Gtk Multithread Setup
         gtk.gdk.threads_init()
         gtk.gdk.threads_enter()
+        
+        # settings allocation
+        try:
+            alloc = get_config("DEFAULT", "allocation")
+            alloc = eval(alloc)
+            self.obj.window1.resize(alloc.width, alloc.height)
+        except:
+            print >>sys.stderr, "[Warning] Allocation not defined"        
+        
         self.obj.window1.show_all()
+        
         # Start gtk main loop
         gtk.main()
         gtk.gdk.threads_leave()
@@ -65,6 +77,11 @@ class Main:
     
     # Window close event
     def close(self, widget):
+        # Save Allocation (window position, size)
+        print widget.get_position()
+        alloc = repr(widget.allocation)
+        save_config("DEFAULT", "allocation", alloc)
+        
         gtk.main_quit()
     
     # Get text
