@@ -15,7 +15,7 @@ class twitterapi():
         # User, Status Buffer
         self.users = dict()
         self.statuses = dict()
-
+        
         self.maxn = maxn
         self.myid = self.api.user.id
         self.users[self.myid] = self.api.user
@@ -25,6 +25,7 @@ class twitterapi():
         th = timeline_thread(getattr(self.api, func),
                              interval, self.maxn, args, kwargs)
         th.added_event = self.add_status
+        th.statuses = self.statuses
         self.threads.append(th)
         return th
     
@@ -45,14 +46,14 @@ class timeline_thread(threading.Thread):
         # Thread Initialize
         threading.Thread.__init__(self)
         self.setDaemon(True)
-
+        
         # Event lock
         self.lock = threading.Event()
         
         self.func = func
         self.interval = interval
         self.lastid = None
-        self.timeline = list()
+        self.timeline = set()
         
         # API Arguments
         self.args = args
@@ -61,28 +62,46 @@ class timeline_thread(threading.Thread):
     
     # Thread run
     def run(self):
+        if self.func.func_name == "user_timeline":
+            # extract cached status if gets user_timeline
+            cached = set()
+            for i in self.statuses.itervalues():
+                if i.user.id == self.kwargs["user"]:
+                    cached.add(i.id)
+            
+            if cached:
+                self.add(cached)
+        
         while True:
             try:
                 # Get Timeline
-                self.last = self.func(*self.args, **self.kwargs)
+                last = self.func(*self.args, **self.kwargs)
             except Exception, e:
-                self.last = list()
+                last = None
                 print >>sys.stderr, "Error", e
             
             # If Timeline update
-            if self.last:
-                for i in self.last:
-                    # append new statuses to timeline buffer
-                    self.timeline.append(i.id)
+            if last:
+                # Append status cache
+                new = set()
+                for i in last:
+                    new.add(i.id)
                     self.added_event(i)
                 
-                # update lastid
-                self.lastid = self.last[-1].id
-                self.kwargs["since_id"] = self.lastid
+                # Add statuses to timeline
+                self.add(new)
                 
-                # exec EventHander (TreeView Refresh
-                self.reloadEventHandler(self.last)
+                # update lastid
+                self.lastid = last[-1].id
+                self.kwargs["since_id"] = self.lastid
             
             # Reload delay
             self.lock.clear()
             self.lock.wait(self.interval)
+    
+    def add(self, ids):
+        # exec EventHander (TreeView Refresh
+        ids.difference_update(self.timeline)
+        self.reloadEventHandler(ids)
+        # add new statuse ids
+        self.timeline.update(ids)

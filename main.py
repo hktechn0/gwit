@@ -181,9 +181,10 @@ class Main:
     # Added user timeline tab
     def on_menuitem_usertl_activate(self, menuitem):
         status = self.get_selected_status()
-        sname = status.user.screen_name
-        self._tab_append("@%s" % sname, "user_timeline", 60, user = sname)
-
+        self._tab_append("@%s" % status.user.screen_name,
+                         "user_timeline", 60,
+                         user = status.user.id)
+    
     def on_menuitem_fav_activate(self, menuitem):
         status = self.get_selected_status()
         self.twitter.api.favorite_create(status.id)

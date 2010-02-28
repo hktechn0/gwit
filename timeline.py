@@ -23,7 +23,8 @@ class timeline:
         
         # Liststore column setting
         self.store = gtk.ListStore(
-            gtk.gdk.Pixbuf, str, object, object, str, object)
+            gtk.gdk.Pixbuf, str, long, long, str, object)
+        self.store.set_sort_column_id(2, gtk.SORT_DESCENDING)
         self.treeview = gtk.TreeView(self.store)
         
         # Add treeview to scrolledwindow
@@ -201,7 +202,7 @@ class timeline:
             self.vadj_upper = adj.upper
     
     # Prepend new statuses
-    def _prepend_new_statuses(self, new_timeline):
+    def _prepend_new_statuses(self, new_ids):
         # Auto scroll lock if adjustment changed manually
         vadj = self.scrwin.get_vadjustment()
         self.vadj_lock = True if vadj.value != 0.0 else False
@@ -209,26 +210,28 @@ class timeline:
         myname = self.twitter.users[self.twitter.myid].screen_name
         
         # Insert New Status
-        for i in new_timeline:
+        for i in new_ids:
+            status = self.twitter.statuses[i]
+            
             # colord url
-            text, urls = self.urlre.get_colored(i.text)
+            text, urls = self.urlre.get_colored(status.text)
             # replace no entity & -> &amp;
             text = self._replace_amp(text)
             
             # Bold screen_name
             text = "<b>%s</b>\n%s" % (
-                i.user.screen_name, text)
-
+                status.user.screen_name, text)
+            
             # New Status Prepend to Liststore (Add row)
             gtk.gdk.threads_enter()
             self.store.prepend(
-                (self.icons.get(i.user),
+                (self.icons.get(status.user),
                  text,
-                 i.id, i.user.id,
+                 status.id, status.user.id,
                  None, # background
                  urls))
             gtk.gdk.threads_leave()
-
+        
         self.color_status()
     
     # Menu popup
