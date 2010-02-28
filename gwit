@@ -27,8 +27,8 @@ if __name__ == "__main__":
    confp = SafeConfigParser()
    
    # Config file absolute path
-   conf_path = os.path.join(
-      os.path.dirname(__file__), "gwit.conf")
+   gwitpath = os.path.dirname(__file__)
+   conf_path = os.path.join(gwitpath, "gwit.conf")
    
    # config file exist?
    if os.path.isfile(conf_path):
@@ -70,7 +70,7 @@ if __name__ == "__main__":
            settings[user]["atoken"], settings[user]["asecret"])
    
    # Run Main()
-   gladefile = "gwit.glade"
+   gladefile = os.path.join(gwitpath, "gwit.glade")
    if options.max and int(options.max) <= 200:
       maxn = int(options.max)
    else:
