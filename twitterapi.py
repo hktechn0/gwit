@@ -3,7 +3,6 @@
 
 import twoauth
 import threading
-import time
 import sys
 
 # Twitter API Class
@@ -21,10 +20,10 @@ class twitterapi():
         self.myid = self.api.user.id
         self.users[self.myid] = self.api.user
     
-    def create_timeline(self, func, sleep, args, kwargs):
+    def create_timeline(self, func, interval, args, kwargs):
         # Add New Timeline Thread
         th = timeline_thread(getattr(self.api, func),
-                             sleep, self.maxn, args, kwargs)
+                             interval, self.maxn, args, kwargs)
         th.added_event = self.add_status
         self.threads.append(th)
         return th
@@ -42,13 +41,16 @@ class twitterapi():
 
 # Timeline Thread
 class timeline_thread(threading.Thread):
-    def __init__(self, func, sleep, maxn, args, kwargs):
+    def __init__(self, func, interval, maxn, args, kwargs):
         # Thread Initialize
         threading.Thread.__init__(self)
         self.setDaemon(True)
+
+        # Event lock
+        self.lock = threading.Event()
         
         self.func = func
-        self.sleep = sleep
+        self.interval = interval
         self.lastid = None
         self.timeline = list()
         
@@ -81,5 +83,6 @@ class timeline_thread(threading.Thread):
                 # exec EventHander (TreeView Refresh
                 self.reloadEventHandler(self.last)
             
-            # Sleep
-            time.sleep(self.sleep)
+            # Reload delay
+            self.lock.clear()
+            self.lock.wait(self.interval)

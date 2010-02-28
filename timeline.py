@@ -106,6 +106,12 @@ class timeline:
     def get_status(self, path):
         id = self.store[path][2]
         return self.twitter.statuses[id]
+
+    # Reload Timeline
+    def reload(self):
+        if not self.timeline.lock.isSet():
+            # lock flag set (unlock)
+            self.timeline.lock.set()
     
     # Replace & -> &amp;
     def _replace_amp(self, string):

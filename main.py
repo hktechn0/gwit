@@ -116,7 +116,7 @@ class Main:
     def get_selected_status(self):
         n = self.obj.notebook1.get_current_page()
         return self.timelines[n].get_selected_status()
-
+    
     def get_current_tab(self):
         return self.obj.notebook1.get_current_page()
     
@@ -132,9 +132,13 @@ class Main:
                 txt, in_reply_to_status_id = self.re)
             self._clear_buf()
             self.re = None
-        else:
+        elif txt:
             self.twitter.api.status_update(txt)
             self._clear_buf()
+        else:
+            # Reload timeline if nothing in textview
+            n = self.get_current_tab()
+            self.timelines[n].reload()
     
     # Reply if double-clicked status
     def on_treeview_row_activated(self, treeview, path, view_column):
