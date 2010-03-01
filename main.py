@@ -109,8 +109,10 @@ class Main:
         tl.add_notebook(self.obj.notebook1, name)
         # Add Popup Menu
         tl.add_popup(self.obj.menu_timeline)
-        
         tl._tab_append = self._tab_append
+        
+        if method != "mentions":
+            tl.add_event = self._add_event
         
         # Treeview double click signal connect
         tl.treeview.connect(
@@ -127,6 +129,16 @@ class Main:
     
     def get_current_tab(self):
         return self.obj.notebook1.get_current_page()
+
+    # status added event
+    def _add_event(self, i):
+        status = self.twitter.statuses[i]
+        myname = self.twitter.users[self.twitter.myid]
+        if status.in_reply_to_user_id == self.twitter.myid or \
+                status.text.find("@%s" % myname) >= 0:
+            self.timelines[1].add_status(i)
+            self.timelines[1].color_status()
+            self.timelines[1].timeline.timeline.add(status.id)
     
     ########################################
     # Gtk Signal Events

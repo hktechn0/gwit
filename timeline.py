@@ -162,6 +162,47 @@ class timeline:
             
             self.store.set_value(i, 4, bg)
             i = self.store.iter_next(i)
+
+    # Prepend new statuses
+    def _prepend_new_statuses(self, new_ids):
+        # Auto scroll lock if adjustment changed manually
+        vadj = self.scrwin.get_vadjustment()
+        self.vadj_lock = True if vadj.value != 0.0 else False
+        
+        myname = self.twitter.users[self.twitter.myid].screen_name
+        
+        # Insert New Status
+        for i in new_ids:
+            self.add_status(i)
+        
+        self.color_status()
+    
+    def add_status(self, i):
+        status = self.twitter.statuses[i]
+        
+        # colord url
+        text, urls = self.urlre.get_colored(status.text)
+        # replace no entity & -> &amp;
+        text = self._replace_amp(text)
+        
+        # Bold screen_name
+        text = "<b>%s</b>\n%s" % (
+            status.user.screen_name, text)
+        
+        # New Status Prepend to Liststore (Add row)
+        gtk.gdk.threads_enter()
+        self.store.prepend(
+            (self.icons.get(status.user),
+             text,
+             long(status.id), long(status.user.id),
+             None, # background
+             urls))
+        gtk.gdk.threads_leave()
+
+        self.add_event(i)
+    
+    def add_event(self, i):
+        pass
     
     
     ########################################
@@ -202,39 +243,6 @@ class timeline:
             if len(self.store):
                 self.treeview.scroll_to_cell((0,))
             self.vadj_upper = adj.upper
-    
-    # Prepend new statuses
-    def _prepend_new_statuses(self, new_ids):
-        # Auto scroll lock if adjustment changed manually
-        vadj = self.scrwin.get_vadjustment()
-        self.vadj_lock = True if vadj.value != 0.0 else False
-        
-        myname = self.twitter.users[self.twitter.myid].screen_name
-        
-        # Insert New Status
-        for i in new_ids:
-            status = self.twitter.statuses[i]
-            
-            # colord url
-            text, urls = self.urlre.get_colored(status.text)
-            # replace no entity & -> &amp;
-            text = self._replace_amp(text)
-            
-            # Bold screen_name
-            text = "<b>%s</b>\n%s" % (
-                status.user.screen_name, text)
-            
-            # New Status Prepend to Liststore (Add row)
-            gtk.gdk.threads_enter()
-            self.store.prepend(
-                (self.icons.get(status.user),
-                 text,
-                 long(status.id), long(status.user.id),
-                 None, # background
-                 urls))
-            gtk.gdk.threads_leave()
-        
-        self.color_status()
     
     # Menu popup
     def on_treeview_button_press(self, widget, event):
