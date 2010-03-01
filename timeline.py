@@ -23,7 +23,9 @@ class timeline:
         
         # Liststore column setting
         self.store = gtk.ListStore(
-            gtk.gdk.Pixbuf, str, long, long, str, object)
+            gtk.gdk.Pixbuf, str,
+            gobject.TYPE_INT64, gobject.TYPE_INT64,
+            str, object)
         self.store.set_sort_column_id(2, gtk.SORT_DESCENDING)
         self.treeview = gtk.TreeView(self.store)
         
