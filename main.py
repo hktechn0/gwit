@@ -110,6 +110,8 @@ class Main:
         # Add Popup Menu
         tl.add_popup(self.obj.menu_timeline)
         
+        tl._tab_append = self._tab_append
+        
         # Treeview double click signal connect
         tl.treeview.connect(
             "row-activated",
@@ -182,7 +184,7 @@ class Main:
     def on_menuitem_usertl_activate(self, menuitem):
         status = self.get_selected_status()
         self._tab_append("@%s" % status.user.screen_name,
-                         "user_timeline", 60,
+                         "user_timeline", -1,
                          user = status.user.id)
     
     def on_menuitem_fav_activate(self, menuitem):

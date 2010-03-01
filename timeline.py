@@ -278,10 +278,10 @@ class timeline:
             if users:
                 for i in users:
                     # Menuitem create
-                    item = gtk.MenuItem(i)
+                    item = gtk.MenuItem("@%s" % i)
                     # Connect click event (add tab)
-                    #item.connect("activate",
-                    #             self._menuitem_user_clicked, i)
+                    item.connect("activate",
+                                 self._menuitem_user_clicked, i)
                     # append to menu
                     mm.append(item)
             else:
@@ -299,6 +299,20 @@ class timeline:
     # Open Web browser if url menuitem clicked
     def _menuitem_url_clicked(self, menuitem, url):
         webbrowser.open_new_tab(url)
+
+    # Add user timeline tab if mentioned user menu clicked
+    def _menuitem_user_clicked(self, menuitem, sname):
+        # search user from screen_name
+        for user in self.twitter.users.itervalues():
+            if user.screen_name == sname:
+                self._tab_append("@%s" % sname, "user_timeline", -1,
+                                 user = user.id)
+                return True
+            
+        # force specify screen_name if not found
+        self._tab_append("@%s" % sname, "user_timeline", -1,
+                         user = sname, sn = True)
+        return True
     
     # Status Clicked
     def on_treeview_cursor_changed(self, treeview):

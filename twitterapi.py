@@ -4,6 +4,7 @@
 import twoauth
 import threading
 import sys
+import time
 
 # Twitter API Class
 class twitterapi():
@@ -78,7 +79,8 @@ class timeline_thread(threading.Thread):
                 last = self.func(*self.args, **self.kwargs)
             except Exception, e:
                 last = None
-                print >>sys.stderr, "Error", e
+                print >>sys.stderr, "[Error] TwitterAPI ",
+                print >>sys.stderr, time.strftime("%H:%M:%S"), e
             
             # If Timeline update
             if last:
@@ -95,9 +97,16 @@ class timeline_thread(threading.Thread):
                 self.lastid = last[-1].id
                 self.kwargs["since_id"] = self.lastid
             
-            # Reload delay
+            # debug print
+            print "[debug] reload", time.strftime("%H:%M:%S"),
+            print self.func.func_name, self.args, self.kwargs
+            
+            # Reload lock
             self.lock.clear()
-            self.lock.wait(self.interval)
+            if self.interval != -1:
+                self.lock.wait(self.interval)
+            else:
+                self.lock.wait()
     
     def add(self, ids):
         # exec EventHander (TreeView Refresh
