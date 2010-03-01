@@ -177,7 +177,7 @@ class Main:
         buf = self.obj.textview1.get_buffer()
         buf.set_text("RT @%s: %s" % (name, text))
         self.obj.textview1.grab_focus()    
-        
+    
     # Added user timeline tab
     def on_menuitem_usertl_activate(self, menuitem):
         status = self.get_selected_status()

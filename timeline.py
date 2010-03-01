@@ -8,7 +8,7 @@ import gobject
 import pango
 
 import re
-import urlregex
+from twitterregex import urlregex, replyregex
 
 import time
 import webbrowser
@@ -69,7 +69,7 @@ class timeline:
         vadj.connect("changed", self._vadj_changed)
 
         # Regex setup
-        self.urlre = urlregex.urlregex()
+        self.urlre = urlregex()
         self.noent_amp = re.compile("&(?![A-Za-z]+;)")
     
     # Start Sync Timeline (new twitter timeline thread create)
@@ -246,8 +246,13 @@ class timeline:
             it = self.store.get_iter(path[0])
             urls = self.store.get_value(it, 5)
             
-            m = gtk.Menu()
+            # Get mentioned users
+            txt = self.store.get_value(it, 1)
+            repre = replyregex()
+            users = repre.get_users(txt)
             
+            # URL Menu
+            m = gtk.Menu()
             if urls:
                 # if exist url in text, add menu
                 for i in urls:
@@ -264,19 +269,37 @@ class timeline:
                 # not, show None
                 item = gtk.MenuItem("None")
                 item.set_sensitive(False)
-                m.append(item)
-            
+                m.append(item)            
             # urls submenu append
-            self.pmenu.get_children()[-1].set_submenu(m)
+            self.pmenu.get_children()[-2].set_submenu(m)
+            
+            # Mentioned User Menu
+            mm = gtk.Menu()
+            if users:
+                for i in users:
+                    # Menuitem create
+                    item = gtk.MenuItem(i)
+                    # Connect click event (add tab)
+                    #item.connect("activate",
+                    #             self._menuitem_user_clicked, i)
+                    # append to menu
+                    mm.append(item)
+            else:
+                # not, show None
+                item = gtk.MenuItem("None")
+                item.set_sensitive(False)
+                mm.append(item)
+            self.pmenu.get_children()[-1].set_submenu(mm)
             
             # Show popup menu
             m.show_all()
+            mm.show_all()
             self.pmenu.popup(None, None, None, event.button, event.time)
     
     # Open Web browser if url menuitem clicked
     def _menuitem_url_clicked(self, menuitem, url):
         webbrowser.open_new_tab(url)
-
+    
     # Status Clicked
     def on_treeview_cursor_changed(self, treeview):
         status = self.get_selected_status()
