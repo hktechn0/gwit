@@ -227,7 +227,7 @@ class timeline:
             self.store.prepend(
                 (self.icons.get(status.user),
                  text,
-                 status.id, status.user.id,
+                 long(status.id), long(status.user.id),
                  None, # background
                  urls))
             gtk.gdk.threads_leave()
