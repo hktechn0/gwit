@@ -74,8 +74,6 @@ class Main:
             self._tab_append(*i)
             # insert littledelay
             time.sleep(random.random())
-
-        self.obj.notebook1.set_current_page(0)
     
     # Window close event
     def close(self, widget):
@@ -118,11 +116,7 @@ class Main:
         tl.treeview.connect(
             "row-activated",
             self.on_treeview_row_activated)
-        
-        # Tab change
-        n = self.obj.notebook1.get_n_pages()
-        self.obj.notebook1.set_current_page(n - 1)
-    
+
     def get_selected_status(self):
         n = self.obj.notebook1.get_current_page()
         return self.timelines[n].get_selected_status()
