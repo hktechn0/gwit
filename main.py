@@ -4,6 +4,7 @@
 import pygtk
 pygtk.require('2.0')
 import gtk
+import gobject
 
 import sys
 import threading
@@ -20,6 +21,10 @@ from saveconfig import save_configs, save_config, get_config
 class Main:
     # Constractor
     def __init__(self, glade, keys, maxn = 200, iconmode = True):
+        # Gtk Multithread Setup
+        gtk.gdk.threads_init()
+        gobject.threads_init()
+        
         # GtkBuilder instance
         builder = gtk.Builder()
         # Glade file input
@@ -45,8 +50,6 @@ class Main:
         init.start()
     
     def main(self):
-        # Gtk Multithread Setup
-        gtk.gdk.threads_init()
         gtk.gdk.threads_enter()
         
         # settings allocation
@@ -65,6 +68,7 @@ class Main:
     
     # Initialize Twitter API and Tabs (in another thread)
     def initialize(self, keys, maxn):
+        gtk.gdk.threads_enter()
         # Twitter class instance
         self.twitter = twitterapi(keys, maxn)
         
@@ -74,6 +78,9 @@ class Main:
             self._tab_append(*i)
             # insert littledelay
             time.sleep(random.random())
+
+        self.obj.notebook1.set_current_page(0)
+        gtk.gdk.threads_leave()
     
     # Window close event
     def close(self, widget):
@@ -116,7 +123,10 @@ class Main:
         tl.treeview.connect(
             "row-activated",
             self.on_treeview_row_activated)
-
+        
+        n = self.obj.notebook1.get_n_pages()
+        self.obj.notebook1.set_current_page(n - 1)
+    
     def get_selected_status(self):
         n = self.obj.notebook1.get_current_page()
         return self.timelines[n].get_selected_status()
