@@ -142,12 +142,12 @@ class timeline:
             s = self.twitter.statuses[id]
             u = s.user
             
-            if u.id == me.id:
-                # My status (Blue)
-                bg = "#CCCCFF"
-            elif status and s.id == status.in_reply_to_status_id:
+            if status and s.id == status.in_reply_to_status_id:
                 # Reply to (Orange)
                 bg = "#FFCC99"
+            elif u.id == me.id:
+                # My status (Blue)
+                bg = "#CCCCFF"
             elif s.in_reply_to_user_id == me.id or \
                     s.text.find("@%s" % me.screen_name) != -1:
                 # Reply to me (Red)
@@ -162,7 +162,7 @@ class timeline:
             
             self.store.set_value(i, 4, bg)
             i = self.store.iter_next(i)
-
+    
     # Prepend new statuses
     def _prepend_new_statuses(self, new_ids):
         # Auto scroll lock if adjustment changed manually
