@@ -195,6 +195,7 @@ class Main:
         text = status.text
         buf = self.obj.textview1.get_buffer()
         buf.set_text("RT @%s: %s" % (name, text))
+        self.re = None
         self.obj.textview1.grab_focus()    
     
     # Added user timeline tab
