@@ -138,8 +138,9 @@ class Main:
     def _add_event(self, i):
         status = self.twitter.statuses[i]
         myname = self.twitter.users[self.twitter.myid]
-        if status.in_reply_to_user_id == self.twitter.myid or \
-                status.text.find("@%s" % myname) >= 0:
+        if (status.in_reply_to_user_id == self.twitter.myid or \
+                status.text.find("@%s" % myname) >= 0) and \
+                i not in self.timelines[1].timeline.timeline:
             self.timelines[1].add_status(i)
             self.timelines[1].color_status()
             self.timelines[1].timeline.timeline.add(status.id)
