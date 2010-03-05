@@ -71,6 +71,12 @@ class Main:
         gtk.gdk.threads_enter()
         # Twitter class instance
         self.twitter = twitterapi(keys, maxn)
+
+        # Set statusbar (Show API Remaining)
+        self.label_apilimit = gtk.Label()
+        self.obj.statusbar1.pack_start(
+            self.label_apilimit, expand = False, padding = 10)
+        self.obj.statusbar1.show_all()
         
         # Set Status Views
         for i in (("Home", "home_timeline", 30),
@@ -108,7 +114,9 @@ class Main:
         
         # Start sync timeline
         if method:
-            tl.start_sync(method, sleep, args, kwargs)
+            tl.init_timeline(method, sleep, args, kwargs)
+            tl.timeline.tlrefreshEvent = self.on_timeline_refresh
+            tl.start_timeline()
         
         # Add Notebook (Tab view)
         tl.add_notebook(self.obj.notebook1, name)
@@ -144,6 +152,13 @@ class Main:
             self.timelines[1].add_status(i)
             self.timelines[1].color_status()
             self.timelines[1].timeline.timeline.add(status.id)
+    
+    def on_timeline_refresh(self):
+        self.label_apilimit.set_text("%d/%d %d/%d" % (
+                self.twitter.api.ratelimit_remaining,
+                self.twitter.api.ratelimit_limit,
+                self.twitter.api.ratelimit_ipremaining,
+                self.twitter.api.ratelimit_iplimit))
     
     ########################################
     # Gtk Signal Events

@@ -67,22 +67,24 @@ class timeline:
         self.vadj_upper = vadj.upper
         self.vadj_lock = False
         vadj.connect("changed", self._vadj_changed)
-
+        
         # Regex setup
         self.urlre = urlregex()
         self.noent_amp = re.compile("&(?![A-Za-z]+;)")
     
     # Start Sync Timeline (new twitter timeline thread create)
-    def start_sync(self, method, time, args, kwargs):
+    def init_timeline(self, method, time, args, kwargs):
         self.timeline = self.twitter.create_timeline(
             method, time, args, kwargs)
-
-        # Set Event Hander (exec in every get timeline
-        self.timeline.reloadEventHandler = self._prepend_new_statuses
-        self.timeline.start()
         
+        # Set Event Hander (exec in every get timeline
+        self.timeline.reloadEventHandler = self._prepend_new_statuses    
         # Add timeline to IconStore
         self.icons.add_store(self.store)
+    
+    def start_timeline(self):
+        # Start Timeline sync thread
+        self.timeline.start()
     
     # Add Notebook
     def add_notebook(self, notebook, name = None):

@@ -82,6 +82,8 @@ class timeline_thread(threading.Thread):
                 print >>sys.stderr, "[Error] TwitterAPI ",
                 print >>sys.stderr, time.strftime("%H:%M:%S"), e
             
+            self.tlrefreshEvent()
+            
             # If Timeline update
             if last:
                 # Append status cache
