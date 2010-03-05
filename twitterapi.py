@@ -1,10 +1,12 @@
 #!/usr/bin/env python
 #-*- coding: utf-8 -*-
 
-import twoauth
-import threading
 import sys
 import time
+import mutex
+import threading
+
+import twoauth
 
 # Twitter API Class
 class twitterapi():
@@ -50,6 +52,7 @@ class timeline_thread(threading.Thread):
         
         # Event lock
         self.lock = threading.Event()
+        self.addlock = mutex.mutex()
         
         self.func = func
         self.interval = interval
@@ -111,10 +114,15 @@ class timeline_thread(threading.Thread):
                 self.lock.wait()
     
     def add(self, ids):
+        # mutex lock
+        self.addlock.lock(self.add_mutex, ids)
+    
+    def add_mutex(self, ids):
         # defference update = delete already exists status
         ids.difference_update(self.timeline)
-        # add new statuse ids
-        self.timeline.update(ids)
-        
         # exec EventHander (TreeView Refresh)
         self.reloadEventHandler(ids)
+        # add new statuse ids
+        self.timeline.update(ids)
+
+        self.addlock.unlock()
