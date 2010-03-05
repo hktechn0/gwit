@@ -153,12 +153,9 @@ class Main:
     def on_status_added(self, i):
         status = self.twitter.statuses[i]
         myname = self.twitter.users[self.twitter.myid]
-        if (status.in_reply_to_user_id == self.twitter.myid or \
-                status.text.find("@%s" % myname) >= 0) and \
-                i not in self.timelines[1].timeline.timeline:
-            self.timelines[1].add_status(i)
-            self.timelines[1].color_status()
-            self.timelines[1].timeline.timeline.add(status.id)
+        if status.in_reply_to_user_id == self.twitter.myid or \
+                status.text.find("@%s" % myname) >= 0:
+            self.timelines[1].timeline.add(set((status.id,)))
     
     def on_timeline_refresh(self):
         self.label_apilimit.set_text("%d/%d %d/%d" % (

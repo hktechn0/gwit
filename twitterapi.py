@@ -120,9 +120,10 @@ class timeline_thread(threading.Thread):
     def add_mutex(self, ids):
         # defference update = delete already exists status
         ids.difference_update(self.timeline)
-        # exec EventHander (TreeView Refresh)
-        self.reloadEventHandler(ids)
-        # add new statuse ids
-        self.timeline.update(ids)
-
+        if ids:
+            # exec EventHander (TreeView Refresh)
+            self.reloadEventHandler(ids)
+            # add new statuse ids
+            self.timeline.update(ids)
+        
         self.addlock.unlock()
