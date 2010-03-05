@@ -103,8 +103,11 @@ class timeline:
     
     # Get selected status
     def get_selected_status(self):
-        path = self.treeview.get_cursor()[0]
-        return self.get_status(path)
+        path, column = self.treeview.get_cursor()
+        if path == None:
+            return None
+        else:
+            return self.get_status(path)
     
     # Get status from treeview path
     def get_status(self, path):
@@ -135,6 +138,10 @@ class timeline:
     def color_status(self, status = None):
         me = self.twitter.users[self.twitter.myid]
         
+        # if not set target status
+        if status == None:
+            status = self.get_selected_status()
+        
         i = self.store.get_iter_first()
         while i:
             bg = None            
@@ -143,18 +150,19 @@ class timeline:
             s = self.twitter.statuses[id]
             u = s.user
             
-            if status and s.id == status.in_reply_to_status_id:
-                # Reply to (Orange)
-                bg = "#FFCC99"
-            elif u.id == me.id:
+            if u.id == me.id:
                 # My status (Blue)
                 bg = "#CCCCFF"
             elif s.in_reply_to_user_id == me.id or \
                     s.text.find("@%s" % me.screen_name) != -1:
                 # Reply to me (Red)
                 bg = "#FFCCCC"
-            elif status:
-                if u.id == status.in_reply_to_user_id:
+            
+            if status:
+                if s.id == status.in_reply_to_status_id:
+                    # Reply to (Orange)
+                    bg = "#FFCC99"
+                elif u.id == status.in_reply_to_user_id:
                     # Reply to other (Yellow)
                     bg = "#FFFFCC"
                 elif u.id == status.user.id:
