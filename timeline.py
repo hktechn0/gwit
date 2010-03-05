@@ -8,7 +8,7 @@ import gobject
 import pango
 
 import re
-from twitterregex import urlregex, replyregex
+import twittertools
 
 import time
 import webbrowser
@@ -24,8 +24,7 @@ class timeline:
         # Liststore column setting
         self.store = gtk.ListStore(
             gtk.gdk.Pixbuf, str,
-            gobject.TYPE_INT64, gobject.TYPE_INT64,
-            str, object)
+            gobject.TYPE_INT64, gobject.TYPE_INT64, str)
         self.store.set_sort_column_id(2, gtk.SORT_DESCENDING)
         self.treeview = gtk.TreeView(self.store)
         
@@ -68,8 +67,8 @@ class timeline:
         self.vadj_lock = False
         vadj.connect("changed", self._vadj_changed)
         
-        # Regex setup
-        self.urlre = urlregex()
+        # Tools setup
+        self.twtools = twittertools.TwitterTools()
         self.noent_amp = re.compile("&(?![A-Za-z]+;)")
     
     # Start Sync Timeline (new twitter timeline thread create)
@@ -181,9 +180,10 @@ class timeline:
     
     def add_status(self, i):
         status = self.twitter.statuses[i]
+        background = None
         
         # colord url
-        text, urls = self.urlre.get_colored(status.text)
+        text = self.twtools.get_colored_url(status.text)
         # replace no entity & -> &amp;
         text = self._replace_amp(text)
         
@@ -197,15 +197,20 @@ class timeline:
             (self.icons.get(status.user),
              text,
              long(status.id), long(status.user.id),
-             None, # background
-             urls))
+             background))
         gtk.gdk.threads_leave()
-
+        
         self.add_event(i)
     
     def add_event(self, i):
         pass
     
+    # get status from mouse point
+    def get_status_from_point(self, x, y):
+        path = self.treeview.get_path_at_pos(x, y)
+        it = self.store.get_iter(path[0])
+        sid = self.store.get_value(it, 2)
+        return self.twitter.statuses[sid]
     
     ########################################
     # Gtk Signal Events
@@ -249,17 +254,13 @@ class timeline:
     # Menu popup
     def on_treeview_button_press(self, widget, event):
         if event.button == 3:
-            # get path from point
-            path = self.treeview.get_path_at_pos(int(event.x), int(event.y))
-            
+            # Get status
+            status = self.get_status_from_point(
+                int(event.x), int(event.y))
             # Get Urls
-            it = self.store.get_iter(path[0])
-            urls = self.store.get_value(it, 5)
-            
+            urls = self.twtools.get_urls(status.text)
             # Get mentioned users
-            txt = self.store.get_value(it, 1)
-            repre = replyregex()
-            users = repre.get_users(txt)
+            users = self.twtools.get_users(status.text)
             
             # URL Menu
             m = gtk.Menu()
@@ -288,7 +289,7 @@ class timeline:
             if users:
                 for i in users:
                     # Menuitem create
-                    item = gtk.MenuItem("@%s" % i)
+                    item = gtk.MenuItem("@%s" % i.replace("_", "__"))
                     # Connect click event (add tab)
                     item.connect("activate",
                                  self._menuitem_user_clicked, i)
@@ -328,3 +329,4 @@ class timeline:
     def on_treeview_cursor_changed(self, treeview):
         status = self.get_selected_status()
         self.color_status(status)
+        self.status_selection_changedEvent(status)

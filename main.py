@@ -16,6 +16,7 @@ from timeline import timeline
 from twitterapi import twitterapi
 from iconstore import IconStore
 from saveconfig import save_configs, save_config, get_config
+import twittertools
 
 # Main Class
 class Main:
@@ -45,6 +46,9 @@ class Main:
         self.timelines = list()
         # init icon store
         self.icons = IconStore(iconmode)
+
+        # set tools
+        self.twtools = twittertools.TwitterTools()
         
         init = threading.Thread(target=self.initialize, args=(keys, maxn))
         init.start()
@@ -122,10 +126,13 @@ class Main:
         tl.add_notebook(self.obj.notebook1, name)
         # Add Popup Menu
         tl.add_popup(self.obj.menu_timeline)
+
+        # Event handler and extern function set
         tl._tab_append = self._tab_append
+        tl.status_selection_changedEvent = self.on_status_selection_changed
         
         if method != "mentions":
-            tl.add_event = self._add_event
+            tl.add_event = self.on_status_added
         
         # Treeview double click signal connect
         tl.treeview.connect(
@@ -143,7 +150,7 @@ class Main:
         return self.obj.notebook1.get_current_page()
 
     # status added event
-    def _add_event(self, i):
+    def on_status_added(self, i):
         status = self.twitter.statuses[i]
         myname = self.twitter.users[self.twitter.myid]
         if (status.in_reply_to_user_id == self.twitter.myid or \
@@ -159,6 +166,10 @@ class Main:
                 self.twitter.api.ratelimit_limit,
                 self.twitter.api.ratelimit_ipremaining,
                 self.twitter.api.ratelimit_iplimit))
+
+    def on_status_selection_changed(self, status):
+        self.obj.statusbar1.pop(0)
+        self.obj.statusbar1.push(0, self.twtools.get_footer(status))
     
     ########################################
     # Gtk Signal Events

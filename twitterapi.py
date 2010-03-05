@@ -63,8 +63,8 @@ class timeline_thread(threading.Thread):
     
     # Thread run
     def run(self):
+        # extract cached status if gets user_timeline
         if self.func.func_name == "user_timeline":
-            # extract cached status if gets user_timeline
             cached = set()
             for i in self.statuses.itervalues():
                 if i.user.id == self.kwargs["user"]:
@@ -111,8 +111,10 @@ class timeline_thread(threading.Thread):
                 self.lock.wait()
     
     def add(self, ids):
-        # exec EventHander (TreeView Refresh
+        # defference update = delete already exists status
         ids.difference_update(self.timeline)
-        self.reloadEventHandler(ids)
         # add new statuse ids
         self.timeline.update(ids)
+        
+        # exec EventHander (TreeView Refresh)
+        self.reloadEventHandler(ids)
