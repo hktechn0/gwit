@@ -65,7 +65,7 @@ class timeline:
         vadj = self.scrwin.get_vadjustment()
         self.vadj_upper = vadj.upper
         self.vadj_lock = False
-        vadj.connect("changed", self._vadj_changed)
+        vadj.connect("changed", self.on_vadjustment_changed)
         
         # Tools setup
         self.twtools = twittertools.TwitterTools()
@@ -77,7 +77,7 @@ class timeline:
             method, time, args, kwargs)
         
         # Set Event Hander (exec in every get timeline
-        self.timeline.reloadEventHandler = self._prepend_new_statuses    
+        self.timeline.reloadEventHandler = self.prepend_new_statuses    
         # Add timeline to IconStore
         self.icons.add_store(self.store)
     
@@ -90,6 +90,12 @@ class timeline:
         label = gtk.Label(name)
         notebook.append_page(self.scrwin, label)
         notebook.show_all()
+    
+    # Reload Timeline
+    def reload(self):
+        if not self.timeline.lock.isSet():
+            # lock flag set (unlock)
+            self.timeline.lock.set()
     
     # Add popup menu
     def add_popup(self, menu):
@@ -114,25 +120,12 @@ class timeline:
         id = self.store[path][2]
         return self.twitter.statuses[id]
 
-    # Reload Timeline
-    def reload(self):
-        if not self.timeline.lock.isSet():
-            # lock flag set (unlock)
-            self.timeline.lock.set()
-    
-    # Replace & -> &amp;
-    def _replace_amp(self, string):
-        amp = string.find('&')
-        if amp == -1: return string
-        
-        entity_match = self.noent_amp.finditer(string)
-        
-        for i, e in enumerate(entity_match):
-            string = "%s&amp;%s" % (
-                string[:e.start() + (4 * i)],
-                string[e.start() + (4 * i) + 1:])
-        
-        return string
+    # get status from mouse point
+    def get_status_from_point(self, x, y):
+        path = self.treeview.get_path_at_pos(x, y)
+        it = self.store.get_iter(path[0])
+        sid = self.store.get_value(it, 2)
+        return self.twitter.statuses[sid]
     
     # Color status
     def color_status(self, status = None):
@@ -173,7 +166,7 @@ class timeline:
             i = self.store.iter_next(i)
     
     # Prepend new statuses
-    def _prepend_new_statuses(self, new_ids):
+    def prepend_new_statuses(self, new_ids):
         # Auto scroll lock if adjustment changed manually
         vadj = self.scrwin.get_vadjustment()
         self.vadj_lock = True if vadj.value != 0.0 else False
@@ -208,17 +201,27 @@ class timeline:
              background))
         gtk.gdk.threads_leave()
         
-        self.add_event(i)
+        self.on_status_added(i)
     
-    def add_event(self, i):
-        pass
+    # Replace & -> &amp;
+    def _replace_amp(self, string):
+        amp = string.find('&')
+        if amp == -1: return string
+        
+        entity_match = self.noent_amp.finditer(string)
+        
+        for i, e in enumerate(entity_match):
+            string = "%s&amp;%s" % (
+                string[:e.start() + (4 * i)],
+                string[e.start() + (4 * i) + 1:])
+        
+        return string
+
+    # dummy events and methods
+    def on_status_added(self, *args, **kwargs): pass
+    def on_status_selection_changed(self, *args, **kwargs): pass
+    def new_timeline(self, *args, **kwargs): pass
     
-    # get status from mouse point
-    def get_status_from_point(self, x, y):
-        path = self.treeview.get_path_at_pos(x, y)
-        it = self.store.get_iter(path[0])
-        sid = self.store.get_value(it, 2)
-        return self.twitter.statuses[sid]
     
     ########################################
     # Gtk Signal Events
@@ -253,7 +256,7 @@ class timeline:
         self.vadj_upper = vadj.upper
     
     # Scroll to top if upper(list length) changed Event
-    def _vadj_changed(self, adj):
+    def on_vadjustment_changed(self, adj):
         if not self.vadj_lock and self.vadj_upper < adj.upper:
             if len(self.store):
                 self.treeview.scroll_to_cell((0,))
@@ -282,7 +285,7 @@ class timeline:
                     item.set_image(gtk.image_new_from_stock("gtk-new", gtk.ICON_SIZE_MENU))
                     # Connect click event (open browser)
                     item.connect("activate",
-                                 self._menuitem_url_clicked, i)
+                                 self.on_menuitem_url_clicked, i)
                     # append to menu
                     m.append(item)
             else:
@@ -302,7 +305,7 @@ class timeline:
                     item.set_image(gtk.image_new_from_stock("gtk-add", gtk.ICON_SIZE_MENU))
                     # Connect click event (add tab)
                     item.connect("activate",
-                                 self._menuitem_user_clicked, i)
+                                 self.on_menuitem_user_clicked, i)
                     # append to menu
                     mm.append(item)
             else:
@@ -318,20 +321,20 @@ class timeline:
             self.pmenu.popup(None, None, None, event.button, event.time)
     
     # Open Web browser if url menuitem clicked
-    def _menuitem_url_clicked(self, menuitem, url):
+    def on_menuitem_url_clicked(self, menuitem, url):
         webbrowser.open_new_tab(url)
 
     # Add user timeline tab if mentioned user menu clicked
-    def _menuitem_user_clicked(self, menuitem, sname):
+    def on_menuitem_user_clicked(self, menuitem, sname):
         # search user from screen_name
         for user in self.twitter.users.itervalues():
             if user.screen_name == sname:
-                self._tab_append("@%s" % sname, "user_timeline", -1,
+                self.new_timeline("@%s" % sname, "user_timeline", -1,
                                  user = user.id)
                 return True
             
         # force specify screen_name if not found
-        self._tab_append("@%s" % sname, "user_timeline", -1,
+        self.new_timeline("@%s" % sname, "user_timeline", -1,
                          user = sname, sn = True)
         return True
     
@@ -339,4 +342,4 @@ class timeline:
     def on_treeview_cursor_changed(self, treeview):
         status = self.get_selected_status()
         self.color_status(status)
-        self.status_selection_changedEvent(status)
+        self.on_status_selection_changed(status)

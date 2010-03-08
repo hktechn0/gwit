@@ -85,7 +85,7 @@ class timeline_thread(threading.Thread):
                 print >>sys.stderr, "[Error] TwitterAPI ",
                 print >>sys.stderr, time.strftime("%H:%M:%S"), e
             
-            self.tlrefreshEvent()
+            self.on_timelinel_refresh()
             
             # If Timeline update
             if last:
@@ -127,3 +127,5 @@ class timeline_thread(threading.Thread):
             self.timeline.update(ids)
         
         self.addlock.unlock()
+
+    def on_timelinel_refresh(self, *args, **kwargs): pass
