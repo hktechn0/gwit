@@ -83,8 +83,12 @@ class TwitterTools:
         return dt.strftime("%H:%M:%S")
     
     def get_time_ago(self, dt):
-        ago = datetime.datetime.now() - dt
+        now = datetime.datetime.now()
+
+        if now < dt:
+            return "Just now!"
         
+        ago = now - dt
         hours = ago.seconds / 3600
         minutes = ago.seconds / 60
         
