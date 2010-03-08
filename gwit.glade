@@ -290,6 +290,15 @@
       </object>
     </child>
     <child>
+      <object class="GtkImageMenuItem" id="Delete">
+        <property name="label" translatable="yes">Delete</property>
+        <property name="visible">True</property>
+        <property name="image">image8</property>
+        <property name="use_stock">False</property>
+        <signal name="activate" handler="on_Delete_activate"/>
+      </object>
+    </child>
+    <child>
       <object class="GtkSeparatorMenuItem" id="menuitem7">
         <property name="visible">True</property>
       </object>
@@ -348,5 +357,9 @@
   <object class="GtkImage" id="image7">
     <property name="visible">True</property>
     <property name="stock">gtk-find</property>
+  </object>
+  <object class="GtkImage" id="image8">
+    <property name="visible">True</property>
+    <property name="stock">gtk-missing-image</property>
   </object>
 </interface>

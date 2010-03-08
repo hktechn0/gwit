@@ -231,3 +231,8 @@ class Main:
     def on_menuitem_fav_activate(self, menuitem):
         status = self.get_selected_status()
         self.twitter.api.favorite_create(status.id)
+
+    # Destroy status
+    def on_Delete_activate(self, menuitem):
+        status = self.get_selected_status()
+        self.twitter.api.status_destroy(status.id)
