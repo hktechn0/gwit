@@ -278,7 +278,8 @@ class timeline:
                     label = "%s..." % i[:47] if len(i) > 50 else i
                     
                     # Menuitem create
-                    item = gtk.MenuItem(label)
+                    item = gtk.ImageMenuItem(label)
+                    item.set_image(gtk.image_new_from_stock("gtk-new", gtk.ICON_SIZE_MENU))
                     # Connect click event (open browser)
                     item.connect("activate",
                                  self._menuitem_url_clicked, i)
@@ -290,14 +291,15 @@ class timeline:
                 item.set_sensitive(False)
                 m.append(item)            
             # urls submenu append
-            self.pmenu.get_children()[-2].set_submenu(m)
+            self.pmenu.get_children()[-1].set_submenu(m)
             
             # Mentioned User Menu
             mm = gtk.Menu()
             if users:
                 for i in users:
                     # Menuitem create
-                    item = gtk.MenuItem("@%s" % i.replace("_", "__"))
+                    item = gtk.ImageMenuItem("@%s" % i.replace("_", "__"))
+                    item.set_image(gtk.image_new_from_stock("gtk-add", gtk.ICON_SIZE_MENU))
                     # Connect click event (add tab)
                     item.connect("activate",
                                  self._menuitem_user_clicked, i)
@@ -308,7 +310,7 @@ class timeline:
                 item = gtk.MenuItem("None")
                 item.set_sensitive(False)
                 mm.append(item)
-            self.pmenu.get_children()[-1].set_submenu(mm)
+            self.pmenu.get_children()[-2].set_submenu(mm)
             
             # Show popup menu
             m.show_all()
