@@ -158,7 +158,7 @@ class Main:
             self.timelines[1].timeline.add(set((status.id,)))
     
     def on_timeline_refresh(self):
-        self.label_apilimit.set_text("%d/%d %d/%d" % (
+        self.label_apilimit.set_text("API: %d/%d %d/%d" % (
                 self.twitter.api.ratelimit_remaining,
                 self.twitter.api.ratelimit_limit,
                 self.twitter.api.ratelimit_ipremaining,
@@ -227,7 +227,7 @@ class Main:
         self._tab_append("@%s" % status.user.screen_name,
                          "user_timeline", -1,
                          user = status.user.id)
-    
+    # favorite
     def on_menuitem_fav_activate(self, menuitem):
         status = self.get_selected_status()
         self.twitter.api.favorite_create(status.id)
