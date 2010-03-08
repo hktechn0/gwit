@@ -79,7 +79,7 @@ class timeline:
         # Set Event Hander (exec in every get timeline
         self.timeline.reloadEventHandler = self.prepend_new_statuses    
         # Add timeline to IconStore
-        self.icons.add_store(self.store)
+        self.icons.add_store(self.store, 3)
     
     def start_timeline(self):
         # Start Timeline sync thread
@@ -326,16 +326,14 @@ class timeline:
 
     # Add user timeline tab if mentioned user menu clicked
     def on_menuitem_user_clicked(self, menuitem, sname):
-        # search user from screen_name
-        for user in self.twitter.users.itervalues():
-            if user.screen_name == sname:
-                self.new_timeline("@%s" % sname, "user_timeline", -1,
-                                 user = user.id)
-                return True
-            
-        # force specify screen_name if not found
-        self.new_timeline("@%s" % sname, "user_timeline", -1,
-                         user = sname, sn = True)
+        user = self.twitter.get_user_from_screen_name(sname)
+        if user != None:
+            self.new_timeline("@%s" % sname, "user_timeline", -1,
+                              user = user.id)
+        else:
+            # force specify screen_name if not found
+            self.new_timeline("@%s" % sname, "user_timeline", -1,
+                              user = sname, sn = True)
         return True
     
     # Status Clicked

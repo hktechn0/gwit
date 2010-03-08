@@ -43,6 +43,14 @@ class twitterapi():
     def add_user(self, user):
         self.users[user.id] = user
 
+    def get_user_from_screen_name(self, screen_name):
+        # search user from screen_name
+        for user in self.users.itervalues():
+            if user.screen_name == screen_name:
+                return user
+        
+        return None
+
 # Timeline Thread
 class timeline_thread(threading.Thread):
     def __init__(self, func, interval, maxn, args, kwargs):

@@ -16,6 +16,7 @@ from timeline import timeline
 from twitterapi import twitterapi
 from iconstore import IconStore
 from saveconfig import save_configs, save_config, get_config
+from userselection import UserSelection
 import twittertools
 
 # Main Class
@@ -90,6 +91,14 @@ class Main:
             # insert little delay
             time.sleep(random.random())
         
+        # Users tab append
+        users = UserSelection()
+        users.twitter = self.twitter
+        users.new_timeline = self.new_timeline
+        self.icons.add_store(users.store, 1)
+        users.set_userdict(self.twitter.users, self.icons)
+        self.new_tab(users, "Users")
+        
         self.obj.notebook1.set_current_page(0)
         gtk.gdk.threads_leave()
     
@@ -107,10 +116,9 @@ class Main:
         self.timelines.append(tl)
         
         # Start sync timeline
-        if method:
-            tl.init_timeline(method, sleep, args, kwargs)
-            tl.timeline.on_timeline_refresh = self.on_timeline_refresh
-            tl.start_timeline()
+        tl.init_timeline(method, sleep, args, kwargs)
+        tl.timeline.on_timeline_refresh = self.on_timeline_refresh
+        tl.start_timeline()
         
         # Add Notebook (Tab view)
         tl.add_notebook(self.obj.notebook1, name)
@@ -130,6 +138,11 @@ class Main:
         
         n = self.obj.notebook1.get_n_pages()
         self.obj.notebook1.set_current_page(n - 1)
+
+    def new_tab(self, widget, label):
+        self.obj.notebook1.append_page(widget, gtk.Label(label))
+        self.obj.notebook1.show_all()
+        self.timelines.append(None)
     
     def get_selected_status(self):
         n = self.obj.notebook1.get_current_page()

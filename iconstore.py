@@ -36,8 +36,8 @@ class IconStore:
         return gtk.gdk.Pixbuf(
             gtk.gdk.COLORSPACE_RGB, True, 8, 48, 48)
     
-    def add_store(self, store):
-        self.stores.append(store)
+    def add_store(self, store, n):
+        self.stores.append((store, n))
 
 class NewIcon(threading.Thread):
     def __init__(self, user, stores, icons):
@@ -84,10 +84,10 @@ class NewIcon(threading.Thread):
         
         # Icon Refresh
         gtk.gdk.threads_enter()
-        for store in self.stores:
+        for store, n in self.stores:
             i = store.get_iter_first()
             while i:
-                uid = store.get_value(i, 3)
+                uid = store.get_value(i, n)
                 if uid == self.user.id:
                     store.set_value(i, 0, icopix)
                 i = store.iter_next(i)
