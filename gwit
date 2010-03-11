@@ -48,6 +48,7 @@ if __name__ == "__main__":
          confp.set(setup.screen_name, "csecret", setup.keys[1])
          confp.set(setup.screen_name, "atoken", setup.keys[2])
          confp.set(setup.screen_name, "asecret", setup.keys[3])
+         confp.set(setup.screen_name, "footer", "")
          del setup
          
          # write config
@@ -68,6 +69,7 @@ if __name__ == "__main__":
    user = settings["DEFAULT"]["default_user"]
    keys = (settings[user]["ckey"], settings[user]["csecret"], 
            settings[user]["atoken"], settings[user]["asecret"])
+   footer = settings[user]["footer"]
    
    # Run Main()
    gladefile = os.path.join(gwitpath, "gwit.glade")
@@ -76,4 +78,5 @@ if __name__ == "__main__":
    else:
       maxn = 200
    gwit = Main(gladefile, keys, maxn, options.noicon)
+   gwit.msgfooter = unicode(footer)
    gwit.main()

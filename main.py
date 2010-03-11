@@ -21,6 +21,11 @@ import twittertools
 
 # Main Class
 class Main:
+    # init status timelines
+    timelines = list()
+    # status message fotter
+    msgfooter = unicode()
+    
     # Constractor
     def __init__(self, glade, keys, maxn = 200, iconmode = True):
         # Gtk Multithread Setup
@@ -43,8 +48,6 @@ class Main:
         self.re = 0
         self.iconmode = iconmode
         
-        # init status timelines
-        self.timelines = list()
         # init icon store
         self.icons = IconStore(iconmode)
 
@@ -202,6 +205,7 @@ class Main:
     # Status Update
     def on_button1_clicked(self, widget):
         txt = self.get_textview()
+        
         if self.re:
             # in_reply_to is for future
             self.twitter.api.status_update(
@@ -209,6 +213,9 @@ class Main:
             self.clear_textview()
             self.re = None
         elif txt:
+            if self.msgfooter != "":
+                txt = u"%s %s" % (txt, self.msgfooter)
+            
             self.twitter.api.status_update(txt)
             self.clear_textview()
         else:
