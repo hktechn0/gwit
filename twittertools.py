@@ -120,15 +120,22 @@ class TwitterTools:
         return "retweeted_status" in status.keys()
     
     ## Lists
-    def get_listed_count(self, api):
+    def get_listed_count(self, api, ret = None):
         listed = 0
         cursor = -1
-        
+
         while True:
             lists = api.lists_memberships(cursor = cursor)
             cursor = int(lists["next_cursor"])
             listed += len(lists["lists"])
             if cursor <= 0:
                 break
-            
+
+        if ret != None: ret = listed
+        
         return listed
+
+    def listed_count_background(api, ret):
+        th = threading.Thread(target = listed_count, args = (api, ret))
+        th.isDaemon()
+        th.start()

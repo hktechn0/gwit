@@ -20,8 +20,8 @@ class twitterapi():
         self.statuses = dict()
         
         self.maxn = maxn
-        self.myid = self.api.user.id
-        self.users[self.myid] = self.api.user
+        #self.myid = self.api.user.id
+        #self.users[self.myid] = self.api.user
     
     def create_timeline(self, func, interval, args, kwargs):
         # Add New Timeline Thread
