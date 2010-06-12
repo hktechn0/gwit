@@ -10,9 +10,11 @@ import twoauth
 
 # Twitter API Class
 class twitterapi():
-    def __init__(self, keys, maxn):
+    def __init__(self, keys, maxn = 20):
         # Generate API Library instance
         self.api = twoauth.api(*keys)
+        self.myname = self.api.user["screen_name"]
+        self.me = None
         self.threads = list()
         
         # User, Status Buffer
@@ -20,10 +22,9 @@ class twitterapi():
         self.statuses = dict()
         
         self.maxn = maxn
-        #self.myid = self.api.user.id
-        #self.users[self.myid] = self.api.user
+        self.my_name = keys[-1]
     
-    def create_timeline(self, func, interval, args, kwargs):
+    def create_timeline(self, func, interval, args = (), kwargs = {}):
         # Add New Timeline Thread
         th = timeline_thread(getattr(self.api, func),
                              interval, self.maxn, args, kwargs)
@@ -43,6 +44,9 @@ class twitterapi():
     def add_user(self, user):
         self.users[user.id] = user
 
+        if user.screen_name == self.myname:
+            self.me = user
+    
     def get_user_from_screen_name(self, screen_name):
         # search user from screen_name
         for user in self.users.itervalues():
@@ -50,6 +54,9 @@ class twitterapi():
                 return user
         
         return None
+
+    def get_statuses(self, ids):
+        return tuple(self.statuses[i] for i in sorted(tuple(ids), reverse=True))
 
 # Timeline Thread
 class timeline_thread(threading.Thread):
@@ -90,8 +97,7 @@ class timeline_thread(threading.Thread):
                 last = self.func(*self.args, **self.kwargs)
             except Exception, e:
                 last = None
-                print >>sys.stderr, "[Error] TwitterAPI ",
-                print >>sys.stderr, time.strftime("%H:%M:%S"), e
+                print "[Error] TwitterAPI %s %s" % (e, self.func)
             
             self.on_timeline_refresh()
             
@@ -111,8 +117,8 @@ class timeline_thread(threading.Thread):
                 self.kwargs["since_id"] = self.lastid
             
             # debug print
-            print "[debug] reload", time.strftime("%H:%M:%S"),
-            print self.func.func_name, self.args, self.kwargs
+#            print "[debug] reload", time.strftime("%H:%M:%S"),
+#            print self.func.func_name, self.args, self.kwargs
             
             # Reload lock
             self.lock.clear()
@@ -136,4 +142,5 @@ class timeline_thread(threading.Thread):
         
         self.addlock.unlock()
 
-    def on_timelinel_refresh(self, *args, **kwargs): pass
+    def on_timeline_refresh(self): pass
+    def reloadEventHandler(self): pass

@@ -68,7 +68,7 @@ if __name__ == "__main__":
    # Read settings
    user = settings["DEFAULT"]["default_user"]
    keys = (settings[user]["ckey"], settings[user]["csecret"], 
-           settings[user]["atoken"], settings[user]["asecret"])
+           settings[user]["atoken"], settings[user]["asecret"], user)
    footer = settings[user]["footer"]
    
    # Run Main()

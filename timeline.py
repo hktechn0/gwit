@@ -129,7 +129,8 @@ class timeline:
     
     # Color status
     def color_status(self, status = None):
-        me = self.twitter.users[self.twitter.myid]
+        myname = self.twitter.myname
+        myid = self.twitter.me.id if self.twitter.me != None else None
         
         # if not set target status
         if status == None:
@@ -143,11 +144,11 @@ class timeline:
             s = self.twitter.statuses[id]
             u = s.user
             
-            if u.id == me.id:
+            if u.id == myid:
                 # My status (Blue)
                 bg = "#CCCCFF"
-            elif s.in_reply_to_user_id == me.id or \
-                    s.text.find("@%s" % me.screen_name) != -1:
+            elif s.in_reply_to_user_id == myid or \
+                    s.text.find("@%s" % myname) != -1:
                 # Reply to me (Red)
                 bg = "#FFCCCC"
             
@@ -171,7 +172,7 @@ class timeline:
         vadj = self.scrwin.get_vadjustment()
         self.vadj_lock = True if vadj.value != 0.0 else False
         
-        myname = self.twitter.users[self.twitter.myid].screen_name
+        myname = self.twitter.myname
         
         # Insert New Status
         for i in new_ids:

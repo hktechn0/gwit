@@ -11,7 +11,6 @@ import threading
 import random
 import time
 
-from objects import GtkObjects
 from timeline import timeline
 from twitterapi import twitterapi
 from iconstore import IconStore
@@ -34,15 +33,11 @@ class Main:
         
         # GtkBuilder instance
         builder = gtk.Builder()
+        self.builder = builder
         # Glade file input
         builder.add_from_file(glade)
         # Connect signals
         builder.connect_signals(self)
-        
-        # GtkObjects instance
-        # usage: self.obj.`objectname`
-        # ex) self.obj.button1
-        self.obj = GtkObjects(builder.get_objects())
         
         # Set Default Mention Flag
         self.re = 0
@@ -64,11 +59,11 @@ class Main:
         try:
             alloc = get_config("DEFAULT", "allocation")
             alloc = eval(alloc)
-            self.obj.window1.resize(alloc.width, alloc.height)
+            window = self.builder.get_object("window1")
+            window.resize(alloc.width, alloc.height)
+            window.show_all()
         except:
             print >>sys.stderr, "[Warning] Allocation not defined"        
-        
-        self.obj.window1.show_all()
         
         # Start gtk main loop
         gtk.main()
@@ -82,9 +77,11 @@ class Main:
         
         # Set statusbar (Show API Remaining)
         self.label_apilimit = gtk.Label()
-        self.obj.statusbar1.pack_start(
+        
+        sbar = self.builder.get_object("statusbar1")
+        sbar.pack_start(
             self.label_apilimit, expand = False, padding = 10)
-        self.obj.statusbar1.show_all()
+        sbar.show_all()
         
         # Set Status Views
         for i in (("Home", "home_timeline", 30),
@@ -101,8 +98,9 @@ class Main:
         self.icons.add_store(users.store, 1)
         users.set_userdict(self.twitter.users, self.icons)
         self.new_tab(users, "Users")
-        
-        self.obj.notebook1.set_current_page(0)
+
+        notebook = self.builder.get_object("notebook1")        
+        notebook.set_current_page(0)
         gtk.gdk.threads_leave()
     
     # Window close event
@@ -123,10 +121,13 @@ class Main:
         tl.timeline.on_timeline_refresh = self.on_timeline_refresh
         tl.start_timeline()
         
+        notebook = self.builder.get_object("notebook1")
+        menu = self.builder.get_object("menu_timeline")
+
         # Add Notebook (Tab view)
-        tl.add_notebook(self.obj.notebook1, name)
+        tl.add_notebook(notebook, name)
         # Add Popup Menu
-        tl.add_popup(self.obj.menu_timeline)
+        tl.add_popup(menu)
         
         # Event handler and extern function set
         tl.new_timeline = self.new_timeline
@@ -139,30 +140,35 @@ class Main:
             "row-activated",
             self.on_treeview_row_activated)
         
-        n = self.obj.notebook1.get_n_pages()
-        self.obj.notebook1.set_current_page(n - 1)
+        n = notebook.get_n_pages()
+        notebook.set_current_page(n - 1)
 
     def new_tab(self, widget, label):
-        self.obj.notebook1.append_page(widget, gtk.Label(label))
-        self.obj.notebook1.show_all()
+        notebook = self.builder.get_object("notebook1")
+        notebook.append_page(widget, gtk.Label(label))
+        notebook.show_all()
         self.timelines.append(None)
     
     def get_selected_status(self):
-        n = self.obj.notebook1.get_current_page()
+        notebook = self.builder.get_object("notebook1")
+        n = notebook.get_current_page()
         return self.timelines[n].get_selected_status()
     
     def get_current_tab(self):
-        return self.obj.notebook1.get_current_page()
+        notebook = self.builder.get_object("notebook1")
+        return notebook.get_current_page()
 
     # Get text
     def get_textview(self):
-        buf = self.obj.textview1.get_buffer()
+        textview = self.builder.get_object("textview1")
+        buf = textview.get_buffer()
         start, end = buf.get_start_iter(), buf.get_end_iter()
         return  buf.get_text(start, end)
     
     # Clear Buf
     def clear_textview(self):
-        buf = self.obj.textview1.get_buffer()
+        textview = self.builder.get_object("textview1")
+        buf = textview.get_buffer()
         buf.set_text("")
     
     # Reply to selected status
@@ -170,9 +176,11 @@ class Main:
         status = self.get_selected_status()
         self.re = status.id
         name = status.user.screen_name
-        buf = self.obj.textview1.get_buffer()
+        
+        textview = self.builder.get_object("textview1")
+        buf = textview.get_buffer()
         buf.set_text("@%s " % (name))
-        self.obj.textview1.grab_focus()
+        textview.grab_focus()
     
     
     ########################################
@@ -181,8 +189,8 @@ class Main:
     # status added event
     def on_status_added(self, i):
         status = self.twitter.statuses[i]
-        myname = self.twitter.users[self.twitter.myid]
-        if status.in_reply_to_user_id == self.twitter.myid or \
+        myname = self.twitter.myname
+        if status.in_reply_to_screen_name == myname or \
                 status.text.find("@%s" % myname) >= 0:
             self.timelines[1].timeline.add(set((status.id,)))
     
@@ -196,8 +204,9 @@ class Main:
 
     # status selection changed event
     def on_status_selection_changed(self, status):
-        self.obj.statusbar1.pop(0)
-        self.obj.statusbar1.push(0, self.twtools.get_footer(status))
+        sbar = self.builder.get_object("statusbar1")
+        sbar.pop(0)
+        sbar.push(0, self.twtools.get_footer(status))
     
     ########################################
     # Gtk Signal Events
@@ -241,10 +250,11 @@ class Main:
         self.re = status.id
         name = status.user.screen_name
         text = status.text
-        buf = self.obj.textview1.get_buffer()
+        textview = self.builder.get_object("textview1")
+        buf = textview.get_buffer()
         buf.set_text("RT @%s: %s" % (name, text))
         self.re = None
-        self.obj.textview1.grab_focus()    
+        textview.grab_focus()    
     
     # Added user timeline tab
     def on_menuitem_usertl_activate(self, menuitem):
