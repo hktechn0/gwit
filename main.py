@@ -54,16 +54,17 @@ class Main:
     
     def main(self):
         gtk.gdk.threads_enter()
+        window = self.builder.get_object("window1")
         
         # settings allocation
         try:
             alloc = get_config("DEFAULT", "allocation")
             alloc = eval(alloc)
-            window = self.builder.get_object("window1")
             window.resize(alloc.width, alloc.height)
-            window.show_all()
         except:
             print >>sys.stderr, "[Warning] Allocation not defined"        
+
+        window.show_all()
         
         # Start gtk main loop
         gtk.main()
