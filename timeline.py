@@ -138,7 +138,7 @@ class timeline:
         
         i = self.store.get_iter_first()
         while i:
-            bg = None            
+            bg = None   
             
             id = self.store.get_value(i, 2)
             s = self.twitter.statuses[id]
@@ -172,8 +172,6 @@ class timeline:
         vadj = self.scrwin.get_vadjustment()
         self.vadj_lock = True if vadj.value != 0.0 else False
         
-        myname = self.twitter.myname
-        
         # Insert New Status
         for i in new_ids:
             self.add_status(i)
@@ -189,15 +187,22 @@ class timeline:
         # replace no entity & -> &amp;
         text = self._replace_amp(text)
         
+        if status.user.id in self.twitter.followers:
+            # Bold screen_name if follwer
+            tmpl = "<b>%s</b>\n%s"
+        else:
+            # or gray
+            tmpl = "<span foreground='#666666'><b>%s</b></span>\n%s"
+        
         # Bold screen_name
-        text = "<b>%s</b>\n%s" % (
+        message = tmpl % (
             status.user.screen_name, text)
         
         # New Status Prepend to Liststore (Add row)
         gtk.gdk.threads_enter()
         self.store.prepend(
             (self.icons.get(status.user),
-             text,
+             message,
              long(status.id), long(status.user.id),
              background))
         gtk.gdk.threads_leave()
