@@ -172,9 +172,11 @@ class timeline:
         vadj = self.scrwin.get_vadjustment()
         self.vadj_lock = True if vadj.value != 0.0 else False
         
+        gtk.gdk.threads_enter()
         # Insert New Status
         for i in new_ids:
             self.add_status(i)
+        gtk.gdk.threads_leave()
         
         self.color_status()
     
@@ -199,13 +201,11 @@ class timeline:
             status.user.screen_name, text)
         
         # New Status Prepend to Liststore (Add row)
-        gtk.gdk.threads_enter()
         self.store.prepend(
             (self.icons.get(status.user),
              message,
              long(status.id), long(status.user.id),
              background))
-        gtk.gdk.threads_leave()
         
         self.on_status_added(i)
     
