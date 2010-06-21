@@ -130,7 +130,7 @@ class timeline:
     # Color status
     def color_status(self, status = None):
         myname = self.twitter.myname
-        myid = self.twitter.me.id if self.twitter.me != None else None
+        myid = self.twitter.me.id if self.twitter.me != None else -1
         
         # if not set target status
         if status == None:
