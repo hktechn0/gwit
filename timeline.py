@@ -12,6 +12,7 @@ import twittertools
 
 import time
 import webbrowser
+import threading
 
 class timeline:
     def __init__(self, api, icons, iconmode = True):
@@ -126,9 +127,74 @@ class timeline:
         it = self.store.get_iter(path[0])
         sid = self.store.get_value(it, 2)
         return self.twitter.statuses[sid]
+
+    # Replace & -> &amp;
+    def _replace_amp(self, string):
+        amp = string.find('&')
+        if amp == -1: return string
+        
+        entity_match = self.noent_amp.finditer(string)
+        
+        for i, e in enumerate(entity_match):
+            string = "%s&amp;%s" % (
+                string[:e.start() + (4 * i)],
+                string[e.start() + (4 * i) + 1:])
+        
+        return string    
+    
+    ########################################
+    # Execute in Background Thread Methods
+
+    # Prepend new statuses
+    def prepend_new_statuses(self, new_ids):
+        # Auto scroll lock if adjustment changed manually
+        vadj = self.scrwin.get_vadjustment()
+        self.vadj_lock = True if vadj.value != 0.0 else False
+        
+        # Insert New Status
+        for i in new_ids:
+            self.add_status(i)
+        
+        self.color_status()
+    
+    def add_status(self, i):
+        status = self.twitter.statuses[i]
+        background = None
+        
+        # colord url
+        text = self.twtools.get_colored_url(status.text)
+        # replace no entity & -> &amp;
+        text = self._replace_amp(text)
+        
+        if status.user.id in self.twitter.followers:
+            # Bold screen_name if follower
+            tmpl = "<b>%s</b>\n%s"
+        else:
+            # or gray
+            tmpl = "<span foreground='#666666'><b>%s</b></span>\n%s"
+        
+        # Bold screen_name
+        message = tmpl % (
+            status.user.screen_name, text)
+        
+        # New Status Prepend to Liststore (Add row)
+        gtk.gdk.threads_enter()
+        
+        self.store.prepend(
+            (self.icons.get(status.user),
+             message,
+             long(status.id), long(status.user.id),
+             background))
+        self.on_status_added(i)
+        
+        gtk.gdk.threads_leave()
     
     # Color status
     def color_status(self, status = None):
+        t = threading.Thread(target=self.color_status_in_thread, args=(status,))
+        t.start()
+    
+    def color_status_in_thread(self, status = None):
         myname = self.twitter.myname
         myid = self.twitter.me.id if self.twitter.me != None else -1
         
@@ -163,66 +229,12 @@ class timeline:
                     # Selected user (Green)
                     bg = "#CCFFCC"
             
+            gtk.gdk.threads_enter()
             self.store.set_value(i, 4, bg)
+            gtk.gdk.threads_leave()
+            
             i = self.store.iter_next(i)
     
-    # Prepend new statuses
-    def prepend_new_statuses(self, new_ids):
-        # Auto scroll lock if adjustment changed manually
-        vadj = self.scrwin.get_vadjustment()
-        self.vadj_lock = True if vadj.value != 0.0 else False
-        
-        gtk.gdk.threads_enter()
-        # Insert New Status
-        for i in new_ids:
-            self.add_status(i)
-        gtk.gdk.threads_leave()
-        
-        self.color_status()
-    
-    def add_status(self, i):
-        status = self.twitter.statuses[i]
-        background = None
-        
-        # colord url
-        text = self.twtools.get_colored_url(status.text)
-        # replace no entity & -> &amp;
-        text = self._replace_amp(text)
-        
-        if status.user.id in self.twitter.followers:
-            # Bold screen_name if follwer
-            tmpl = "<b>%s</b>\n%s"
-        else:
-            # or gray
-            tmpl = "<span foreground='#666666'><b>%s</b></span>\n%s"
-        
-        # Bold screen_name
-        message = tmpl % (
-            status.user.screen_name, text)
-        
-        # New Status Prepend to Liststore (Add row)
-        self.store.prepend(
-            (self.icons.get(status.user),
-             message,
-             long(status.id), long(status.user.id),
-             background))
-        
-        self.on_status_added(i)
-    
-    # Replace & -> &amp;
-    def _replace_amp(self, string):
-        amp = string.find('&')
-        if amp == -1: return string
-        
-        entity_match = self.noent_amp.finditer(string)
-        
-        for i, e in enumerate(entity_match):
-            string = "%s&amp;%s" % (
-                string[:e.start() + (4 * i)],
-                string[e.start() + (4 * i) + 1:])
-        
-        return string
-
     # dummy events and methods
     def on_status_added(self, *args, **kwargs): pass
     def on_status_selection_changed(self, *args, **kwargs): pass

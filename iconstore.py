@@ -51,10 +51,10 @@ class NewIcon(threading.Thread):
         icoldr = gtk.gdk.PixbufLoader()
         icoldr.write(ico)
         icopix = icoldr.get_pixbuf()
-        try:
-            icoldr.close()
-        except:
-            icopix = None
+        
+        try: icoldr.close()
+        except: icopix = None
+        
         return icopix
     
     def run(self):
@@ -83,12 +83,12 @@ class NewIcon(threading.Thread):
         self.icons[self.user.id] = icopix
         
         # Icon Refresh
-        gtk.gdk.threads_enter()
         for store, n in self.stores:
             i = store.get_iter_first()
             while i:
                 uid = store.get_value(i, n)
                 if uid == self.user.id:
+                    gtk.gdk.threads_enter()
                     store.set_value(i, 0, icopix)
+                    gtk.gdk.threads_leave()
                 i = store.iter_next(i)
-        gtk.gdk.threads_leave()

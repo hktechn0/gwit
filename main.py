@@ -31,6 +31,9 @@ class Main:
         gtk.gdk.threads_init()
         gobject.threads_init()
         
+        # Twitter class instance
+        self.twitter = twitterapi(keys, maxn)        
+        
         # GtkBuilder instance
         builder = gtk.Builder()
         self.builder = builder
@@ -45,12 +48,11 @@ class Main:
         
         # init icon store
         self.icons = IconStore(iconmode)
-
+        
         # set tools
         self.twtools = twittertools.TwitterTools()
         
-        init = threading.Thread(target=self.initialize, args=(keys, maxn))
-        init.start()
+        self.initialize(keys, maxn)
     
     def main(self):
         gtk.gdk.threads_enter()
@@ -65,32 +67,25 @@ class Main:
             print >>sys.stderr, "[Warning] Allocation not defined"        
 
         window.show_all()
-        
+
         # Start gtk main loop
         gtk.main()
         gtk.gdk.threads_leave()
     
-    # Initialize Twitter API and Tabs (in another thread)
+    # Initialize Tabs (in another thread)
     def initialize(self, keys, maxn):
-        gtk.gdk.threads_enter()
-        # Twitter class instance
-        self.twitter = twitterapi(keys, maxn)
-        
-        # Set statusbar (Show API Remaining)
-        self.label_apilimit = gtk.Label()
-        
-        sbar = self.builder.get_object("statusbar1")
-        sbar.pack_start(
-            self.label_apilimit, expand = False, padding = 10)
-        sbar.show_all()
-        
         # Set Status Views
         for i in (("Home", "home_timeline", 30),
                   ("Mentions", "mentions", 300)):
             # create new timeline and tab view
             self.new_timeline(*i)
-            # insert little delay
-            time.sleep(random.random())
+
+        # Set statusbar (Show API Remaining)
+        self.label_apilimit = gtk.Label()
+        sbar = self.builder.get_object("statusbar1")
+        sbar.pack_start(
+            self.label_apilimit, expand = False, padding = 10)
+        sbar.show_all()        
         
         # Users tab append
         users = UserSelection()
@@ -99,10 +94,9 @@ class Main:
         self.icons.add_store(users.store, 1)
         users.set_userdict(self.twitter.users, self.icons)
         self.new_tab(users, "Users")
-
+        
         notebook = self.builder.get_object("notebook1")        
         notebook.set_current_page(0)
-        gtk.gdk.threads_leave()
     
     # Window close event
     def close(self, widget):
@@ -185,7 +179,7 @@ class Main:
     
     
     ########################################
-    # Original Events    
+    # Original Events
     
     # status added event
     def on_status_added(self, i):
