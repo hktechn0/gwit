@@ -242,19 +242,23 @@ class timeline:
         # Set "Status" width
         cellr = columns[1].get_cell_renderers()
         cellr[0].set_property("wrap-width", width - width2 - 10)
+
+        def refresh_text():
+            # Reset all data to change row height
+            i = self.store.get_iter_first()
+            while i:
+                # Maybe no affects performance
+                # if treeview.allocation.width != width:
+                #     break
+                txt = self.store.get_value(i, 1)
+                self.store.set_value(i, 1, txt)
+                i = self.store.iter_next(i)
         
-        # Reset all data to change row height
-        i = self.store.get_iter_first()
-        while i:
-            # Maybe no affects performance
-            # if treeview.allocation.width != width:
-            #     break
-            txt = self.store.get_value(i, 1)
-            self.store.set_value(i, 1, txt)
-            i = self.store.iter_next(i)
-        
-        vadj = self.scrwin.get_vadjustment()
-        self.vadj_upper = vadj.upper
+            vadj = self.scrwin.get_vadjustment()
+            self.vadj_upper = vadj.upper
+
+        t = threading.Thread(target=refresh_text)
+        t.start()
     
     # Scroll to top if upper(list length) changed Event
     def on_vadjustment_changed(self, adj):
