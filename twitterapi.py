@@ -12,7 +12,7 @@ import twoauth
 class twitterapi():
     def __init__(self, keys, maxn = 20):
         # Generate API Library instance
-        self.api = twoauth.api(*keys)
+        self.api = twoauth.api(*keys)        
         self.myname = self.api.user["screen_name"]
         self.me = None
         self.threads = list()
@@ -26,9 +26,13 @@ class twitterapi():
 
         self.followers = set()
         self.following = set()
-
+        
         t = threading.Thread(target=self.get_following_followers)
         t.start()
+    
+    def init_twitpic(self, apikey):
+        import twoauth.twitpic
+        self.twitpic = twoauth.twitpic.Twitpic(self.api.oauth, apikey)
     
     def get_following_followers(self):
         # Get followers

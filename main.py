@@ -24,6 +24,9 @@ class Main:
     timelines = list()
     # status message fotter
     msgfooter = unicode()
+
+    # Twitpic API Key (gwit)
+    twitpic_apikey = "bf867400573d27a8fe61b09e3cbf5a50"
     
     # Constractor
     def __init__(self, glade, keys, maxn = 200, iconmode = True):
@@ -32,7 +35,8 @@ class Main:
         gobject.threads_init()
         
         # Twitter class instance
-        self.twitter = twitterapi(keys, maxn)        
+        self.twitter = twitterapi(keys, maxn)
+        self.twitter.init_twitpic(self.twitpic_apikey)
         
         # GtkBuilder instance
         builder = gtk.Builder()
@@ -158,13 +162,25 @@ class Main:
         textview = self.builder.get_object("textview1")
         buf = textview.get_buffer()
         start, end = buf.get_start_iter(), buf.get_end_iter()
-        return  buf.get_text(start, end)
+        return buf.get_text(start, end)
     
-    # Clear Buf
-    def clear_textview(self):
+    # Set text
+    def set_textview(self, txt, focus = False):
         textview = self.builder.get_object("textview1")
         buf = textview.get_buffer()
-        buf.set_text("")
+        buf.set_text(txt)
+        if focus: textview.grub_focus()
+    
+    # Add text at cursor
+    def add_textview(self, txt, focus = False):
+        textview = self.builder.get_object("textview1")
+        buf = textview.get_buffer()
+        buf.insert_at_cursor(txt)    
+        if focus: textview.grub_focus()
+    
+    # Clear text
+    def clear_textview(self, focus = False):
+        self.set_textview("", focus)
     
     # Reply to selected status
     def reply_to_selected_status(self):
@@ -227,6 +243,20 @@ class Main:
             n = self.get_current_tab()
             self.timelines[n].reload()
     
+    # Image upload for twitpic
+    def on_button2_clicked(self, widget):        
+        dialog = gtk.FileChooserDialog("Upload Image...")
+        dialog.add_button(gtk.STOCK_OPEN, gtk.RESPONSE_OK)
+        dialog.add_button(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL)
+        
+        if dialog.run() == gtk.RESPONSE_OK:
+            f = open(dialog.get_filename())
+            message = self.get_textview()
+            res = self.twitter.twitpic.upload(f, message)
+            self.add_textview(" %s" % res["url"])
+        
+        dialog.destroy()
+    
     # Reply if double-clicked status
     def on_treeview_row_activated(self, treeview, path, view_column):
         self.reply_to_selected_status()
@@ -242,14 +272,11 @@ class Main:
     # Retweet with comment menu clicked
     def on_menuitem_reteet_with_comment_activate(self, memuitem):
         status = self.get_selected_status()
-        self.re = status.id
         name = status.user.screen_name
         text = status.text
-        textview = self.builder.get_object("textview1")
-        buf = textview.get_buffer()
-        buf.set_text("RT @%s: %s" % (name, text))
+        
         self.re = None
-        textview.grab_focus()    
+        self.set_textview("RT @%s: %s" % (name, text), True)
     
     # Added user timeline tab
     def on_menuitem_usertl_activate(self, menuitem):
