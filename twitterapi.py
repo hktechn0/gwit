@@ -23,6 +23,17 @@ class twitterapi():
         
         self.maxn = maxn
         self.my_name = keys[-1]
+
+        self.followers = set()
+        self.following = set()
+
+        t = threading.Thread(target=self.get_following_followers)
+        t.start()
+    
+    def get_following_followers(self):
+        # Get followers
+        self.followers.update([int(i) for i in self.api.followers_ids()])
+        self.following.update([int(i) for i in self.api.friends_ids()])
     
     def create_timeline(self, func, interval, args = (), kwargs = {}):
         # Add New Timeline Thread
@@ -54,7 +65,7 @@ class twitterapi():
                 return user
         
         return None
-
+    
     def get_statuses(self, ids):
         return tuple(self.statuses[i] for i in sorted(tuple(ids), reverse=True))
 
