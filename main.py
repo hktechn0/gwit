@@ -249,10 +249,11 @@ class Main:
         dialog.add_button(gtk.STOCK_OPEN, gtk.RESPONSE_OK)
         dialog.add_button(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL)
         ret = dialog.run()
+        filename = dialog.get_filename()
         dialog.destroy()
         
         if ret == gtk.RESPONSE_OK:
-            f = open(dialog.get_filename())
+            f = open(filename)
             message = self.get_textview()
             res = self.twitter.twitpic.upload(f, message)
             self.add_textview(" %s" % res["url"])
