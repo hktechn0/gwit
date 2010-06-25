@@ -248,14 +248,14 @@ class Main:
         dialog = gtk.FileChooserDialog("Upload Image...")
         dialog.add_button(gtk.STOCK_OPEN, gtk.RESPONSE_OK)
         dialog.add_button(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL)
+        ret = dialog.run()
+        dialog.destroy()
         
-        if dialog.run() == gtk.RESPONSE_OK:
+        if ret == gtk.RESPONSE_OK:
             f = open(dialog.get_filename())
             message = self.get_textview()
             res = self.twitter.twitpic.upload(f, message)
             self.add_textview(" %s" % res["url"])
-        
-        dialog.destroy()
     
     # Reply if double-clicked status
     def on_treeview_row_activated(self, treeview, path, view_column):
