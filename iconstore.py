@@ -8,6 +8,7 @@ import gtk
 import threading
 import urllib2
 import cStringIO
+import time
 
 class IconStore:
     def __init__(self, iconmode = True):
@@ -90,6 +91,9 @@ class NewIcon(threading.Thread):
         
         # Add iconstore
         self.icons[self.user.id] = icopix
+        
+        # delay for replace icons (temporary bug fix...
+        time.sleep(1)
         
         # Icon Refresh
         for store, n in self.stores:
