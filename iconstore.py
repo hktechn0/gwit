@@ -39,9 +39,16 @@ class IconStore:
     def add_store(self, store, n):
         self.stores.append((store, n))
 
+    def remove_store(self, store):
+        for i in self.stores:
+            if store == i[0]:
+                self.stores.remove(i)
+
 class NewIcon(threading.Thread):
     def __init__(self, user, stores, icons):
         threading.Thread.__init__(self)
+        self.setName("icon:%s" % user.screen_name)
+        
         self.user = user
         self.stores = stores
         self.icons = icons

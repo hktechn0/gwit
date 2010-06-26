@@ -10,6 +10,7 @@ import sys
 import threading
 import random
 import time
+import uuid
 
 from timeline import timeline
 from twitterapi import twitterapi
@@ -22,6 +23,7 @@ import twittertools
 class Main:
     # init status timelines
     timelines = list()
+    tlhash = dict()
     # status message fotter
     msgfooter = unicode()
 
@@ -39,12 +41,12 @@ class Main:
         self.twitter.init_twitpic(self.twitpic_apikey)
         
         # GtkBuilder instance
-        builder = gtk.Builder()
-        self.builder = builder
+        self.builder = gtk.Builder()
         # Glade file input
-        builder.add_from_file(glade)
+        self.builder.add_from_file(glade)
         # Connect signals
-        builder.connect_signals(self)
+        self.builder.connect_signals(self)
+        self.notebook = self.builder.get_object("notebook1")
         
         # Set Default Mention Flag
         self.re = 0
@@ -52,7 +54,6 @@ class Main:
         
         # init icon store
         self.icons = IconStore(iconmode)
-        
         # set tools
         self.twtools = twittertools.TwitterTools()
         
@@ -99,8 +100,7 @@ class Main:
         users.set_userdict(self.twitter.users, self.icons)
         self.new_tab(users, "Users")
         
-        notebook = self.builder.get_object("notebook1")        
-        notebook.set_current_page(0)
+        self.notebook.set_current_page(0)
     
     # Window close event
     def close(self, widget):
@@ -110,23 +110,19 @@ class Main:
         
         gtk.main_quit()
     
-    def new_timeline(self, name, method, sleep, *args, **kwargs):
+    # Create new Timeline and append to notebook
+    def new_timeline(self, label, method, sleep, *args, **kwargs):
         # Create Timeline Object
-        tl = timeline(self.twitter, self.icons, self.iconmode)
-        self.timelines.append(tl)
-        
-        # Start sync timeline
-        tl.init_timeline(method, sleep, args, kwargs)
-        tl.timeline.on_timeline_refresh = self.on_timeline_refresh
-        tl.start_timeline()
-        
-        notebook = self.builder.get_object("notebook1")
+        tl = timeline(self.twitter, self.icons, self.iconmode)        
         menu = self.builder.get_object("menu_timeline")
-
-        # Add Notebook (Tab view)
-        tl.add_notebook(notebook, name)
+        
         # Add Popup Menu
         tl.add_popup(menu)
+        
+        # Treeview double click signal connect
+        tl.treeview.connect(
+            "row-activated",
+            self.on_treeview_row_activated)
         
         # Event handler and extern function set
         tl.new_timeline = self.new_timeline
@@ -134,28 +130,47 @@ class Main:
         if method != "mentions":
             tl.on_status_added = self.on_status_added
         
-        # Treeview double click signal connect
-        tl.treeview.connect(
-            "row-activated",
-            self.on_treeview_row_activated)
+        # Add Notebook (Tab view)
+        self.new_tab(tl.scrwin, label, tl)
         
-        n = notebook.get_n_pages()
-        notebook.set_current_page(n - 1)
-
-    def new_tab(self, widget, label):
-        notebook = self.builder.get_object("notebook1")
-        notebook.append_page(widget, gtk.Label(label))
-        notebook.show_all()
-        self.timelines.append(None)
+        # Start sync timeline
+        tl.init_timeline(method, sleep, args, kwargs)
+        tl.timeline.on_timeline_refresh = self.on_timeline_refresh
+        tl.start_timeline()
+    
+    # Append Tab to Notebook
+    def new_tab(self, widget, label, timeline = None):        
+        # close button
+        button = gtk.Button()
+        button.set_relief(gtk.RELIEF_NONE)
+        icon = gtk.image_new_from_stock("gtk-close", gtk.ICON_SIZE_MENU)
+        button.set_image(icon)
+        
+        uid = uuid.uuid4().int
+        button.connect("clicked", self.on_tabclose_clicked, uid)
+        n = self.notebook.get_n_pages()
+        self.tlhash[uid] = n
+        
+        # Label
+        lbl = gtk.Label(label)
+        
+        box = gtk.HBox()
+        box.pack_start(lbl, True, True)
+        box.pack_start(button, False, False)
+        box.show_all()
+        
+        # append
+        self.notebook.append_page(widget, box)
+        self.notebook.show_all()
+        self.notebook.set_current_page(n)
+        self.timelines.append(timeline)
     
     def get_selected_status(self):
-        notebook = self.builder.get_object("notebook1")
-        n = notebook.get_current_page()
+        n = self.notebook.get_current_page()
         return self.timelines[n].get_selected_status()
     
     def get_current_tab(self):
-        notebook = self.builder.get_object("notebook1")
-        return notebook.get_current_page()
+        return self.notebook.get_current_page()
 
     # Get text
     def get_textview(self):
@@ -257,6 +272,21 @@ class Main:
             message = self.get_textview()
             res = self.twitter.twitpic.upload(f, message)
             self.add_textview(" %s" % res["url"])
+    
+    # Timeline Tab Close
+    def on_tabclose_clicked(self, widget, uid):
+        n = self.tlhash[uid]
+        del self.tlhash[uid]
+        
+        self.notebook.remove_page(n)
+
+        if self.timelines[n] != None:
+            self.timelines[n].destroy()
+        
+        del self.timelines[n]
+        
+        for (i, m) in self.tlhash.iteritems():
+            if m > n: self.tlhash[i] -= 1
     
     # Reply if double-clicked status
     def on_treeview_row_activated(self, treeview, path, view_column):

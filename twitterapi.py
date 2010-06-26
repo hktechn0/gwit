@@ -15,7 +15,7 @@ class twitterapi():
         self.api = twoauth.api(*keys)        
         self.myname = self.api.user["screen_name"]
         self.me = None
-        self.threads = list()
+        #self.threads = list()
         
         # User, Status Buffer
         self.users = dict()
@@ -45,7 +45,7 @@ class twitterapi():
                              interval, self.maxn, args, kwargs)
         th.added_event = self.add_status
         th.statuses = self.statuses
-        self.threads.append(th)
+        #self.threads.append(th)
         return th
     
     def add_statuses(self, slist):
@@ -58,7 +58,7 @@ class twitterapi():
     
     def add_user(self, user):
         self.users[user.id] = user
-
+        
         if user.screen_name == self.myname:
             self.me = user
     
@@ -79,10 +79,12 @@ class timeline_thread(threading.Thread):
         # Thread Initialize
         threading.Thread.__init__(self)
         self.setDaemon(True)
+        self.setName(func.func_name + str(args))
         
         # Event lock
         self.lock = threading.Event()
         self.addlock = mutex.mutex()
+        self.die = False
         
         self.func = func
         self.interval = interval
@@ -106,7 +108,7 @@ class timeline_thread(threading.Thread):
             if cached:
                 self.add(cached)
         
-        while True:
+        while not self.die:
             try:
                 # Get Timeline
                 last = self.func(*self.args, **self.kwargs)
@@ -157,5 +159,9 @@ class timeline_thread(threading.Thread):
         
         self.addlock.unlock()
 
+    def destroy(self):
+        self.die = True
+        self.lock.set()
+    
     def on_timeline_refresh(self): pass
     def reloadEventHandler(self): pass

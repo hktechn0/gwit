@@ -60,11 +60,12 @@ class UserSelection(gtk.VBox):
         self.scheduler = sched.scheduler(self.user_count, self.delay)
         t = threading.Thread(target=self.scheduler_run)
         t.setDaemon(True)
+        t.setName("userselection")
         t.start()
     
     def delay(self, n):
         time.sleep(10)
-
+    
     def user_count(self):
         return int(len(self.users))
     

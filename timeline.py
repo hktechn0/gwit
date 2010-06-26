@@ -86,12 +86,6 @@ class timeline:
         # Start Timeline sync thread
         self.timeline.start()
     
-    # Add Notebook
-    def add_notebook(self, notebook, name = None):
-        label = gtk.Label(name)
-        notebook.append_page(self.scrwin, label)
-        notebook.show_all()
-    
     # Reload Timeline
     def reload(self):
         if not self.timeline.lock.isSet():
@@ -140,7 +134,13 @@ class timeline:
                 string[:e.start() + (4 * i)],
                 string[e.start() + (4 * i) + 1:])
         
-        return string    
+        return string
+
+    def destroy(self):
+        self.timeline.destroy()
+        self.icons.remove_store(self.store)
+        self.scrwin.destroy()
+        self.treeview.destroy()
     
     ########################################
     # Execute in Background Thread Methods
@@ -192,6 +192,7 @@ class timeline:
     # Color status
     def color_status(self, status = None):
         t = threading.Thread(target=self.color_status_in_thread, args=(status,))
+        t.setName("color_status")
         t.start()
     
     def color_status_in_thread(self, status = None):
@@ -279,6 +280,7 @@ class timeline:
             self.vadj_upper = vadj.upper
         
         t = threading.Thread(target=refresh_text)
+        t.setName("refresh_text")
         t.start()
     
     # Scroll to top if upper(list length) changed Event
@@ -349,7 +351,7 @@ class timeline:
     # Open Web browser if url menuitem clicked
     def on_menuitem_url_clicked(self, menuitem, url):
         webbrowser.open_new_tab(url)
-
+    
     # Add user timeline tab if mentioned user menu clicked
     def on_menuitem_user_clicked(self, menuitem, sname):
         user = self.twitter.get_user_from_screen_name(sname)
