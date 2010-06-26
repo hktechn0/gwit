@@ -96,7 +96,7 @@ class Main:
         users = UserSelection()
         users.twitter = self.twitter
         users.new_timeline = self.new_timeline
-        self.icons.add_store(users.store, 1)
+        self.icons.add_store(users.store, 2)
         users.set_userdict(self.twitter.users, self.icons)
         self.new_tab(users, "Users")
         
@@ -107,6 +107,10 @@ class Main:
         # Save Allocation (window position, size)
         alloc = repr(widget.allocation)
         save_config("DEFAULT", "allocation", alloc)
+        
+        # All tab close
+        for i in dict(self.tlhash).iterkeys():
+            self.on_tabclose_clicked(None, i)
         
         gtk.main_quit()
     

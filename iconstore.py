@@ -15,27 +15,24 @@ class IconStore:
         self.data = dict()
         self.stores = list()
         self.semaphore = threading.BoundedSemaphore(5)
+        self.default_icon = gtk.gdk.pixbuf_new_from_file("none.png")
     
     def get(self, user):
         if user.id in self.data:
             # if exist in cache
             return self.data[user.id]
-        else:
+        elif self.iconmode:
             # or get new icon
-            return self.new(user)
+            self.new(user)
+        
+        # Return Default Image
+        return self.default_icon
     
     def new(self, user):
-        # New Icon thread start
+        # New Icon thread start if iconmode is True
+        self.data[user.id] = self.default_icon
         newico = NewIcon(user, self.stores, self.data, self.semaphore)
-        if self.iconmode:
-            # start thread for wget icon if iconmode is True
-            newico.start()
-        
-        self.data[user.id] = None
-        
-        # Return Nothing Image
-        return gtk.gdk.Pixbuf(
-            gtk.gdk.COLORSPACE_RGB, True, 8, 48, 48)
+        newico.start()
     
     def add_store(self, store, n):
         self.stores.append((store, n))
@@ -48,6 +45,7 @@ class IconStore:
 class NewIcon(threading.Thread):
     def __init__(self, user, stores, icons, semaphore):
         threading.Thread.__init__(self)
+        self.setDaemon(True)
         self.setName("icon:%s" % user.screen_name)
         
         self.user = user
@@ -67,7 +65,7 @@ class NewIcon(threading.Thread):
         return icopix
     
     def run(self):
-        # Icon Data Get
+        # Icon Data Get (if can get semaphore or block)
         self.semaphore.acquire()
         ico = urllib2.urlopen(self.user.profile_image_url).read()
         self.semaphore.release()
@@ -78,9 +76,7 @@ class NewIcon(threading.Thread):
             # Try convert PIL, if installed Python Imaging Library
             try:
                 import Image
-            except:
-                icopix = gtk.gdk.Pixbuf(
-                    gtk.gdk.COLORSPACE_RGB, True, 8, 48, 48)
+            except: return
             else:
                 img = Image.open(cStringIO.StringIO(ico))
                 nimg = img.resize((48, 48))
@@ -89,6 +85,8 @@ class NewIcon(threading.Thread):
                 icopix = self._to_pixbuf(nico.getvalue())
         elif icopix.get_property("width") > 48:
             icopix = icopix.scale_simple(48, 48, gtk.gdk.INTERP_BILINEAR)
+        
+        if icopix == None: return
         
         # Add iconstore
         self.icons[self.user.id] = icopix
