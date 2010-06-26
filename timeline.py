@@ -151,13 +151,18 @@ class timeline:
         vadj = self.scrwin.get_vadjustment()
         self.vadj_lock = True if vadj.value != 0.0 else False
         
-        # Insert New Status
-        for i in new_ids:
-            self.add_status(i)
+        # pack New Status
+        statuses = [self.status_pack(i) for i in new_ids]
+        
+        # New Status Prepend to Liststore (Add row)
+        gtk.gdk.threads_enter()
+        for i in statuses:
+            self.store.prepend(i)
+        gtk.gdk.threads_leave()
         
         self.color_status()
     
-    def add_status(self, i):
+    def status_pack(self, i):
         status = self.twitter.statuses[i]
         background = None
         
@@ -177,17 +182,12 @@ class timeline:
         message = tmpl % (
             status.user.screen_name, text)
         
-        # New Status Prepend to Liststore (Add row)
-        gtk.gdk.threads_enter()
-        
-        self.store.prepend(
-            (self.icons.get(status.user),
-             message,
-             long(status.id), long(status.user.id),
-             background))
         self.on_status_added(i)
         
-        gtk.gdk.threads_leave()
+        return (self.icons.get(status.user),
+                message,
+                long(status.id), long(status.user.id),
+                background)
     
     # Color status
     def color_status(self, status = None):
