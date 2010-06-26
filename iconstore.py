@@ -14,6 +14,7 @@ class IconStore:
         self.iconmode = iconmode
         self.data = dict()
         self.stores = list()
+        self.semaphore = threading.BoundedSemaphore(5)
     
     def get(self, user):
         if user.id in self.data:
@@ -25,7 +26,7 @@ class IconStore:
     
     def new(self, user):
         # New Icon thread start
-        newico = NewIcon(user, self.stores, self.data)
+        newico = NewIcon(user, self.stores, self.data, self.semaphore)
         if self.iconmode:
             # start thread for wget icon if iconmode is True
             newico.start()
@@ -45,13 +46,14 @@ class IconStore:
                 self.stores.remove(i)
 
 class NewIcon(threading.Thread):
-    def __init__(self, user, stores, icons):
+    def __init__(self, user, stores, icons, semaphore):
         threading.Thread.__init__(self)
         self.setName("icon:%s" % user.screen_name)
         
         self.user = user
         self.stores = stores
         self.icons = icons
+        self.semaphore = semaphore
     
     def _to_pixbuf(self, ico):
         # Load Pixbuf Loader and Create Pixbuf
@@ -66,7 +68,9 @@ class NewIcon(threading.Thread):
     
     def run(self):
         # Icon Data Get
+        self.semaphore.acquire()
         ico = urllib2.urlopen(self.user.profile_image_url).read()
+        self.semaphore.release()
         icopix = self._to_pixbuf(ico)
         
         # Resize
