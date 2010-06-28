@@ -5,6 +5,8 @@ import sys
 import time
 import mutex
 import threading
+import urllib2
+import socket
 
 import twoauth
 
@@ -90,6 +92,8 @@ class timeline_thread(threading.Thread):
         self.interval = interval
         self.lastid = None
         self.timeline = set()
+
+        socket.setdefaulttimeout(10)        
         
         # API Arguments
         self.args = args
@@ -109,12 +113,15 @@ class timeline_thread(threading.Thread):
                 self.add(cached)
         
         while not self.die:
-            try:
-                # Get Timeline
-                last = self.func(*self.args, **self.kwargs)
-            except Exception, e:
-                last = None
-                print "[Error] TwitterAPI %s %s" % (e, self.func)
+            for i in range(3):
+                try:
+                    # Get Timeline
+                    last = self.func(*self.args, **self.kwargs)
+                    break
+                except urllib2.HTTPError, e:
+                    last = None
+                    print "[Error] TwitterAPI %s %s" % (e, self.func)
+                    time.sleep(5)
             
             self.on_timeline_refresh()
             
@@ -158,7 +165,7 @@ class timeline_thread(threading.Thread):
             self.timeline.update(ids)
         
         self.addlock.unlock()
-
+    
     def destroy(self):
         self.die = True
         self.lock.set()
