@@ -5,10 +5,19 @@ import pygtk
 pygtk.require('2.0')
 import gtk
 
+import sys
 import threading
 import urllib2
 import cStringIO
 import time
+
+try:
+    import Image
+except ImportError:
+    USE_PIL = False
+else:
+    USE_PIL = True
+
 
 class IconStore:
     def __init__(self, iconmode = True):
@@ -53,41 +62,65 @@ class NewIcon(threading.Thread):
         self.stores = stores
         self.icons = icons
         self.semaphore = semaphore
+
+    # create pixbuf
+    def load_pixbuf(self, ico):
+        loader = gtk.gdk.PixbufLoader()
+        loader.write(ico)
+        pix = loader.get_pixbuf()
+        
+        try: loader.close()
+        except: pix = None
+        
+        return pix
     
-    def _to_pixbuf(self, ico):
-        # Load Pixbuf Loader and Create Pixbuf
-        icoldr = gtk.gdk.PixbufLoader()
-        icoldr.write(ico)
-        icopix = icoldr.get_pixbuf()
+    def convert_pixbuf(self, ico):
+        if USE_PIL:
+            # use Python Imaging Library if exists
+            pix = self.convert_pixbuf_pil(ico)    
+        else:
+            pix = self.load_pixbuf(ico)
+            if pix != None:
+                pix = pix.scale_simple(48, 48, gtk.gdk.INTERP_BILINEAR)
         
-        try: icoldr.close()
-        except: icopix = None
+        return pix
+    
+    # Convert Pixbuf with PIL
+    def convert_pixbuf_pil(self, ico):
+        i = cStringIO.StringIO(ico)
+        o = cStringIO.StringIO()
         
-        return icopix
+        self.create_thumbnail(ico, i, o)
+        pix = self.load_pixbuf(o.getvalue())
+        
+        i.close()
+        o.close()
+        
+        return pix
+    
+    # Try convert PIL, if installed Python Imaging Library
+    def create_thumbnail(self, img, i, o):
+        pimg = Image.open(i)
+        thumb = pimg.resize((48, 48))
+        
+        ext = self.user.profile_image_url[-3:]        
+        if ext == "jpg":
+            thumb = thumb.convert("RGB")
+        
+        thumb.save(o, "png")
     
     def run(self):
         # Icon Data Get (if can get semaphore or block)
         self.semaphore.acquire()
         ico = urllib2.urlopen(self.user.profile_image_url).read()
         self.semaphore.release()
-        icopix = self._to_pixbuf(ico)
         
-        # Resize
+        # Get pixbuf
+        icopix = self.convert_pixbuf(ico)
+        
         if icopix == None:
-            # Try convert PIL, if installed Python Imaging Library
-            try:
-                import Image
-            except: return
-            else:
-                img = Image.open(cStringIO.StringIO(ico))
-                nimg = img.resize((48, 48))
-                nico = cStringIO.StringIO()
-                nimg.save(nico, "png")
-                icopix = self._to_pixbuf(nico.getvalue())
-        elif icopix.get_property("width") > 48:
-            icopix = icopix.scale_simple(48, 48, gtk.gdk.INTERP_BILINEAR)
-        
-        if icopix == None: return
+            print >>sys.stderr, "[warning] Can't convert icon image: %s" % self.user.screen_name
+            return
         
         # Add iconstore
         self.icons[self.user.id] = icopix
