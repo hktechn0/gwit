@@ -15,11 +15,11 @@ class UserSelection(gtk.VBox):
         gtk.VBox.__init__(self, spacing = 5)        
         hbox = gtk.HBox()
 
-        entry = gtk.Entry()
-        entry.connect("activate", self.on_entry_activate)
-        #entry.connect("focus-in-event", self.on_etnry_focus_in)
-        #entry.connect("focus-out-event", self.on_entry_focus_out)
-        hbox.pack_start(entry)
+        self.entry = gtk.Entry()
+        self.entry.connect("activate", self.on_entry_activate)
+        self.entry.connect("focus-in-event", self.on_entry_focus_in)
+        self.entry.connect("focus-out-event", self.on_entry_focus_out)
+        hbox.pack_start(self.entry)
 
         button = gtk.Button()
         button.set_image(gtk.image_new_from_stock("gtk-add", gtk.ICON_SIZE_BUTTON))
@@ -34,7 +34,6 @@ class UserSelection(gtk.VBox):
         self.treeview = gtk.TreeView(self.store)
         self.treeview.set_headers_visible(False)
         self.treeview.set_enable_search(True)
-        self.treeview.set_search_entry(entry)
         self.treeview.connect("cursor-changed", self.on_treeview_cursor_changed)
         self.treeview.connect("row-activated", self.on_treeview_row_activated)
         self.treeview.append_column(
@@ -106,18 +105,23 @@ class UserSelection(gtk.VBox):
         return self.activate_user(sname)
     
     def on_button_clicked(self, button):
-        entry = self.treeview.get_search_entry()
-        sname = entry.get_text()
+        sname = self.entry.get_text()
         return self.activate_user(sname)
 
     def on_treeview_row_activated(self, treeview, path, view_column):
-        entry = self.treeview.get_search_entry()
-        sname = entry.get_text()
+        uid = treeview.get_model()[path][2]
+        sname = self.users[uid].screen_name
+        self.entry.set_text(sname)
         return self.activate_user(sname)
     
     def on_treeview_cursor_changed(self, treeview):
-        entry = treeview.get_search_entry()
-        if not entry.is_focus():
+        if not self.entry.is_focus():
             path, column = treeview.get_cursor()
             uid = treeview.get_model()[path][2]
-            entry.set_text(self.users[uid].screen_name)
+            self.entry.set_text(self.users[uid].screen_name)
+    
+    def on_entry_focus_in(self, entry, direction):
+        self.treeview.set_search_entry(entry)
+    
+    def on_entry_focus_out(self, entry, direction):
+        self.treeview.set_search_entry(None)
