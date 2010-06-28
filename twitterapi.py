@@ -120,8 +120,10 @@ class timeline_thread(threading.Thread):
                     break
                 except urllib2.HTTPError, e:
                     last = None
-                    print "[Error] TwitterAPI %s %s" % (e, self.func)
+                    print "[Error] TwitterAPI %s %s" % (e.read(), self.func)
                     time.sleep(5)
+                except socket.timeout:
+                    last = None
             
             self.on_timeline_refresh()
             
