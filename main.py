@@ -260,7 +260,9 @@ class Main:
         else:
             # Reload timeline if nothing in textview
             n = self.get_current_tab()
-            self.timelines[n].reload()
+
+            if self.timelines[n] != None:
+                self.timelines[n].reload()
     
     # Image upload for twitpic
     def on_button2_clicked(self, widget):        
