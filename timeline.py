@@ -166,6 +166,14 @@ class timeline:
         status = self.twitter.statuses[i]
         background = None
         
+        name = status.user.screen_name
+        
+        if status.retweeted_status != None:
+            rtstatus = status
+            status = status.retweeted_status
+            name = "%s <span foreground='#333333'><small>- Retweeted by %s</small></span>" % (
+                status.user.screen_name, rtstatus.user.screen_name)
+        
         # colord url
         text = self.twtools.get_colored_url(status.text)
         # replace no entity & -> &amp;
@@ -179,14 +187,13 @@ class timeline:
             tmpl = "<span foreground='#666666'><b>%s</b></span>\n%s"
         
         # Bold screen_name
-        message = tmpl % (
-            status.user.screen_name, text)
+        message = tmpl % (name, text)
         
         self.on_status_added(i)
         
         return (self.icons.get(status.user),
                 message,
-                long(status.id), long(status.user.id),
+                long(i), long(status.user.id),
                 background)
     
     # Color status

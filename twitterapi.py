@@ -57,6 +57,9 @@ class twitterapi():
     def add_status(self, status):
         self.statuses[status.id] = status
         self.add_user(status.user)
+        
+        if status.retweeted_status != None:
+            self.add_status(status.retweeted_status)
     
     def add_user(self, user):
         self.users[user.id] = user
