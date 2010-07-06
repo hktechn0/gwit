@@ -12,21 +12,21 @@ import time
 
 class UserSelection(gtk.VBox):
     def __init__(self):
-        gtk.VBox.__init__(self, spacing = 5)        
+        gtk.VBox.__init__(self)
         hbox = gtk.HBox()
-
+        
         self.entry = gtk.Entry()
         self.entry.connect("activate", self.on_entry_activate)
         self.entry.connect("focus-in-event", self.on_entry_focus_in)
         self.entry.connect("focus-out-event", self.on_entry_focus_out)
-        hbox.pack_start(self.entry)
-
+        hbox.pack_start(self.entry, padding = 5)
+        
         button = gtk.Button()
         button.set_image(gtk.image_new_from_stock("gtk-add", gtk.ICON_SIZE_BUTTON))
         button.connect("clicked", self.on_button_clicked)
-        hbox.pack_start(button, expand = False)
+        hbox.pack_start(button, expand = False, padding = 5)
 
-        self.pack_start(hbox, expand = False)
+        self.pack_start(hbox, expand = False, padding = 5)
         
         self.store = gtk.ListStore(gtk.gdk.Pixbuf, str, gobject.TYPE_INT64)
         self.store.set_sort_column_id(1, gtk.SORT_ASCENDING)

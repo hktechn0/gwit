@@ -78,6 +78,13 @@ class twitterapi():
     def get_statuses(self, ids):
         return tuple(self.statuses[i] for i in sorted(tuple(ids), reverse=True))
 
+    def status_update(self, status, reply_to = None, footer = ""):
+        if reply_to != None:
+            self.api.status_update(status, in_reply_to_status_id = reply_to)
+        else:
+            if footer != "": status = u"%s %s" % (status, self.msgfooter)
+            self.api.status_update(txt)
+
 # Timeline Thread
 class timeline_thread(threading.Thread):
     def __init__(self, func, interval, maxn, args, kwargs):
@@ -123,7 +130,7 @@ class timeline_thread(threading.Thread):
                     break
                 except urllib2.HTTPError, e:
                     last = None
-                    print "[Error] TwitterAPI %s %s %s" % (e.code, e, self.func.__name__)
+                    print "[Error] TwitterAPI %s (%s)" % (e, self.func.__name__)
                     time.sleep(5)
                 except socket.timeout:
                     last = None

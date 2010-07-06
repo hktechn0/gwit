@@ -190,14 +190,14 @@ class Main:
         textview = self.builder.get_object("textview1")
         buf = textview.get_buffer()
         buf.set_text(txt)
-        if focus: textview.grub_focus()
+        if focus: textview.grab_focus()
     
     # Add text at cursor
     def add_textview(self, txt, focus = False):
         textview = self.builder.get_object("textview1")
         buf = textview.get_buffer()
         buf.insert_at_cursor(txt)    
-        if focus: textview.grub_focus()
+        if focus: textview.grab_focus()
     
     # Clear text
     def clear_textview(self, focus = False):
@@ -247,25 +247,18 @@ class Main:
     def on_button1_clicked(self, widget):
         txt = self.get_textview()
         
-        if self.re:
-            # in_reply_to is for future
-            self.twitter.api.status_update(
-                txt, in_reply_to_status_id = self.re)
-            self.clear_textview()
-            self.re = None
-        elif txt:
-            if self.msgfooter != "":
-                txt = u"%s %s" % (txt, self.msgfooter)
-            
-            self.twitter.api.status_update(txt)
-            self.clear_textview()
+        if txt != "":
+            # Status Update
+            self.twitter.status_update(txt, self.re, self.msgfooter)
         else:
             # Reload timeline if nothing in textview
             n = self.get_current_tab()
-
             if self.timelines[n] != None:
                 self.timelines[n].reload()
-    
+        
+        self.re = None
+        self.clear_textview()
+        
     # Image upload for twitpic
     def on_button2_clicked(self, widget):        
         dialog = gtk.FileChooserDialog("Upload Image...")
@@ -333,3 +326,12 @@ class Main:
     def on_Delete_activate(self, menuitem):
         status = self.get_selected_status()
         self.twitter.api.status_destroy(status.id)
+
+    # key_press textview (for post status when press Ctrl + Enter)
+    def on_textview1_key_press_event(self, textview, event):
+        # Enter == 65293
+        if event.keyval == 65293 and event.state & gtk.gdk.CONTROL_MASK:
+            txt = self.get_textview()
+            self.twitter.status_update(txt, self.re, self.msgfooter)
+            self.re = None
+            self.clear_textview()
