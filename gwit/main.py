@@ -89,10 +89,10 @@ class Main:
 
         # Set statusbar (Show API Remaining)
         self.label_apilimit = gtk.Label()
-        sbar = self.builder.get_object("statusbar1")
-        sbar.pack_start(
+        self.statusbar = self.builder.get_object("statusbar1")
+        self.statusbar.pack_start(
             self.label_apilimit, expand = False, padding = 10)
-        sbar.show_all()        
+        self.statusbar.show_all()        
         
         # Users tab append
         users = UserSelection()
@@ -142,6 +142,7 @@ class Main:
         # Start sync timeline
         tl.init_timeline(method, sleep, args, kwargs)
         tl.timeline.on_timeline_refresh = self.on_timeline_refresh
+        tl.timeline.on_twitterapi_error = self.on_twitterapi_error
         tl.start_timeline()
     
     # Append Tab to Notebook
@@ -228,17 +229,37 @@ class Main:
     
     # timeline refreshed event
     def on_timeline_refresh(self):
-        self.label_apilimit.set_text("API: %d/%d %d/%d" % (
+        if self.twitter.api.ratelimit_iplimit != -1:
+            msg = "%d/%d %d/%d" % (
                 self.twitter.api.ratelimit_remaining,
                 self.twitter.api.ratelimit_limit,
                 self.twitter.api.ratelimit_ipremaining,
-                self.twitter.api.ratelimit_iplimit))
-
+                self.twitter.api.ratelimit_iplimit)
+        else:
+            msg = "%d/%d" % (
+                self.twitter.api.ratelimit_remaining,
+                self.twitter.api.ratelimit_limit)
+        
+        self.label_apilimit.set_text("API: %s" % msg)
+    
     # status selection changed event
     def on_status_selection_changed(self, status):
-        sbar = self.builder.get_object("statusbar1")
-        sbar.pop(0)
-        sbar.push(0, self.twtools.get_footer(status))
+        self.statusbar.pop(0)
+        self.statusbar.push(0, self.twtools.get_footer(status))
+    
+    # show error on statusbar
+    def on_twitterapi_error(self, timeline, e):
+        if e.code == 400:
+            message = "API rate limiting. Reset: %s" % self.twitter.api.ratelimit_reset.strftime("%H:%M:%S")
+        elif e.code == 500 or e.code == 502:
+            message = "Twitter something is broken. Try again later."
+        elif e.code == 503:
+            message = "Twitter is over capacity. Try again later."
+        else:
+            message = "Oops! Couldn't reload timeline."
+        
+        self.statusbar.pop(0)        
+        self.statusbar.push(0, "[Error] %s %s (%s)" % (timeline.getName(), message, e.code))
     
     ########################################
     # Gtk Signal Events

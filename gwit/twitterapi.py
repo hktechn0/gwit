@@ -127,15 +127,15 @@ class timeline_thread(threading.Thread):
                 try:
                     # Get Timeline
                     last = self.func(*self.args, **self.kwargs)
+                    self.on_timeline_refresh()
                     break
                 except urllib2.HTTPError, e:
                     last = None
                     print "[Error] TwitterAPI %s (%s)" % (e, self.func.__name__)
+                    self.on_twitterapi_error(self, e)
                     time.sleep(5)
                 except socket.timeout:
                     last = None
-            
-            self.on_timeline_refresh()
             
             # If Timeline update
             if last:
@@ -184,3 +184,4 @@ class timeline_thread(threading.Thread):
     
     def on_timeline_refresh(self): pass
     def reloadEventHandler(self): pass
+    def on_twitterapi_error(self, timeline, e): pass
