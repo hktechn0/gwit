@@ -10,6 +10,7 @@ import threading
 import urllib2
 import cStringIO
 import time
+import os.path
 
 try:
     import Image
@@ -18,14 +19,17 @@ except ImportError:
 else:
     USE_PIL = True
 
-
+# User Icon Store
 class IconStore:
     def __init__(self, iconmode = True):
         self.iconmode = iconmode
         self.data = dict()
         self.stores = list()
         self.semaphore = threading.BoundedSemaphore(5)
-        self.default_icon = gtk.gdk.pixbuf_new_from_file("none.png")
+        
+        # load default icon
+        iconpath = os.path.join(os.path.dirname(__file__), "img/none.png")
+        self.default_icon = gtk.gdk.pixbuf_new_from_file(iconpath)
     
     def get(self, user):
         if user.id in self.data:

@@ -7,6 +7,7 @@ import gtk
 import gobject
 
 import sys
+import os.path
 import threading
 import random
 import time
@@ -31,7 +32,7 @@ class Main:
     twitpic_apikey = "bf867400573d27a8fe61b09e3cbf5a50"
     
     # Constractor
-    def __init__(self, glade, keys, maxn = 200, iconmode = True):
+    def __init__(self, keys, maxn = 200, iconmode = True):
         # Gtk Multithread Setup
         gtk.gdk.threads_init()
         gobject.threads_init()
@@ -43,7 +44,8 @@ class Main:
         # GtkBuilder instance
         self.builder = gtk.Builder()
         # Glade file input
-        self.builder.add_from_file(glade)
+        gladefile = os.path.join(os.path.dirname(__file__), "glade/gwit.glade")
+        self.builder.add_from_file(gladefile)
         # Connect signals
         self.builder.connect_signals(self)
         self.notebook = self.builder.get_object("notebook1")
@@ -69,8 +71,8 @@ class Main:
             alloc = eval(alloc)
             window.resize(alloc.width, alloc.height)
         except:
-            print >>sys.stderr, "[Warning] Allocation not defined"        
-
+            print >>sys.stderr, "[warning] Window allocation not defined"
+        
         window.show_all()
 
         # Start gtk main loop

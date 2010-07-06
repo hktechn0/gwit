@@ -123,7 +123,7 @@ class timeline_thread(threading.Thread):
                     break
                 except urllib2.HTTPError, e:
                     last = None
-                    print "[Error] TwitterAPI %s %s" % (e.read(), self.func)
+                    print "[Error] TwitterAPI %s %s %s" % (e.code, e, self.func.__name__)
                     time.sleep(5)
                 except socket.timeout:
                     last = None

@@ -2,10 +2,9 @@
 #-*- coding: utf-8 -*-
 
 import os
+import sys
 import optparse
-
 from ConfigParser import SafeConfigParser
-from main import Main
 
 if __name__ == "__main__":
    # Option Parser
@@ -26,9 +25,16 @@ if __name__ == "__main__":
    # Config Parser
    confp = SafeConfigParser()
    
-   # Config file absolute path
-   gwitpath = os.path.dirname(__file__)
-   conf_path = os.path.join(gwitpath, "gwit.conf")
+   # Config file absolute path (~/.gwit/config)
+   conf_dir = os.path.expanduser("~/.gwit")
+   if not os.path.isdir(conf_dir):
+      os.mkdir(conf_dir)
+   conf_path = os.path.join(conf_dir, "config")
+   
+   # Set gwit library path into python path
+   script_path = os.path.realpath(__file__)
+   lib_path = os.path.join(os.path.dirname(script_path), "../")
+   sys.path.insert(0, os.path.realpath(lib_path))
    
    # config file exist?
    if os.path.isfile(conf_path):
@@ -36,10 +42,10 @@ if __name__ == "__main__":
       confp.read(conf_path)
    else:
       # Run Setup Wizard
-      from setupwizard import SetupWizard
+      from gwit import SetupWizard
       setup = SetupWizard()
       setup.main()
-       
+      
       if setup.ok:
          # if setup ok, set settings
          confp.set("DEFAULT", "default_user", setup.screen_name)
@@ -64,19 +70,20 @@ if __name__ == "__main__":
    settings["DEFAULT"] = dict(confp.items("DEFAULT"))
    for i in confp.sections():
       settings[i] = dict(confp.items(i))
-      
+   
    # Read settings
    user = settings["DEFAULT"]["default_user"]
    keys = (settings[user]["ckey"], settings[user]["csecret"], 
            settings[user]["atoken"], settings[user]["asecret"], user)
    footer = settings[user]["footer"]
    
-   # Run Main()
-   gladefile = os.path.join(gwitpath, "gwit.glade")
    if options.max and int(options.max) <= 200:
       maxn = int(options.max)
    else:
       maxn = 200
-   gwit = Main(gladefile, keys, maxn, options.noicon)
+   
+   # Run Main()
+   from gwit import Main
+   gwit = Main(keys, maxn, options.noicon)
    gwit.msgfooter = unicode(footer)
    gwit.main()

@@ -4,13 +4,15 @@
 import os
 from ConfigParser import SafeConfigParser
 
+CONF_PATH = os.path.expanduser("~/.gwit/config")
+
 def save_config(section, key, value):
-    confp = _open()    
+    confp = _open()
     confp.set(section, key, value)
     _close(confp)
 
 def save_configs(conftuple):
-    confp = _open()    
+    confp = _open()
     for section, key, value in conftuple:
         confp.set(section, key, str(value))
     _close(confp)
@@ -21,19 +23,13 @@ def get_config(section, keys):
     return items[keys]
 
 def _open():
-    confp = SafeConfigParser()
-    conf_path = os.path.join(
-        os.path.dirname(__file__), "gwit.conf")
-    
-    if os.path.isfile(conf_path):
-        confp.read(conf_path)
+    confp = SafeConfigParser()    
+    if os.path.isfile(CONF_PATH):
+        confp.read(CONF_PATH)
     
     return confp
 
 def _close(confp):
-    conf_path = os.path.join(
-        os.path.dirname(__file__), "gwit.conf")
-    
-    fp = open(conf_path, "w")
+    fp = open(CONF_PATH, "w")
     confp.write(fp)
     fp.close()

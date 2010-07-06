@@ -15,10 +15,10 @@ class SetupWizard:
         "kcygnhE2KNS8U6kwmIlMQ",
         "l8yaXsNHtFviEZCXiv1OEVAZLe6TL8TPYX72TbcDc",
         ]
-
+    
     def __init__(self):
         setupglade = os.path.join(
-            os.path.dirname(__file__), "setupwizard.glade")
+            os.path.dirname(__file__), "glade/setupwizard.glade")
         
         builder = gtk.Builder()
         self.builder = builder
