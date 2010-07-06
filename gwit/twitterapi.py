@@ -83,7 +83,7 @@ class twitterapi():
             self.api.status_update(status, in_reply_to_status_id = reply_to)
         else:
             if footer != "": status = u"%s %s" % (status, self.msgfooter)
-            self.api.status_update(txt)
+            self.api.status_update(status)
 
 # Timeline Thread
 class timeline_thread(threading.Thread):
