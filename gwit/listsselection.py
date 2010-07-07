@@ -45,14 +45,26 @@ class ListsView(gtk.ScrolledWindow):
     def load(self):
         if self.memberships:
             data = self.twitter.api.lists_memberships(self.user, cursor = self._cursor)
+            lists = data["lists"]
         else:
             data = self.twitter.api.lists_subscriptions(self.user, cursor = self._cursor)
+            lists = data["lists"]
+            
+            # get all my lists if first load
+            if self._cursor == -1:
+                c = -1
+                mylists = list()
+                while c != 0:
+                    mydata = self.twitter.api.lists_index(self.user, cursor = c)
+                    mylists.extend(mydata["lists"])
+                    c = int(mydata["next_cursor"])
+                lists[0:0] = mylists
         
-        for l in data["lists"]:
+        for l in lists:
             user = l["user"]
             userid = int(user["id"])
             screen_name = user["screen_name"]
-
+            
             listid = int(l["id"])
             listname = l["name"]
             
@@ -82,8 +94,9 @@ class ListsView(gtk.ScrolledWindow):
         listid = treeview.get_model()[path][3]
         listlabel = treeview.get_model()[path][1]
         l = self.lists[listid]
+        auth = True if l["mode"] == "private" else False
         self.new_timeline("L: %s" % listlabel, "lists_statuses", -1,
-                          list_id = l["name"], user = l["user"]["screen_name"])
+                          list_id = l["id"], user = l["user"]["id"], auth = auth)
 
 class ListsSelection(gtk.Notebook):
     def __init__(self, twitter, icons):
