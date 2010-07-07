@@ -62,7 +62,6 @@ class ListsView(gtk.ScrolledWindow):
                 (self.icons.get(l["user"]), "@%s/%s" % (screen_name, listname), userid, listid))
         
         self._cursor = int(data["next_cursor"])
-        print self._cursor
         
         if self._cursor == 0:
             self.btn_more.set_sensitive(False)
