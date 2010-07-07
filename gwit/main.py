@@ -18,6 +18,7 @@ from twitterapi import twitterapi
 from iconstore import IconStore
 from saveconfig import save_configs, save_config, get_config
 from userselection import UserSelection
+from listsselection import ListsSelection
 import twittertools
 
 # Main Class
@@ -95,12 +96,14 @@ class Main:
         self.statusbar.show_all()        
         
         # Users tab append
-        users = UserSelection()
-        users.twitter = self.twitter
+        users = UserSelection(self.twitter, self.icons)
         users.new_timeline = self.new_timeline
-        self.icons.add_store(users.store, 2)
-        users.set_userdict(self.twitter.users, self.icons)
         self.new_tab(users, "Users")
+        
+        # Lists tab append
+        lists = ListsSelection(self.twitter, self.icons)
+        lists.new_timeline = self.new_timeline
+        self.new_tab(lists, "Lists")
         
         self.notebook.set_current_page(0)
     
@@ -146,7 +149,7 @@ class Main:
         tl.start_timeline()
     
     # Append Tab to Notebook
-    def new_tab(self, widget, label, timeline = None):        
+    def new_tab(self, widget, label, timeline = None):
         # close button
         button = gtk.Button()
         button.set_relief(gtk.RELIEF_NONE)

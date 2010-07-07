@@ -11,10 +11,16 @@ import sched
 import time
 
 class UserSelection(gtk.VBox):
-    def __init__(self):
+    def __init__(self, twitter, icons):
         gtk.VBox.__init__(self)
         hbox = gtk.HBox()
         
+        self.twitter = twitter
+        self.icons = icons
+        self.users = twitter.users
+        self.userids = frozenset()
+        
+        # Setting up screen_name entry
         self.entry = gtk.Entry()
         self.entry.connect("activate", self.on_entry_activate)
         self.entry.connect("focus-in-event", self.on_entry_focus_in)
@@ -25,23 +31,21 @@ class UserSelection(gtk.VBox):
         button.set_image(gtk.image_new_from_stock("gtk-add", gtk.ICON_SIZE_BUTTON))
         button.connect("clicked", self.on_button_clicked)
         hbox.pack_start(button, expand = False, padding = 5)
-
-        self.pack_start(hbox, expand = False, padding = 5)
         
+        # Setting up user view
         self.store = gtk.ListStore(gtk.gdk.Pixbuf, str, gobject.TYPE_INT64)
         self.store.set_sort_column_id(1, gtk.SORT_ASCENDING)
-
+        self.icons.add_store(self.store, 2)
+        
         self.treeview = gtk.TreeView(self.store)
         self.treeview.set_headers_visible(False)
         self.treeview.set_enable_search(True)
         self.treeview.connect("cursor-changed", self.on_treeview_cursor_changed)
         self.treeview.connect("row-activated", self.on_treeview_row_activated)
         self.treeview.append_column(
-            gtk.TreeViewColumn(
-                "Icon", gtk.CellRendererPixbuf(), pixbuf = 0))
+            gtk.TreeViewColumn("Icon", gtk.CellRendererPixbuf(), pixbuf = 0))
         self.treeview.append_column(
-            gtk.TreeViewColumn(
-                "screen_name", gtk.CellRendererText(), text = 1))
+            gtk.TreeViewColumn("screen_name", gtk.CellRendererText(), text = 1))
         
         self.scrwin = gtk.ScrolledWindow()
         self.scrwin.set_policy(
@@ -49,20 +53,17 @@ class UserSelection(gtk.VBox):
         self.scrwin.set_shadow_type(gtk.SHADOW_IN)
         self.scrwin.add(self.treeview)
         
+        self.pack_start(hbox, expand = False, padding = 5)        
         self.pack_start(self.scrwin)
-    
-    def set_userdict(self, userdict, iconstore):
-        self.users = userdict
-        self.icons = iconstore
-        self.userids = frozenset()
-        
-        self.scheduler = sched.scheduler(self.user_count, self.delay)
+
+        # User view scheduler run
+        self.scheduler = sched.scheduler(self.user_count, self._delay)
         t = threading.Thread(target=self.scheduler_run)
         t.setDaemon(True)
         t.setName("userselection")
         t.start()
     
-    def delay(self, n):
+    def _delay(self, n):
         time.sleep(10)
     
     def user_count(self):
@@ -79,18 +80,18 @@ class UserSelection(gtk.VBox):
         
         for uid in diff:
             user = self.users[uid]
-            gtk.gdk.threads_enter()  
-            self.store.prepend(
+            gtk.gdk.threads_enter()
+            self.store.append(
                 (self.icons.get(user),
                  user.screen_name,
                  user.id,))
             gtk.gdk.threads_leave()
         
         self.userids = now
-
+    
     def activate_user(self, sname):
-        if sname == "":
-            return True
+        # create new timeline
+        if sname == "": return True
         
         user = self.twitter.get_user_from_screen_name(sname)
         if user != None:
@@ -98,8 +99,13 @@ class UserSelection(gtk.VBox):
                               user = user.id)
         else:
             self.new_timeline("@%s" % sname, "user_timeline", -1,
-                              user = sname, sn = True)
-
+                              user = sname, is_screen_name = True)
+    
+    # for override
+    def new_timeline(self, label, method, sleep, *args, **kwargs):
+        pass
+    
+    ### Event    
     def on_entry_activate(self, entry):
         sname = entry.get_text()
         return self.activate_user(sname)

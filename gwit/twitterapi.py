@@ -40,7 +40,7 @@ class twitterapi():
         # Get followers
         self.followers.update([int(i) for i in self.api.followers_ids()])
         self.following.update([int(i) for i in self.api.friends_ids()])
-    
+
     def create_timeline(self, func, interval, args = (), kwargs = {}):
         # Add New Timeline Thread
         th = timeline_thread(getattr(self.api, func),
@@ -108,7 +108,10 @@ class timeline_thread(threading.Thread):
         # API Arguments
         self.args = args
         self.kwargs = kwargs
-        self.kwargs["count"] = maxn
+        if self.func.func_name == "lists_statuses":
+            self.kwargs["per_page"] = maxn
+        else:
+            self.kwargs["count"] = maxn
     
     # Thread run
     def run(self):
@@ -122,6 +125,7 @@ class timeline_thread(threading.Thread):
             if cached:
                 self.add(cached)
         
+        # Auto reloading loop
         while not self.die:
             for i in range(3):
                 try:
@@ -131,7 +135,7 @@ class timeline_thread(threading.Thread):
                     break
                 except urllib2.HTTPError, e:
                     last = None
-                    print "[Error] TwitterAPI %s (%s)" % (e, self.func.__name__)
+                    print "[Error] TwitterAPI %s (%s)" % (e, self.func.func_name)
                     self.on_twitterapi_error(self, e)
                     time.sleep(5)
                 except socket.timeout:
@@ -151,10 +155,6 @@ class timeline_thread(threading.Thread):
                 # update lastid
                 self.lastid = last[-1].id
                 self.kwargs["since_id"] = self.lastid
-            
-            # debug print
-#            print "[debug] reload", time.strftime("%H:%M:%S"),
-#            print self.func.func_name, self.args, self.kwargs
             
             # Reload lock
             self.lock.clear()
