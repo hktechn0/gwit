@@ -49,7 +49,12 @@ class Main:
         self.builder.add_from_file(gladefile)
         # Connect signals
         self.builder.connect_signals(self)
+        
         self.notebook = self.builder.get_object("notebook1")
+        self.textview = self.builder.get_object("textview1")
+        self.textview.get_buffer().connect("changed", self.on_textbuffer_changed)
+        self.btnupdate = self.builder.get_object("button1")
+        self.charcount = self.builder.get_object("label1")
         
         # Set Default Mention Flag
         self.re = 0
@@ -184,24 +189,21 @@ class Main:
 
     # Get text
     def get_textview(self):
-        textview = self.builder.get_object("textview1")
-        buf = textview.get_buffer()
+        buf = self.textview.get_buffer()
         start, end = buf.get_start_iter(), buf.get_end_iter()
         return buf.get_text(start, end)
     
     # Set text
     def set_textview(self, txt, focus = False):
-        textview = self.builder.get_object("textview1")
-        buf = textview.get_buffer()
+        buf = self.textview.get_buffer()
         buf.set_text(txt)
-        if focus: textview.grab_focus()
+        if focus: self.textview.grab_focus()
     
     # Add text at cursor
     def add_textview(self, txt, focus = False):
-        textview = self.builder.get_object("textview1")
-        buf = textview.get_buffer()
+        buf = self.textview.get_buffer()
         buf.insert_at_cursor(txt)    
-        if focus: textview.grab_focus()
+        if focus: self.textview.grab_focus()
     
     # Clear text
     def clear_textview(self, focus = False):
@@ -213,10 +215,9 @@ class Main:
         self.re = status.id
         name = status.user.screen_name
         
-        textview = self.builder.get_object("textview1")
-        buf = textview.get_buffer()
+        buf = self.textview.get_buffer()
         buf.set_text("@%s " % (name))
-        textview.grab_focus()
+        self.textview.grab_focus()
     
     
     ########################################
@@ -282,9 +283,14 @@ class Main:
         
         self.re = None
         self.clear_textview()
-        
+    
+    # Update menu popup
+    def on_button2_button_release_event(self, widget, event):
+        menu = self.builder.get_object("menu_update")
+        menu.popup(None, None, None, event.button, event.time)
+    
     # Image upload for twitpic
-    def on_button2_clicked(self, widget):        
+    def on_menuitem_twitpic_activate(self, widget):
         dialog = gtk.FileChooserDialog("Upload Image...")
         dialog.add_button(gtk.STOCK_OPEN, gtk.RESPONSE_OK)
         dialog.add_button(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL)
@@ -356,6 +362,19 @@ class Main:
         # Enter == 65293
         if event.keyval == 65293 and event.state & gtk.gdk.CONTROL_MASK:
             txt = self.get_textview()
-            self.twitter.status_update(txt, self.re, self.msgfooter)
-            self.re = None
-            self.clear_textview()
+            if len(txt) <= 140:
+                self.twitter.status_update(txt, self.re, self.msgfooter)
+                self.re = None
+                self.clear_textview()
+
+            return True
+    
+    # Character count
+    def on_textbuffer_changed(self, textbuffer):
+        n = textbuffer.get_char_count()
+        if n <= 140:
+            self.charcount.set_text(str(n))
+            self.btnupdate.set_sensitive(True)
+        else:
+            self.charcount.set_markup("<b><span foreground='#FF0000'>%s</span></b>" % n)
+            self.btnupdate.set_sensitive(False)
