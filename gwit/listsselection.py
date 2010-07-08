@@ -11,18 +11,22 @@ class ListsView(gtk.ScrolledWindow):
         gtk.ScrolledWindow.__init__(self)
         self.set_policy(gtk.POLICY_NEVER, gtk.POLICY_AUTOMATIC)
         
-        self.store = gtk.ListStore(gtk.gdk.Pixbuf, str, gobject.TYPE_INT64, gobject.TYPE_INT64, str)
+        self.store = gtk.ListStore(gtk.gdk.Pixbuf, str, gobject.TYPE_INT64, gobject.TYPE_INT64, gtk.gdk.Pixbuf, str)
         self.treeview = gtk.TreeView(self.store)
         self.treeview.set_headers_visible(False)
         self.treeview.connect("row-activated", self.on_treeview_row_activated)
         
         self.treeview.append_column(
             gtk.TreeViewColumn("Icon", gtk.CellRendererPixbuf(), pixbuf = 0))
-        col = gtk.TreeViewColumn("Lists", gtk.CellRendererText(), markup = 1)
-        col.set_expand(True)
-        self.treeview.append_column(col)
+        listname = gtk.TreeViewColumn("Lists", gtk.CellRendererText(), markup = 1)
+        listname.set_expand(True)
+        self.treeview.append_column(listname)
         self.treeview.append_column(
-            gtk.TreeViewColumn("Count", gtk.CellRendererText(), markup = 4))
+            gtk.TreeViewColumn("Private", gtk.CellRendererPixbuf(), pixbuf = 4))
+        cell_count = gtk.CellRendererText()
+        cell_count.set_property("xpad", 10)
+        self.treeview.append_column(
+            gtk.TreeViewColumn("Count", cell_count, markup = 5))
         
         self.btn_more = gtk.Button("Get your lists!")
         self.btn_more.connect("clicked", self.on_button_more_clicked)
@@ -75,13 +79,18 @@ class ListsView(gtk.ScrolledWindow):
             text = "@%s/%s" % (screen_name, listname)
             if description != None:
                 text += "\n<small><span foreground='#666666'>%s</span></small>" % description
-
+            
             count = "Following: %s\nFollowers: %s" % (l["member_count"], l["subscriber_count"])
+            
+            if l["mode"] == "private":
+                private_ico = self.render_icon("gtk-dialog-authentication", gtk.ICON_SIZE_BUTTON)
+            else:
+                private_ico = None
             
             self.twitter.add_user(user)
             self.lists[listid] = l
             self.store.append(
-                (self.icons.get(l["user"]), text, userid, listid, count))
+                (self.icons.get(l["user"]), text, userid, listid, private_ico, count))
         
         self._cursor = int(data["next_cursor"])
         
