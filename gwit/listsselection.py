@@ -9,7 +9,7 @@ import gobject
 class ListsView(gtk.ScrolledWindow):
     def __init__(self, user, memberships = False):
         gtk.ScrolledWindow.__init__(self)
-        self.set_policy(gtk.POLICY_NEVER, gtk.POLICY_AUTOMATIC)
+        self.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         
         self.store = gtk.ListStore(gtk.gdk.Pixbuf, str, gobject.TYPE_INT64, gobject.TYPE_INT64, gtk.gdk.Pixbuf, str)
         self.treeview = gtk.TreeView(self.store)

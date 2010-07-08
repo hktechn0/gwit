@@ -33,8 +33,7 @@ class timeline:
         self.scrwin.add(self.treeview)
         self.scrwin.set_shadow_type(gtk.SHADOW_IN)
         # Scrollbar policy
-        self.scrwin.set_policy(
-            gtk.POLICY_NEVER, gtk.POLICY_ALWAYS)
+        self.scrwin.set_policy(gtk.POLICY_NEVER, gtk.POLICY_ALWAYS)
         
         self.treeview.set_headers_visible(False)
         self.treeview.set_rules_hint(True)
@@ -49,12 +48,10 @@ class timeline:
         crtxt.set_property("wrap-mode", pango.WRAP_WORD)
         
         tcol = list()
-        tcol.append(
-            gtk.TreeViewColumn("Icon", crpix, pixbuf = 0))
+        tcol.append(gtk.TreeViewColumn("Icon", crpix, pixbuf = 0))
         # visible is False if no-icon
         tcol[-1].set_visible(iconmode)
-        tcol.append(
-            gtk.TreeViewColumn("Status", crtxt, markup = 1))
+        tcol.append(gtk.TreeViewColumn("Status", crtxt, markup = 1))
         
         # Add Column
         for i in tcol:

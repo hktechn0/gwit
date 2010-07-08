@@ -5,6 +5,7 @@ import pygtk
 pygtk.require('2.0')
 import gtk
 import gobject
+import pango
 
 import threading
 import sched
@@ -32,30 +33,44 @@ class UserSelection(gtk.VBox):
         button.connect("clicked", self.on_button_clicked)
         hbox.pack_start(button, expand = False, padding = 5)
         
-        # Setting up user view
-        self.store = gtk.ListStore(gtk.gdk.Pixbuf, str, gobject.TYPE_INT64)
-        self.store.set_sort_column_id(1, gtk.SORT_ASCENDING)
+        self.store = gtk.ListStore(gtk.gdk.Pixbuf, str, gobject.TYPE_INT64, str, str)
         self.icons.add_store(self.store, 2)
         
+        # sort order by screen_name ASC
+        self.store.set_sort_column_id(3, gtk.SORT_ASCENDING)
+        
+        # setup treeview
         self.treeview = gtk.TreeView(self.store)
         self.treeview.set_headers_visible(False)
         self.treeview.set_enable_search(True)
+        self.treeview.set_search_column(3)
         self.treeview.connect("cursor-changed", self.on_treeview_cursor_changed)
         self.treeview.connect("row-activated", self.on_treeview_row_activated)
+        #self.treeview.connect("size-allocate", self.on_treeview_width_changed)
+        
         self.treeview.append_column(
             gtk.TreeViewColumn("Icon", gtk.CellRendererPixbuf(), pixbuf = 0))
+        
+        cell_name = gtk.CellRendererText()
+        cell_name.set_property("wrap-mode", pango.WRAP_WORD)
+        cell_name.set_property("wrap-width", 300)
+        col_name = gtk.TreeViewColumn("screen_name", cell_name, markup = 1)
+        col_name.set_expand(True)
+        self.treeview.append_column(col_name)
+        
+        cell_count = gtk.CellRendererText()
+        cell_count.set_property("xpad", 10)
         self.treeview.append_column(
-            gtk.TreeViewColumn("screen_name", gtk.CellRendererText(), text = 1))
+            gtk.TreeViewColumn("Follow", cell_count, markup = 4))
         
         self.scrwin = gtk.ScrolledWindow()
-        self.scrwin.set_policy(
-            gtk.POLICY_NEVER, gtk.POLICY_ALWAYS)
+        self.scrwin.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_ALWAYS)
         self.scrwin.set_shadow_type(gtk.SHADOW_IN)
         self.scrwin.add(self.treeview)
         
-        self.pack_start(hbox, expand = False, padding = 5)        
+        self.pack_start(hbox, expand = False, padding = 5)
         self.pack_start(self.scrwin)
-
+        
         # User view scheduler run
         self.scheduler = sched.scheduler(self.user_count, self._delay)
         t = threading.Thread(target=self.scheduler_run)
@@ -80,11 +95,16 @@ class UserSelection(gtk.VBox):
         
         for uid in diff:
             user = self.users[uid]
+            text = "<b>%s</b>\n<small><span foreground='#666666'>%s</span></small>" % (
+                user.screen_name, user.description.replace("&", "&amp;").replace("\n", " "))
+            is_friend = user.id in self.twitter.following
+            is_follower = user.id in self.twitter.followers
             gtk.gdk.threads_enter()
             self.store.append(
                 (self.icons.get(user),
-                 user.screen_name,
-                 user.id,))
+                 text, user.id, user.screen_name,
+                 "%d/%d\n%s/%s" % (user.friends_count, user.followers_count,
+                                   is_friend, is_follower)))
             gtk.gdk.threads_leave()
         
         self.userids = now
