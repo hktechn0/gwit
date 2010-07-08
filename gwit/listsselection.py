@@ -11,15 +11,18 @@ class ListsView(gtk.ScrolledWindow):
         gtk.ScrolledWindow.__init__(self)
         self.set_policy(gtk.POLICY_NEVER, gtk.POLICY_AUTOMATIC)
         
-        self.store = gtk.ListStore(gtk.gdk.Pixbuf, str, gobject.TYPE_INT64, gobject.TYPE_INT64)
+        self.store = gtk.ListStore(gtk.gdk.Pixbuf, str, gobject.TYPE_INT64, gobject.TYPE_INT64, str)
         self.treeview = gtk.TreeView(self.store)
         self.treeview.set_headers_visible(False)
         self.treeview.connect("row-activated", self.on_treeview_row_activated)
         
         self.treeview.append_column(
             gtk.TreeViewColumn("Icon", gtk.CellRendererPixbuf(), pixbuf = 0))
+        col = gtk.TreeViewColumn("Lists", gtk.CellRendererText(), markup = 1)
+        col.set_expand(True)
+        self.treeview.append_column(col)
         self.treeview.append_column(
-            gtk.TreeViewColumn("Lists", gtk.CellRendererText(), text = 1))
+            gtk.TreeViewColumn("Count", gtk.CellRendererText(), markup = 4))
         
         self.btn_more = gtk.Button("Get your lists!")
         self.btn_more.connect("clicked", self.on_button_more_clicked)
@@ -67,11 +70,18 @@ class ListsView(gtk.ScrolledWindow):
             
             listid = int(l["id"])
             listname = l["name"]
+            description = l["description"]
+
+            text = "@%s/%s" % (screen_name, listname)
+            if description != None:
+                text += "\n<small><span foreground='#666666'>%s</span></small>" % description
+
+            count = "Following: %s\nFollowers: %s" % (l["member_count"], l["subscriber_count"])
             
             self.twitter.add_user(user)
             self.lists[listid] = l
             self.store.append(
-                (self.icons.get(l["user"]), "@%s/%s" % (screen_name, listname), userid, listid))
+                (self.icons.get(l["user"]), text, userid, listid, count))
         
         self._cursor = int(data["next_cursor"])
         
@@ -92,8 +102,8 @@ class ListsView(gtk.ScrolledWindow):
     
     def on_treeview_row_activated(self, treeview, path, view_column):
         listid = treeview.get_model()[path][3]
-        listlabel = treeview.get_model()[path][1]
         l = self.lists[listid]
+        listlabel = "@%s/%s" % (l["user"]["screen_name"], l["name"])
         auth = True if l["mode"] == "private" else False
         self.new_timeline("L: %s" % listlabel, "lists_statuses", -1,
                           list_id = l["id"], user = l["user"]["id"], auth = auth)
