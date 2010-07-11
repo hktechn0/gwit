@@ -14,7 +14,7 @@ import time
 import webbrowser
 import threading
 
-class timeline:
+class Timeline:
     def __init__(self, api, icons, iconmode = True):
         self.twitter = api
         self.icons = icons
