@@ -11,7 +11,7 @@ import socket
 import twoauth
 
 # Twitter API Class
-class twitterapi():
+class TwitterAPI():
     def __init__(self, screen_name, ckey, csecret, atoken, asecret):
         # Generate API Library instance
         self.api = twoauth.api(ckey, csecret, atoken, asecret, screen_name)
@@ -40,7 +40,7 @@ class twitterapi():
     
     def create_timeline(self, method, interval, counts, args = (), kwargs = {}):
         # Add New Timeline Thread
-        th = timeline_thread(getattr(self.api, method), interval, counts, args, kwargs)
+        th = TimelineThread(getattr(self.api, method), interval, counts, args, kwargs)
         th.added_event = self.add_status
         th.statuses = self.statuses
         #self.threads.append(th)
@@ -82,7 +82,7 @@ class twitterapi():
             self.api.status_update(status)
 
 # Timeline Thread
-class timeline_thread(threading.Thread):
+class TimelineThread(threading.Thread):
     def __init__(self, method, interval, counts, args, kwargs):
         # Thread Initialize
         threading.Thread.__init__(self)
