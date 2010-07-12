@@ -14,8 +14,8 @@ import random
 import time
 import uuid
 
-from timeline import timeline
-from twitterapi import twitterapi
+from timeline import Timeline
+from twitterapi import TwitterAPI
 from iconstore import IconStore
 from saveconfig import save_configs, save_config, get_config, get_configs
 from userselection import UserSelection
@@ -52,7 +52,7 @@ class Main:
         gobject.threads_init()
         
         # Twitter class instance
-        self.twitter = twitterapi(screen_name, *keys)
+        self.twitter = TwitterAPI(screen_name, *keys)
         self.twitter.init_twitpic(self.twitpic_apikey)
         
         # GtkBuilder instance
@@ -148,7 +148,7 @@ class Main:
     # Create new Timeline and append to notebook
     def new_timeline(self, label, method, *args, **kwargs):
         # Create Timeline Object
-        tl = timeline(self.twitter, self.icons, self.iconmode)
+        tl = Timeline(self.twitter, self.icons, self.iconmode)
         
         interval = self.get_default_interval(method)
         

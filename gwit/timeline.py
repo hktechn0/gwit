@@ -14,7 +14,7 @@ import time
 import threading
 import webbrowser
 
-class timeline:
+class Timeline:
     color = (None, None, None, None, None)
     
     def __init__(self, api, icons, iconmode):
