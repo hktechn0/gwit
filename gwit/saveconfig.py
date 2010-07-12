@@ -22,6 +22,10 @@ def get_config(section, keys):
     items = dict(confp.items(section))
     return items[keys]
 
+def get_configs(section):
+    confp = _open()
+    return dict(confp.items(section))
+
 def _open():
     confp = SafeConfigParser()    
     if os.path.isfile(CONF_PATH):

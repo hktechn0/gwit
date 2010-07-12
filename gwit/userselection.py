@@ -115,10 +115,10 @@ class UserSelection(gtk.VBox):
         
         user = self.twitter.get_user_from_screen_name(sname)
         if user != None:
-            self.new_timeline("@%s" % sname, "user_timeline", -1,
+            self.new_timeline("@%s" % sname, "user_timeline",
                               user = user.id)
         else:
-            self.new_timeline("@%s" % sname, "user_timeline", -1,
+            self.new_timeline("@%s" % sname, "user_timeline",
                               user = sname, is_screen_name = True)
     
     # for override

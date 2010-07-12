@@ -101,7 +101,7 @@ class ListsView(gtk.ScrolledWindow):
             self.btn_more.set_label("Get more 20 lists.")        
     
     # for override
-    def new_timeline(self, label, method, sleep, *args, **kwargs):
+    def new_timeline(self, label, method, *args, **kwargs):
         pass
     
     
@@ -114,7 +114,7 @@ class ListsView(gtk.ScrolledWindow):
         l = self.lists[listid]
         listlabel = "@%s/%s" % (l["user"]["screen_name"], l["name"])
         auth = True if l["mode"] == "private" else False
-        self.new_timeline("L: %s" % listlabel, "lists_statuses", -1,
+        self.new_timeline("L: %s" % listlabel, "lists_statuses",
                           list_id = l["id"], user = l["user"]["id"], auth = auth)
 
 class ListsSelection(gtk.Notebook):

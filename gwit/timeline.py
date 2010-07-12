@@ -11,11 +11,13 @@ import re
 import twittertools
 
 import time
-import webbrowser
 import threading
+import webbrowser
 
 class timeline:
-    def __init__(self, api, icons, iconmode = True):
+    color = (None, None, None, None, None)
+    
+    def __init__(self, api, icons, iconmode):
         self.twitter = api
         self.icons = icons
         
@@ -37,27 +39,24 @@ class timeline:
         
         self.treeview.set_headers_visible(False)
         self.treeview.set_rules_hint(True)
-        self.treeview.connect("size-allocate",
-                              self.on_treeview_width_changed)
-        self.treeview.connect("cursor-changed",
-                              self.on_treeview_cursor_changed)
+        self.treeview.connect("size-allocate", self.on_treeview_width_changed)
+        self.treeview.connect("cursor-changed", self.on_treeview_cursor_changed)
+        self.treeview.connect("row_activated", self.on_treeview_row_activated)
         
-        # Setting TreeView Column
-        crpix = gtk.CellRendererPixbuf()
-        crtxt = gtk.CellRendererText()
-        crtxt.set_property("wrap-mode", pango.WRAP_WORD)
+        # Setup icon column (visible is False if no-icon)
+        cell_p = gtk.CellRendererPixbuf()
+        col_icon = gtk.TreeViewColumn("Icon", cell_p, pixbuf = 0)
+        col_icon.set_visible(iconmode)
         
-        tcol = list()
-        tcol.append(gtk.TreeViewColumn("Icon", crpix, pixbuf = 0))
-        # visible is False if no-icon
-        tcol[-1].set_visible(iconmode)
-        tcol.append(gtk.TreeViewColumn("Status", crtxt, markup = 1))
+        # Setup status column
+        cell_t = gtk.CellRendererText()
+        cell_t.set_property("wrap-mode", pango.WRAP_WORD)
+        col_status = gtk.TreeViewColumn("Status", cell_t, markup = 1)
         
-        # Add Column
-        for i in tcol:
-            i.add_attribute(
-                i.get_cell_renderers()[0], "cell-background", 4)
-            self.treeview.append_column(i)
+        col_icon.add_attribute(cell_p, "cell-background", 4)
+        col_status.add_attribute(cell_t, "cell-background", 4)
+        self.treeview.append_column(col_icon)
+        self.treeview.append_column(col_status)
         
         # Auto scroll to top setup
         vadj = self.scrwin.get_vadjustment()
@@ -70,9 +69,8 @@ class timeline:
         self.noent_amp = re.compile("&(?![A-Za-z]+;)")
     
     # Start Sync Timeline (new twitter timeline thread create)
-    def init_timeline(self, method, time, args, kwargs):
-        self.timeline = self.twitter.create_timeline(
-            method, time, args, kwargs)
+    def init_timeline(self, method, interval, counts, args, kwargs):
+        self.timeline = self.twitter.create_timeline(method, interval, counts, args, kwargs)
         
         # Set Event Hander (exec in every get timeline
         self.timeline.reloadEventHandler = self.prepend_new_statuses    
@@ -92,8 +90,7 @@ class timeline:
     # Add popup menu
     def add_popup(self, menu):
         self.pmenu = menu
-        self.treeview.connect("button-press-event",
-                              self.on_treeview_button_press)
+        self.treeview.connect("button-press-event", self.on_treeview_button_press)
     
     # Get timeline ids
     def get_timeline_ids(self):
@@ -109,16 +106,70 @@ class timeline:
     
     # Get status from treeview path
     def get_status(self, path):
-        id = self.store[path][2]
-        return self.twitter.statuses[id]
-
+        i = self.store[path][2]
+        return self.twitter.statuses[i]
+    
     # get status from mouse point
     def get_status_from_point(self, x, y):
         path = self.treeview.get_path_at_pos(x, y)
         it = self.store.get_iter(path[0])
         sid = self.store.get_value(it, 2)
         return self.twitter.statuses[sid]
-
+    
+    # Tweet menu setup
+    def menu_setup(self, status):
+        # Get Urls
+        urls = self.twtools.get_urls(status.text if "retweeted_status" not in status.keys()
+                                     else status.retweeted_status.text)
+        # Get mentioned users
+        users = self.twtools.get_users(status.text)
+        
+        # URL Menu
+        m = gtk.Menu()
+        if urls:
+            # if exist url in text, add menu
+            for i in urls:
+                label = "%s..." % i[:47] if len(i) > 50 else i
+                
+                # Menuitem create
+                item = gtk.ImageMenuItem(label)
+                item.set_image(gtk.image_new_from_stock("gtk-new", gtk.ICON_SIZE_MENU))
+                # Connect click event (open browser)
+                item.connect("activate", self.on_menuitem_url_clicked, i)
+                # append to menu
+                m.append(item)
+        else:
+            # not, show None
+            item = gtk.MenuItem("None")
+            item.set_sensitive(False)
+            m.append(item)
+        
+        # urls submenu append
+        self.pmenu.get_children()[-1].set_submenu(m)
+        
+        # Mentioned User Menu
+        mm = gtk.Menu()
+        if users:
+            for i in users:
+                # Menuitem create
+                item = gtk.ImageMenuItem("@%s" % i.replace("_", "__"))
+                item.set_image(gtk.image_new_from_stock("gtk-add", gtk.ICON_SIZE_MENU))
+                # Connect click event (add tab)
+                item.connect("activate", self.on_menuitem_user_clicked, i)
+                # append to menu
+                mm.append(item)
+        else:
+            # not, show None
+            item = gtk.MenuItem("None")
+            item.set_sensitive(False)
+            mm.append(item)
+        
+        self.pmenu.get_children()[-2].set_submenu(mm)
+        
+        # Show popup menu
+        m.show_all()
+        mm.show_all()
+    
     # Replace & -> &amp;
     def _replace_amp(self, string):
         amp = string.find('&')
@@ -133,6 +184,9 @@ class timeline:
         
         return string
 
+    def set_color(self, colortuple):
+        self.color = tuple(colortuple)
+    
     def destroy(self):
         self.timeline.destroy()
         self.icons.remove_store(self.store)
@@ -217,22 +271,22 @@ class timeline:
             
             if u.id == myid:
                 # My status (Blue)
-                bg = "#CCCCFF"
+                bg = self.color[0]
             elif s.in_reply_to_user_id == myid or \
                     s.text.find("@%s" % myname) != -1:
                 # Reply to me (Red)
-                bg = "#FFCCCC"
+                bg = self.color[1]
             
             if status:
                 if s.id == status.in_reply_to_status_id:
                     # Reply to (Orange)
-                    bg = "#FFCC99"
+                    bg = self.color[2]
                 elif u.id == status.in_reply_to_user_id:
                     # Reply to other (Yellow)
-                    bg = "#FFFFCC"
+                    bg = self.color[3]
                 elif u.id == status.user.id:
                     # Selected user (Green)
-                    bg = "#CCFFCC"
+                    bg = self.color[4]
             
             gtk.gdk.threads_enter()
             self.store.set_value(i, 4, bg)
@@ -243,6 +297,7 @@ class timeline:
     # dummy events and methods
     def on_status_added(self, *args, **kwargs): pass
     def on_status_selection_changed(self, *args, **kwargs): pass
+    def on_status_activated(self, *args, **kwargs): pass
     def new_timeline(self, *args, **kwargs): pass
     
     
@@ -273,7 +328,7 @@ class timeline:
                 # if treeview.allocation.width != width:
                 #     break
                 txt = self.store.get_value(i, 1)
-
+                
                 gtk.gdk.threads_enter()
                 self.store.set_value(i, 1, txt)
                 gtk.gdk.threads_leave()
@@ -294,63 +349,26 @@ class timeline:
                 self.treeview.scroll_to_cell((0,))
             self.vadj_upper = adj.upper
     
+    # Status Clicked
+    def on_treeview_cursor_changed(self, treeview):
+        status = self.get_selected_status()
+        self.color_status(status)
+        self.menu_setup(status)
+        self.on_status_selection_changed(status)
+
+    # Status double clicked
+    def on_treeview_row_activated(self, treeview, path, view_column):
+        status = self.get_status(path)
+        self.on_status_activated(status)
+    
     # Menu popup
     def on_treeview_button_press(self, widget, event):
         if event.button == 3:
-            # Get status
-            status = self.get_status_from_point(
-                int(event.x), int(event.y))
-            # Get Urls
-            urls = self.twtools.get_urls(status.text)
-            # Get mentioned users
-            users = self.twtools.get_users(status.text)
-            
-            # URL Menu
-            m = gtk.Menu()
-            if urls:
-                # if exist url in text, add menu
-                for i in urls:
-                    label = "%s..." % i[:47] if len(i) > 50 else i
-                    
-                    # Menuitem create
-                    item = gtk.ImageMenuItem(label)
-                    item.set_image(gtk.image_new_from_stock("gtk-new", gtk.ICON_SIZE_MENU))
-                    # Connect click event (open browser)
-                    item.connect("activate",
-                                 self.on_menuitem_url_clicked, i)
-                    # append to menu
-                    m.append(item)
-            else:
-                # not, show None
-                item = gtk.MenuItem("None")
-                item.set_sensitive(False)
-                m.append(item)            
-            # urls submenu append
-            self.pmenu.get_children()[-1].set_submenu(m)
-            
-            # Mentioned User Menu
-            mm = gtk.Menu()
-            if users:
-                for i in users:
-                    # Menuitem create
-                    item = gtk.ImageMenuItem("@%s" % i.replace("_", "__"))
-                    item.set_image(gtk.image_new_from_stock("gtk-add", gtk.ICON_SIZE_MENU))
-                    # Connect click event (add tab)
-                    item.connect("activate",
-                                 self.on_menuitem_user_clicked, i)
-                    # append to menu
-                    mm.append(item)
-            else:
-                # not, show None
-                item = gtk.MenuItem("None")
-                item.set_sensitive(False)
-                mm.append(item)
-            self.pmenu.get_children()[-2].set_submenu(mm)
-            
-            # Show popup menu
-            m.show_all()
-            mm.show_all()
             self.pmenu.popup(None, None, None, event.button, event.time)
+    
+    
+    ########################################
+    # Tweet menu event
     
     # Open Web browser if url menuitem clicked
     def on_menuitem_url_clicked(self, menuitem, url):
@@ -360,16 +378,9 @@ class timeline:
     def on_menuitem_user_clicked(self, menuitem, sname):
         user = self.twitter.get_user_from_screen_name(sname)
         if user != None:
-            self.new_timeline("@%s" % sname, "user_timeline", -1,
-                              user = user.id)
+            self.new_timeline("@%s" % sname, "user_timeline", user = user.id)
         else:
             # force specify screen_name if not found
-            self.new_timeline("@%s" % sname, "user_timeline", -1,
-                              user = sname, sn = True)
+            self.new_timeline("@%s" % sname, "user_timeline", user = sname, sn = True)
+        
         return True
-    
-    # Status Clicked
-    def on_treeview_cursor_changed(self, treeview):
-        status = self.get_selected_status()
-        self.color_status(status)
-        self.on_status_selection_changed(status)
