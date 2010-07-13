@@ -69,5 +69,7 @@ class StatusDetail(gtk.VPaned):
                      s.user.id))
                 i = s.in_reply_to_status_id
             else:
-                statuses = self.twitter.api.user_timeline(s.in_reply_to_user_id, count = 200, max_id = i)
+                statuses = self.twitter.api_wrapper(
+                    self.twitter.api.user_timeline,
+                    s.in_reply_to_user_id, count = 200, max_id = i)
                 self.twitter.add_statuses(statuses)

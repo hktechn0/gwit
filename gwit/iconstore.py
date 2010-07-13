@@ -116,7 +116,13 @@ class NewIcon(threading.Thread):
     def run(self):
         # Icon Data Get (if can get semaphore or block)
         self.semaphore.acquire()
-        ico = urllib2.urlopen(self.user.profile_image_url).read()
+        for i in range(3):
+            try:
+                ico = urllib2.urlopen(self.user.profile_image_url).read()
+                break
+            except:
+                ico = None
+                print >>sys.stderr, "[Error] %d: IconStore %s" % (i, e)
         self.semaphore.release()
         
         # Get pixbuf

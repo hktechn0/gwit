@@ -230,7 +230,7 @@ class Timeline:
         # replace no entity & -> &amp;
         text = self._replace_amp(text)
         
-        if status.user.id in self.twitter.followers:
+        if status.user.id in self.twitter.followers or self.twitter.followers == None:
             # Bold screen_name if follower
             tmpl = "<b>%s</b>\n%s"
         else:

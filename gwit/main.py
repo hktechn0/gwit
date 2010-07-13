@@ -533,7 +533,7 @@ class Main:
     # Retweet menu clicked
     def on_menuitem_retweet_activate(self, memuitem):
         status = self.get_selected_status()
-        self.twitter.api.status_retweet(status.id)
+        self.twitter.api_wrapper(self.twitter.api.status_retweet, status.id)
         
     # Retweet with comment menu clicked
     def on_menuitem_reteet_with_comment_activate(self, memuitem):
@@ -559,12 +559,12 @@ class Main:
     # favorite
     def on_menuitem_fav_activate(self, menuitem):
         status = self.get_selected_status()
-        self.twitter.api.favorite_create(status.id)
+        self.twitter.api_wrapper(self.twitter.api.favorite_create, status.id)
     
     # Destroy status
     def on_menuitem_destroy_activate(self, menuitem):
         status = self.get_selected_status()
-        self.twitter.api.status_destroy(status.id)
+        self.twitter.api_wrapper(self.twitter.api.status_destroy, status.id)
     
     ########################################
     # Timeline menu Event

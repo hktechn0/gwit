@@ -219,12 +219,12 @@ class UserSelection(gtk.VBox):
         follow = button.get_active()
         
         if follow:
-            self.twitter.api.friends_create(uid)
+            self.twitter.api_wrapper(self.twitter.api.friends_create, uid)
             button.set_image(gtk.image_new_from_stock("gtk-apply", gtk.ICON_SIZE_BUTTON))
             button.set_label("Following")
             self.twitter.following.add(uid)
         else:
-            self.twitter.api.friends_destroy(uid)
+            self.twitter.api_wrapper(self.twitter.api.friends_destroy, uid)
             button.set_image(gtk.image_new_from_stock("gtk-add", gtk.ICON_SIZE_BUTTON))
             button.set_label("Follow")
             self.twitter.following.remove(uid)

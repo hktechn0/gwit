@@ -35,8 +35,8 @@ class TwitterAPI():
     
     def get_following_followers(self):
         # Get followers
-        self.followers.update([int(i) for i in self.api.followers_ids()])
-        self.following.update([int(i) for i in self.api.friends_ids()])
+        self.followers.update([int(i) for i in self.api_wrapper(self.api.followers_ids)])
+        self.following.update([int(i) for i in self.api_wrapper(self.api.friends_ids)])
     
     def create_timeline(self, method, interval, counts, args = (), kwargs = {}):
         # Add New Timeline Thread
@@ -74,12 +74,42 @@ class TwitterAPI():
     def get_statuses(self, ids):
         return tuple(self.statuses[i] for i in sorted(tuple(ids), reverse=True))
     
+    def api_wrapper(self, method, *args, **kwargs):
+        for i in range(3):
+            try:
+                response = None
+                response = method(*args, **kwargs)
+                break
+            except urllib2.HTTPError, e:
+                if e.code == 400:
+                    print >>sys.stderr, "[Error] Rate Limitting %s (%s)" % (e, method.func_name)
+                    break
+                elif e.code == 403:
+                    print >>sys.stderr, "[Error] Access Denied %s (%s)" % (e, method.func_name)
+                    break
+                elif e.code == 404:
+                    print >>sys.stderr, "[Error] Not Found %s (%s)" % (e, method.func_name)
+                    break
+                
+                if i >= 3:
+                    self.on_twitterapi_error(self, e)
+                print >>sys.stderr, "[Error] %d: TwitterAPI %s (%s)" % (i, e, method.func_name)
+                time.sleep(5)
+            except socket.timeout:
+                print >>sys.stderr, "[Error] %d: TwitterAPI timeout (%s)" % (i, method.func_name)
+            except Exception, e:
+                print >>sys.stderr, "[Error] %d: TwitterAPI %s (%s)" % (i, e, method.func_name)
+        
+        return response
+    
     def status_update(self, status, reply_to = None, footer = ""):
         if reply_to != None:
-            self.api.status_update(status, in_reply_to_status_id = reply_to)
+            self.api_wrapper(self.api.status_update, status, in_reply_to_status_id = reply_to)
         else:
             if footer != "": status = u"%s %s" % (status, footer)
-            self.api.status_update(status)
+            self.api_wrapper(self.api.status_update, status)
+    
+    def on_twitterapi_error(self, method, e): pass
 
 # Timeline Thread
 class TimelineThread(threading.Thread):
@@ -151,21 +181,21 @@ class TimelineThread(threading.Thread):
     
     def refresh_timeline(self):
         for i in range(3):
-            statuses = None
-            
             try:
+                statuses = None
                 # Get Timeline
                 statuses = self.api_method(*self.args, **self.kwargs)
                 self.on_timeline_refresh()
                 break
-            except urllib2.HTTPError, e:
-                print "[Error] TwitterAPI %s (%s)" % (e, self.api_method.func_name)
-                self.on_twitterapi_error(self, e)
+            except urllib2.HTTPError, e:                
+                if i >= 3:
+                    self.on_twitterapi_error(self, e)
+                print >>sys.stderr, "[Error] %d: TwitterAPI %s (%s)" % (i, e, self.api_method.func_name)
                 time.sleep(5)
             except socket.timeout:
-                print "[Error] TwitterAPI timeout (%s)" % (self.api_method.func_name)
+                print >>sys.stderr, "[Error] %d: TwitterAPI timeout (%s)" % (i, self.api_method.func_name)
             except Exception, e:
-                print "[Error] TwitterAPI %s (%s)" % (e, self.api_method.func_name)
+                print >>sys.stderr, "[Error] %d: TwitterAPI %s (%s)" % (i, e, self.api_method.func_name)
         
         return statuses
     
@@ -196,4 +226,3 @@ class TimelineThread(threading.Thread):
     
     def on_timeline_refresh(self): pass
     def reloadEventHandler(self): pass
-    def on_twitterapi_error(self, timeline, e): pass

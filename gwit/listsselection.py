@@ -52,10 +52,10 @@ class ListsView(gtk.ScrolledWindow):
     # Load Lists index
     def load(self):
         if self.memberships:
-            data = self.twitter.api.lists_memberships(self.user, cursor = self._cursor)
+            data = self.twitter.api_wrapper(self.twitter.api.lists_memberships, self.user, cursor = self._cursor)
             lists = data["lists"]
         else:
-            data = self.twitter.api.lists_subscriptions(self.user, cursor = self._cursor)
+            data = self.twitter.api_wrapper(self.twitter.api.lists_subscriptions, self.user, cursor = self._cursor)
             lists = data["lists"]
             
             # get all my lists if first load
@@ -63,7 +63,7 @@ class ListsView(gtk.ScrolledWindow):
                 c = -1
                 mylists = list()
                 while c != 0:
-                    mydata = self.twitter.api.lists_index(self.user, cursor = c)
+                    mydata = self.twitter.api_wrapper(self.twitter.api.lists_index, self.user, cursor = c)
                     mylists.extend(mydata["lists"])
                     c = int(mydata["next_cursor"])
                 lists[0:0] = mylists
