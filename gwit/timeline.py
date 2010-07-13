@@ -364,6 +364,9 @@ class Timeline:
     # Menu popup
     def on_treeview_button_press(self, widget, event):
         if event.button == 3:
+            self.pmenu.show_all()
+            if self.get_selected_status().user.screen_name != self.twitter.myname:
+                self.pmenu.get_children()[4].hide()
             self.pmenu.popup(None, None, None, event.button, event.time)
     
     
