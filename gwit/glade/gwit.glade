@@ -449,12 +449,12 @@
     <property name="type_hint">normal</property>
     <property name="has_separator">False</property>
     <property name="program_name">gwit</property>
-    <property name="version">0.9x</property>
+    <property name="version">0.90-beta</property>
     <property name="copyright" translatable="yes">Copyright &#xA9; 2009-2010
 University of Tsukuba Linux User Group</property>
     <property name="comments" translatable="yes">Gtk+ Twitter Client</property>
     <property name="website">http://sourceforge.jp/projects/gwit/</property>
-    <property name="license" translatable="yes">gwit
+    <property name="license" translatable="yes">"gwit"
 Copyright (C) 2009-2010 University of Tsukuba Linux User Group
 
 This program is free software: you can redistribute it and/or modify
@@ -472,7 +472,9 @@ along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 </property>
     <property name="authors">Hirotaka Kawata &lt;techno@tsukuba-linux.org&gt;
 Takaki Yoneyama &lt;monoqlo@tsukuba-linux.org&gt;
-and more Tsukulug members...</property>
+
+and all of Tsukulug members...
+http://www.tsukuba-linux.org/</property>
     <signal name="response" handler="on_dialog_about_response"/>
     <child internal-child="vbox">
       <object class="GtkVBox" id="dialog-vbox1">
