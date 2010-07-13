@@ -137,8 +137,10 @@ class Main:
     # Window close event
     def close(self, widget):
         # Save Allocation (window position, size)
-        alloc = repr(widget.allocation)
+        alloc = repr(self.builder.get_object("window1").allocation)
         save_config("DEFAULT", "allocation", alloc)
+        
+        self.save_settings()
         
         for i in self.timelines:
             if i != None:
@@ -324,6 +326,14 @@ class Main:
             interval = self.interval[2]
 
         return interval
+
+    def save_settings(self):
+        conf = (("DEFAULT", "interval", self.interval),
+                ("DEFAULT", "counts", self.scounts),
+                ("DEFAULT", "iconmode", self.iconmode),
+                ("DEFAULT", "color", self.status_color),
+                (self.twitter.myname, "footer", self.msgfooter))
+        save_configs(conf)
     
     
     ########################################
@@ -684,13 +694,7 @@ class Main:
             if t != None:
                 t.set_color(self.status_color)
         
-        conf = (("DEFAULT", "interval", self.interval),
-                ("DEFAULT", "counts", self.scounts),
-                ("DEFAULT", "iconmode", self.iconmode),
-                ("DEFAULT", "color", self.status_color),
-                (self.twitter.myname, "footer", self.msgfooter))
-        save_configs(conf)
-        
+        self.save_settings()
         self.dsettings.hide()
     
     # toggle checkbox
