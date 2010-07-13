@@ -14,6 +14,7 @@ class ListsView(gtk.ScrolledWindow):
         self.store = gtk.ListStore(gtk.gdk.Pixbuf, str, gobject.TYPE_INT64, gobject.TYPE_INT64, gtk.gdk.Pixbuf, str)
         self.treeview = gtk.TreeView(self.store)
         self.treeview.set_headers_visible(False)
+        self.treeview.set_rules_hint(True)
         self.treeview.connect("row-activated", self.on_treeview_row_activated)
         
         self.treeview.append_column(

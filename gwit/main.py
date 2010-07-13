@@ -20,6 +20,7 @@ from iconstore import IconStore
 from saveconfig import save_configs, save_config, get_config, get_configs
 from userselection import UserSelection
 from listsselection import ListsSelection
+from statusdetail import StatusDetail
 import twittertools
 
 # Main Class
@@ -534,6 +535,12 @@ class Main:
         self.new_timeline("@%s" % status.user.screen_name,
                           "user_timeline", user = status.user.id)
     
+    # Status detail
+    def on_menuitem_detail_activate(self, menuitem):
+        status = self.get_selected_status()
+        detail = StatusDetail(status, self.twitter, self.icons)
+        self.new_tab(detail, "S: %d" % status.id)
+    
     # favorite
     def on_menuitem_fav_activate(self, menuitem):
         status = self.get_selected_status()
@@ -636,6 +643,8 @@ class Main:
         if self.builder.get_object("checkbutton_home").get_active():
             home = self.builder.get_object("spinbutton_home").get_value_as_int()
         else:
+            self.charcount.set_markup("<b><span foreground='#FF0000'>%s</span></b>" % n)
+            self.btnupdate.set_sensitive(False)
             home = -1
         if self.builder.get_object("checkbutton_mentions").get_active():
             mentions = self.builder.get_object("spinbutton_mentions").get_value_as_int()

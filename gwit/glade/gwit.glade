@@ -246,6 +246,7 @@
         <property name="visible">True</property>
         <property name="image">image1</property>
         <property name="use_stock">False</property>
+        <property name="always_show_image">True</property>
         <signal name="activate" handler="on_menuitem_reply_activate"/>
       </object>
     </child>
@@ -255,6 +256,7 @@
         <property name="visible">True</property>
         <property name="image">image2</property>
         <property name="use_stock">False</property>
+        <property name="always_show_image">True</property>
         <signal name="activate" handler="on_menuitem_retweet_activate"/>
       </object>
     </child>
@@ -264,6 +266,7 @@
         <property name="visible">True</property>
         <property name="image">image5</property>
         <property name="use_stock">False</property>
+        <property name="always_show_image">True</property>
         <signal name="activate" handler="on_menuitem_reteet_with_comment_activate"/>
       </object>
     </child>
@@ -273,6 +276,7 @@
         <property name="visible">True</property>
         <property name="image">image3</property>
         <property name="use_stock">False</property>
+        <property name="always_show_image">True</property>
         <signal name="activate" handler="on_menuitem_fav_activate"/>
       </object>
     </child>
@@ -282,6 +286,7 @@
         <property name="visible">True</property>
         <property name="image">image8</property>
         <property name="use_stock">False</property>
+        <property name="always_show_image">True</property>
         <signal name="activate" handler="on_menuitem_destroy_activate"/>
       </object>
     </child>
@@ -291,11 +296,22 @@
       </object>
     </child>
     <child>
+      <object class="GtkImageMenuItem" id="menuitem_detail">
+        <property name="label" translatable="yes">Detail</property>
+        <property name="visible">True</property>
+        <property name="image">image11</property>
+        <property name="use_stock">False</property>
+        <property name="always_show_image">True</property>
+        <signal name="activate" handler="on_menuitem_detail_activate"/>
+      </object>
+    </child>
+    <child>
       <object class="GtkImageMenuItem" id="menuitem_usertl">
         <property name="label" translatable="yes">User Timeline</property>
         <property name="visible">True</property>
         <property name="image">image4</property>
         <property name="use_stock">False</property>
+        <property name="always_show_image">True</property>
         <signal name="activate" handler="on_menuitem_usertl_activate"/>
       </object>
     </child>
@@ -305,6 +321,7 @@
         <property name="visible">True</property>
         <property name="image">image7</property>
         <property name="use_stock">False</property>
+        <property name="always_show_image">True</property>
       </object>
     </child>
     <child>
@@ -313,6 +330,7 @@
         <property name="visible">True</property>
         <property name="image">image6</property>
         <property name="use_stock">False</property>
+        <property name="always_show_image">True</property>
       </object>
     </child>
   </object>
@@ -1355,5 +1373,9 @@ and more Tsukulug members...</property>
   </object>
   <object class="GtkTextBuffer" id="textbuffer1">
     <signal name="changed" handler="on_textbuffer1_changed"/>
+  </object>
+  <object class="GtkImage" id="image11">
+    <property name="visible">True</property>
+    <property name="stock">gtk-info</property>
   </object>
 </interface>

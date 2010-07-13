@@ -42,6 +42,7 @@ class UserSelection(gtk.VBox):
         # setup treeview
         self.treeview = gtk.TreeView(self.store)
         self.treeview.set_headers_visible(False)
+        self.treeview.set_rules_hint(True)
         self.treeview.set_enable_search(True)
         self.treeview.set_search_column(3)
         self.treeview.connect("cursor-changed", self.on_treeview_cursor_changed)
