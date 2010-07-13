@@ -560,7 +560,7 @@ class Main:
     # Timeline menu Event
     
     def change_interval(self, interval):
-        if not self._toggle_change_flg: return
+        if self._toggle_change_flg: return
         
         tl = self.timelines[self.get_current_tab()].timeline
         
