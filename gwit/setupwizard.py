@@ -35,10 +35,8 @@ import twoauth
 
 class SetupWizard:
     ok = False
-    keys = [
-        "kcygnhE2KNS8U6kwmIlMQ",
-        "l8yaXsNHtFviEZCXiv1OEVAZLe6TL8TPYX72TbcDc",
-        ]
+    keys = ["Q0xJLVQOVvPp0IZysugbug",
+            "6Irwgx5pzZ8RsqGqw3OcC7Ba5pc9wYCH0m1nDj5sc"]
     
     def __init__(self):
         setupglade = os.path.join(
