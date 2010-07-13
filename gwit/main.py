@@ -140,9 +140,10 @@ class Main:
         alloc = repr(widget.allocation)
         save_config("DEFAULT", "allocation", alloc)
         
-        # All tab close
-        for i in dict(self.tlhash).iterkeys():
-            self.on_tabclose_clicked(None, i)
+        for i in self.timelines:
+            if i != None:
+                i.destroy()
+                i.timeline.join()
         
         gtk.main_quit()
     
