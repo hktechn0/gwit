@@ -403,7 +403,7 @@ class Main:
             txt = self.get_textview()
             
             # if update button enabled (== len(text) <= 140
-            if self.btnupdate.get_sensitive():
+            if self.btnupdate.get_sensitive() and txt != "":
                 self.twitter.status_update(txt, self.re, self.msgfooter)
                 self.re = None
                 self.clear_textview()
