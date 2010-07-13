@@ -435,7 +435,7 @@ class Main:
         del self.tlhash[uid]
         
         self.notebook.remove_page(n)
-
+        
         if self.timelines[n] != None:
             self.timelines[n].destroy()
         
@@ -443,7 +443,10 @@ class Main:
         
         for (i, m) in self.tlhash.iteritems():
             if m > n: self.tlhash[i] -= 1
-
+        
+        p = self.notebook.get_current_page()
+        self.on_notebook1_switch_page(self.notebook, self.notebook.get_nth_page(p), p)
+    
     # Tab right clicked
     def on_notebook_tabbar_button_press(self, widget, event):
         if event.button == 3:
@@ -474,11 +477,12 @@ class Main:
     
     # disable menu when switched tab
     def on_notebook1_switch_page(self, notebook, page, page_num):
-        tl = self.timelines[page_num]
         self.builder.get_object("menuitem_tweet").set_sensitive(False)
         menu_timeline = self.builder.get_object("menuitem_timeline")
-        menu_timeline.set_sensitive(False)
+        menu_timeline.set_sensitive(False)        
+        if page_num < 0: return
         
+        tl = self.timelines[page_num]
         if tl != None:
             self._toggle_change_flg = True
             method = tl.timeline.api_method.func_name
@@ -555,16 +559,17 @@ class Main:
     # Timeline menu Event
     
     def change_interval(self, interval):
+        if not self._toggle_change_flg: return
+        
         tl = self.timelines[self.get_current_tab()].timeline
         
         if interval == 0:
             method = tl.api_method.func_name
             interval = self.get_default_interval(method)
         
-        if not self._toggle_change_flg:
-            old = tl.interval
-            tl.interval = interval
-            if old == -1: tl.lock.set()
+        old = tl.interval
+        tl.interval = interval
+        if old == -1: tl.lock.set()
     
     def on_menuitem_time_600_toggled(self, menuitem):
         if menuitem.get_active() == True:
