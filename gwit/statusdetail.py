@@ -8,12 +8,11 @@ import gobject
 
 import threading
 
-class StatusDetail(gtk.ScrolledWindow):
+class StatusDetail(gtk.VPaned):
     _old_alloc = None
     
     def __init__(self, status, twitterapi, icons):
-        gtk.ScrolledWindow.__init__(self)
-        self.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        gtk.VPaned.__init__(self)
         
         ico = gtk.image_new_from_pixbuf(icons.get(status.user))
         markup = "<big><b>%s</b></big> - %s\n%s\n<small><span foreground='#666666'>%s via %s</span></small>"
@@ -30,6 +29,7 @@ class StatusDetail(gtk.ScrolledWindow):
         text.set_markup(label_text)
         
         hbox = gtk.HBox()
+        hbox.set_border_width(10)
         hbox.pack_start(ico, expand = False, fill = False)
         hbox.pack_start(text)
         
@@ -40,10 +40,12 @@ class StatusDetail(gtk.ScrolledWindow):
         treeview.append_column(gtk.TreeViewColumn("Icon", gtk.CellRendererPixbuf(), pixbuf = 0))
         treeview.append_column(gtk.TreeViewColumn("Status", gtk.CellRendererText(), markup = 1))
         
-        vbox = gtk.VBox()
-        vbox.pack_start(hbox)
-        vbox.pack_start(treeview)
-        self.add_with_viewport(vbox)
+        win = gtk.ScrolledWindow()
+        win.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        win.add(treeview)
+        
+        self.pack1(hbox, shrink = False)
+        self.pack2(win)
         
         self.twitter = twitterapi
         self.icons = icons
