@@ -31,11 +31,12 @@ import gtk
 import gobject
 
 import threading
+from statusview import StatusView
 
 class StatusDetail(gtk.VPaned):
     _old_alloc = None
     
-    def __init__(self, status, twitterapi, icons):
+    def __init__(self, status, twitterapi, icons, iconmode):
         gtk.VPaned.__init__(self)
         
         ico = gtk.image_new_from_pixbuf(icons.get(status.user))
@@ -57,16 +58,11 @@ class StatusDetail(gtk.VPaned):
         hbox.pack_start(ico, expand = False, fill = False)
         hbox.pack_start(text)
         
-        self.store = gtk.ListStore(gtk.gdk.Pixbuf, str, gobject.TYPE_INT64)
-        treeview = gtk.TreeView(self.store)
-        treeview.set_headers_visible(False)
-        treeview.set_rules_hint(True)
-        treeview.append_column(gtk.TreeViewColumn("Icon", gtk.CellRendererPixbuf(), pixbuf = 0))
-        treeview.append_column(gtk.TreeViewColumn("Status", gtk.CellRendererText(), markup = 1))
+        self.view = StatusView(twitterapi, icons, iconmode)
         
         win = gtk.ScrolledWindow()
         win.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-        win.add(treeview)
+        win.add(self.view)
         
         self.pack1(hbox, shrink = False)
         self.pack2(win)
@@ -86,11 +82,8 @@ class StatusDetail(gtk.VPaned):
         
         while i != None:
             if i in self.twitter.statuses:
+                self.view.prepend_new_statuses([i])
                 s = self.twitter.statuses[i]
-                self.store.append(
-                    (self.icons.get(s.user),
-                     "<b>%s</b>\n%s" % (s.user.screen_name, s.text),
-                     s.user.id))
                 i = s.in_reply_to_status_id
             else:
                 statuses = self.twitter.api_wrapper(

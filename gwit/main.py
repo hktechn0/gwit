@@ -93,10 +93,10 @@ class Main:
         self.charcount = self.builder.get_object("label1")
         self.dsettings = self.builder.get_object("dialog_settings")
         
-        menu_tweet = self.builder.get_object("menu_tweet")
-        self.builder.get_object("menuitem_tweet").set_submenu(menu_tweet)
-        menu_timeline = self.builder.get_object("menu_timeline")
-        self.builder.get_object("menuitem_timeline").set_submenu(menu_timeline)
+        self.menu_tweet = self.builder.get_object("menu_tweet")
+        self.builder.get_object("menuitem_tweet").set_submenu(self.menu_tweet)
+        self.menu_timeline = self.builder.get_object("menu_timeline")
+        self.builder.get_object("menuitem_timeline").set_submenu(self.menu_timeline)
         
         # set tools
         self.twtools = twittertools.TwitterTools()
@@ -177,20 +177,19 @@ class Main:
         # Create Timeline Object
         tl = Timeline(self.twitter, self.icons, self.iconmode)
         
-        interval = self.get_default_interval(method)
-        
         # Start sync timeline
+        interval = self.get_default_interval(method)
         tl.init_timeline(method, interval, self.scounts, args, kwargs)
-        tl.new_timeline = self.new_timeline
+        tl.view.new_timeline = self.new_timeline
         
         # Add Notebook (Tab view)
-        self.new_tab(tl.scrwin, label, tl)
-
+        self.new_tab(tl, label, tl)
+        
        # Set color
-        tl.set_color(self.status_color)
+        tl.view.set_color(self.status_color)
         
         if method != "mentions":
-            tl.on_status_added = self.on_status_added
+            tl.view.on_status_added = self.on_status_added
         
         # Set API Limit label
         tl.timeline.on_timeline_refresh = self.on_timeline_refresh
@@ -198,12 +197,12 @@ class Main:
         tl.timeline.on_twitterapi_error = self.on_twitterapi_error
         
         # Put tweet information to statusbar
-        tl.on_status_selection_changed = self.on_status_selection_changed
+        tl.view.on_status_selection_changed = self.on_status_selection_changed
         # Reply on double click
-        tl.on_status_activated = self.on_status_activated
+        tl.view.on_status_activated = self.on_status_activated
         
+        tl.view.add_popup(self.menu_tweet)
         tl.start_timeline()        
-        tl.add_popup(self.builder.get_object("menu_tweet"))
     
     # Append Tab to Notebook
     def new_tab(self, widget, label, timeline = None):
@@ -237,8 +236,9 @@ class Main:
     
     def get_selected_status(self):
         n = self.notebook.get_current_page()
-        return self.timelines[n].get_selected_status()
-    
+        if self.timelines[n] != None:
+            return self.timelines[n].view.get_selected_status()
+        
     def get_current_tab(self):
         return self.notebook.get_current_page()
 
@@ -267,7 +267,8 @@ class Main:
     # Reply to selected status
     def reply_to_selected_status(self):
         status = self.get_selected_status()
-
+        self.reply_to_status(status)
+    
     def reply_to_status(self, status):
         self.re = status.id
         name = status.user.screen_name
@@ -484,7 +485,7 @@ class Main:
     # Tab right clicked
     def on_notebook_tabbar_button_press(self, widget, event):
         if event.button == 3:
-            self.builder.get_object("menu_timeline").popup(None, None, None, event.button, event.time)
+            self.menu_timeline.popup(None, None, None, event.button, event.time)
     
     # Character count
     def on_textbuffer1_changed(self, textbuffer):
@@ -512,8 +513,8 @@ class Main:
     # disable menu when switched tab
     def on_notebook1_switch_page(self, notebook, page, page_num):
         self.builder.get_object("menuitem_tweet").set_sensitive(False)
-        menu_timeline = self.builder.get_object("menuitem_timeline")
-        menu_timeline.set_sensitive(False)        
+        menuitem_timeline = self.builder.get_object("menuitem_timeline")
+        menuitem_timeline.set_sensitive(False)
         if page_num < 0: return
         
         tl = self.timelines[page_num]
@@ -545,7 +546,7 @@ class Main:
                 self.builder.get_object("menuitem_time_30").set_active(True)
             
             self._toggle_change_flg = False
-            menu_timeline.set_sensitive(True)
+            menuitem_timeline.set_sensitive(True)
     
     ########################################
     # Tweet menu event
@@ -576,7 +577,8 @@ class Main:
     # Status detail
     def on_menuitem_detail_activate(self, menuitem):
         status = self.get_selected_status()
-        detail = StatusDetail(status, self.twitter, self.icons)
+        detail = StatusDetail(status, self.twitter, self.icons, self.iconmode)
+        #detail.view.add_popup(self.menu_tweet)
         self.new_tab(detail, "S: %d" % status.id)
     
     # favorite
@@ -715,7 +717,7 @@ class Main:
                              self.builder.get_object("entry_color_selected_user").get_text())
         for t in self.timelines:
             if t != None:
-                t.set_color(self.status_color)
+                t.view.set_color(self.status_color)
         
         self.save_settings()
         self.dsettings.hide()
