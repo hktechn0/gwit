@@ -27,7 +27,18 @@
                         <property name="visible">True</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
+                        <property name="always_show_image">True</property>
                         <signal name="activate" handler="on_imageitem_settings_activate"/>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkImageMenuItem" id="menuitem_streaming">
+                        <property name="label" translatable="yes">Streaming API</property>
+                        <property name="visible">True</property>
+                        <property name="image">image12</property>
+                        <property name="use_stock">False</property>
+                        <property name="always_show_image">True</property>
+                        <signal name="activate" handler="on_menuitem_streaming_activate"/>
                       </object>
                     </child>
                     <child>
@@ -41,6 +52,7 @@
                         <property name="visible">True</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
+                        <property name="always_show_image">True</property>
                         <signal name="activate" handler="close"/>
                       </object>
                     </child>
@@ -77,6 +89,7 @@
                         <property name="visible">True</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
+                        <property name="always_show_image">True</property>
                         <signal name="activate" handler="on_menuitem_about_activate"/>
                       </object>
                     </child>
@@ -230,6 +243,7 @@
         <property name="visible">True</property>
         <property name="image">image10</property>
         <property name="use_stock">False</property>
+        <property name="always_show_image">True</property>
         <signal name="activate" handler="on_menuitem_twitpic_activate"/>
       </object>
     </child>
@@ -1379,5 +1393,10 @@ http://www.tsukuba-linux.org/</property>
   <object class="GtkImage" id="image11">
     <property name="visible">True</property>
     <property name="stock">gtk-info</property>
+  </object>
+  <object class="GtkImage" id="image12">
+    <property name="visible">True</property>
+    <property name="xalign">0.44999998807907104</property>
+    <property name="stock">gtk-media-forward</property>
   </object>
 </interface>

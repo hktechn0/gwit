@@ -137,6 +137,10 @@ class TwitterAPI():
 
 # Timeline Thread
 class TimelineThread(threading.Thread):
+    die = False
+    lastid = None
+    timeline = set()
+    
     def __init__(self, method, interval, counts, args, kwargs):
         # Thread Initialize
         threading.Thread.__init__(self)
@@ -146,14 +150,11 @@ class TimelineThread(threading.Thread):
         # Event lock
         self.lock = threading.Event()
         self.addlock = mutex.mutex()
-        self.die = False
         
         self.api_method = method
         self.interval = interval
-        self.lastid = None
-        self.timeline = set()
         
-        socket.setdefaulttimeout(10)        
+        #socket.setdefaulttimeout(10)        
         
         # API Arguments
         self.args = args
@@ -177,13 +178,13 @@ class TimelineThread(threading.Thread):
         
         # Auto reloading loop
         while not self.die:
-            last = self.refresh_timeline()
+            statuses = self.refresh_timeline()
             
             # If Timeline update
-            if last:
+            if statuses:
                 # Append status cache
                 new = set()
-                for i in last:
+                for i in statuses:
                     new.add(i.id)
                     self.added_event(i)
                 
@@ -191,7 +192,7 @@ class TimelineThread(threading.Thread):
                 self.add(new)
                 
                 # update lastid
-                self.lastid = last[-1].id
+                self.lastid = statuses[-1].id
                 self.kwargs["since_id"] = self.lastid
             
             # Reload lock

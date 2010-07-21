@@ -70,7 +70,10 @@ class IconStore:
         # New Icon thread start if iconmode is True
         self.data[user.id] = self.default_icon
         newico = NewIcon(user, self.stores, self.data, self.semaphore)
-        newico.start()
+        try:
+            newico.start()
+        except:
+            print >>sys.stderr, "[Error] Iconstore Over Capacity"
     
     def add_store(self, store, n):
         self.stores.append((store, n))
@@ -103,6 +106,7 @@ class NewIcon(threading.Thread):
         return pix
     
     def convert_pixbuf(self, ico):
+        if ico == None: return None
         if USE_PIL:
             # use Python Imaging Library if exists
             pix = self.convert_pixbuf_pil(ico)    
@@ -144,7 +148,7 @@ class NewIcon(threading.Thread):
             try:
                 ico = urllib2.urlopen(self.user.profile_image_url).read()
                 break
-            except:
+            except Exception, e:
                 ico = None
                 print >>sys.stderr, "[Error] %d: IconStore %s" % (i, e)
         self.semaphore.release()

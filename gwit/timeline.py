@@ -32,6 +32,8 @@ import gtk
 from statusview import StatusView
 
 class Timeline(gtk.ScrolledWindow):
+    timeline = None
+    
     def __init__(self, api, icons, iconmode):
         gtk.ScrolledWindow.__init__(self)
         self.twitter = api
@@ -95,5 +97,6 @@ class Timeline(gtk.ScrolledWindow):
             self.vadj_lock = True
     
     def on_destroy(self, widget):
-        self.timeline.destroy()
+        if self.timeline != None:
+            self.timeline.destroy()
         self.view.destroy()

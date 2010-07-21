@@ -44,6 +44,7 @@ from saveconfig import save_configs, save_config, get_config, get_configs
 from userselection import UserSelection
 from listsselection import ListsSelection
 from statusdetail import StatusDetail
+from streamingview import StreamingView
 import twittertools
 
 # Main Class
@@ -168,7 +169,7 @@ class Main:
         for i in self.timelines:
             if i != None:
                 i.destroy()
-                i.timeline.join()
+                i.timeline.join(1)
         
         gtk.main_quit()
     
@@ -518,7 +519,7 @@ class Main:
         if page_num < 0: return
         
         tl = self.timelines[page_num]
-        if tl != None:
+        if tl != None and "interval" in dir(tl) and "api_method" in dir(tl):
             self._toggle_change_flg = True
             method = tl.timeline.api_method.func_name
             default = self.get_default_interval(method)
@@ -547,6 +548,34 @@ class Main:
             
             self._toggle_change_flg = False
             menuitem_timeline.set_sensitive(True)
+    
+    # Streaming API tab
+    def on_menuitem_streaming_activate(self, menuitem):
+        dialog = gtk.MessageDialog(buttons = gtk.BUTTONS_OK)
+        dialog.set_markup("Please enter track keywords.")
+        dialog.format_secondary_markup("Examples: <i>hashtag, username, keyword</i>\n(Split comma. Unnecessary #, @)")
+        entry = gtk.Entry()
+        dialog.vbox.pack_start(entry)
+        dialog.show_all()
+        dialog.run()
+        text = entry.get_text()
+        dialog.destroy()
+        
+        params = {"track" : text.split(",")}
+        
+        tl = StreamingView(self.twitter, self.icons, self.iconmode)
+        tl.init_timeline(params)
+        tl.view.new_timeline = self.new_timeline
+        
+        self.new_tab(tl, "Stream", tl)
+        tl.view.set_color(self.status_color)
+        tl.view.add_popup(self.menu_tweet)
+        tl.view.on_status_selection_changed = self.on_status_selection_changed
+        tl.view.on_status_activated = self.on_status_activated
+        
+        tl.view.add_popup(self.menu_tweet)
+        tl.start_timeline()
+    
     
     ########################################
     # Tweet menu event
