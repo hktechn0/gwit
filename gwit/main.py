@@ -518,10 +518,10 @@ class Main:
         menuitem_timeline.set_sensitive(False)
         if page_num < 0: return
         
-        tl = self.timelines[page_num]
+        tl = self.timelines[page_num].timeline
         if tl != None and "interval" in dir(tl) and "api_method" in dir(tl):
             self._toggle_change_flg = True
-            method = tl.timeline.api_method.func_name
+            method = tl.api_method.func_name
             default = self.get_default_interval(method)
             
             if default == -1: default = None
@@ -529,7 +529,7 @@ class Main:
             menu_default = self.builder.get_object("menuitem_time_default")
             menu_default.get_child().set_text("Default (%s)" % default)
             
-            interval = tl.timeline.interval
+            interval = tl.interval
             
             if interval == default:
                 menu_default.set_active(True)
