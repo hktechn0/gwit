@@ -32,12 +32,11 @@ import gtk
 from statusview import StatusView
 
 class Timeline(gtk.ScrolledWindow):
-    timeline = None
-    
     def __init__(self, api, icons, iconmode):
         gtk.ScrolledWindow.__init__(self)
         self.twitter = api
         self.icons = icons
+        self.timeline = None
         
         # Add treeview to scrolledwindow
         self.view = StatusView(api, icons, iconmode)

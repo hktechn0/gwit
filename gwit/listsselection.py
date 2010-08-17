@@ -92,7 +92,7 @@ class ListsView(gtk.ScrolledWindow):
                     c = int(mydata["next_cursor"])
                 lists[0:0] = mylists
         
-        for l in lists:
+        for l in reversed(lists):
             user = l["user"]
             userid = int(user["id"])
             screen_name = user["screen_name"]

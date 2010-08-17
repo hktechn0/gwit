@@ -36,9 +36,6 @@ from statusview import StatusView
 from timeline import Timeline
 
 class StreamingThread(threading.Thread):
-    die = False
-    timeline = set()
-    
     def __init__(self, twitter, params = {}):
         threading.Thread.__init__(self)
         self.setDaemon(True)
@@ -46,6 +43,9 @@ class StreamingThread(threading.Thread):
         self.twitter = twitter
         self.params = params
         self.sapi = twoauth.streaming.StreamingAPI(self.twitter.api.oauth)
+        
+        self.timeline = set()    
+        self.die = False
     
     def run(self):
         #stream = self.sapi.sample()

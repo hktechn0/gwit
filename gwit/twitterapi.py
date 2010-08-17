@@ -65,7 +65,7 @@ class TwitterAPI():
     def create_timeline(self, method, interval, counts, args = (), kwargs = {}):
         # Add New Timeline Thread
         th = TimelineThread(getattr(self.api, method), interval, counts, args, kwargs)
-        th.added_event = self.add_status
+        th.on_status_added = self.add_status
         th.statuses = self.statuses
         #self.threads.append(th)
         return th
@@ -137,15 +137,15 @@ class TwitterAPI():
 
 # Timeline Thread
 class TimelineThread(threading.Thread):
-    die = False
-    lastid = None
-    timeline = set()
-    
     def __init__(self, method, interval, counts, args, kwargs):
         # Thread Initialize
         threading.Thread.__init__(self)
         self.setDaemon(True)
         self.setName(method.func_name + str(args))
+        
+        self.timeline = set()
+        self.die = False
+        self.lastid = None
         
         # Event lock
         self.lock = threading.Event()
@@ -173,7 +173,7 @@ class TimelineThread(threading.Thread):
                 if i.user.id == self.kwargs["user"]:
                     cached.add(i.id)
             
-            if cached:
+            if len(cached) > 0:
                 self.add(cached)
         
         # Auto reloading loop
@@ -186,7 +186,7 @@ class TimelineThread(threading.Thread):
                 new = set()
                 for i in statuses:
                     new.add(i.id)
-                    self.added_event(i)
+                    self.on_status_added(i)
                 
                 # Add statuses to timeline
                 self.add(new)
@@ -251,3 +251,4 @@ class TimelineThread(threading.Thread):
     
     def on_timeline_refresh(self): pass
     def reloadEventHandler(self): pass
+    def on_status_added(self, status): pass

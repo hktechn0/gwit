@@ -49,13 +49,9 @@ import twittertools
 
 # Main Class
 class Main:
-    # init status timelines
-    timelines = list()
-    tlhash = dict()
-    
     # Default settings
     interval = (60, 300, -1)
-    msgfooter = unicode()
+    msgfooter = u""
     alloc = gtk.gdk.Rectangle(0, 0, 240, 320)
     scounts = (20, 200)
     iconmode = True
@@ -75,6 +71,10 @@ class Main:
         # Gtk Multithread Setup
         gtk.gdk.threads_init()
         gobject.threads_init()
+        
+        # init status timelines
+        self.timelines = list()
+        self.tlhash = dict()
         
         # Twitter class instance
         self.twitter = TwitterAPI(screen_name, *keys)
@@ -144,7 +144,7 @@ class Main:
         self.label_apilimit = gtk.Label()
         self.statusbar = self.builder.get_object("statusbar1")
         self.statusbar.pack_start(self.label_apilimit, expand = False, padding = 10)
-        self.statusbar.show_all()        
+        self.statusbar.show_all()
         
         # Users tab append
         users = UserSelection(self.twitter, self.icons)
@@ -203,7 +203,7 @@ class Main:
         tl.view.on_status_activated = self.on_status_activated
         
         tl.view.add_popup(self.menu_tweet)
-        tl.start_timeline()        
+        tl.start_timeline()
     
     # Append Tab to Notebook
     def new_tab(self, widget, label, timeline = None):
@@ -242,7 +242,7 @@ class Main:
         
     def get_current_tab(self):
         return self.notebook.get_current_page()
-
+    
     # Get text
     def get_textview(self):
         buf = self.textview.get_buffer()
@@ -516,7 +516,7 @@ class Main:
         self.builder.get_object("menuitem_tweet").set_sensitive(False)
         menuitem_timeline = self.builder.get_object("menuitem_timeline")
         menuitem_timeline.set_sensitive(False)
-        if page_num < 0: return
+        if page_num < 0: return False
         
         tl = self.timelines[page_num].timeline
         if tl != None and "interval" in dir(tl) and "api_method" in dir(tl):
