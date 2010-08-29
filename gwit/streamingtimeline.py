@@ -71,7 +71,7 @@ class StreamingThread(threading.Thread):
     
     def on_received_statuses(self, ids): pass
 
-class StreamingView(Timeline):
+class StreamingTimeline(Timeline):
     # Start Sync Timeline (new twitter timeline thread create)
     def init_timeline(self, params = {}):
         self.timeline = StreamingThread(self.twitter, params)

@@ -44,7 +44,7 @@ from saveconfig import save_configs, save_config, get_config, get_configs
 from userselection import UserSelection
 from listsselection import ListsSelection
 from statusdetail import StatusDetail
-from streamingview import StreamingView
+from streamingtimeline import StreamingTimeline
 import twittertools
 
 # Main Class
@@ -342,6 +342,30 @@ class Main:
         
         return color
     
+    def status_update_thread(self, status):
+        t = threading.Thread(target = self.status_update, args = (status,))
+        t.start()
+    
+    def status_update(self, status):
+        args = dict()
+        self.textview.set_sensitive(False)
+        self.btnupdate.set_sensitive(False)
+        
+        if self.re != None:
+            args["in_reply_to_status_id"] = self.re
+        elif self.msgfooter != "":
+            status = u"%s %s" % (status, self.msgfooter)
+        
+        resp = self.twitter.api_wrapper(self.twitter.api.status_update,
+                                        status, **args)
+        
+        if resp != None:
+            self.clear_textview()
+            self.re = None
+        
+        self.textview.set_sensitive(True)
+        self.btnupdate.set_sensitive(True)
+    
     def get_default_interval(self, method):
         if method == "home_timeline":
             interval = self.interval[0]
@@ -421,15 +445,13 @@ class Main:
         
         if txt != "":
             # Status Update
-            self.twitter.status_update(txt, self.re, self.msgfooter)
+            self.status_update(txt)
         else:
             # Reload timeline if nothing in textview
             n = self.get_current_tab()
+            self.re = None
             if self.timelines[n] != None:
                 self.timelines[n].reload()
-        
-        self.re = None
-        self.clear_textview()
     
     # key_press textview (for update status when press Ctrl + Enter)
     def on_textview1_key_press_event(self, textview, event):
@@ -439,9 +461,7 @@ class Main:
             
             # if update button enabled (== len(text) <= 140
             if self.btnupdate.get_sensitive() and txt != "":
-                self.twitter.status_update(txt, self.re, self.msgfooter)
-                self.re = None
-                self.clear_textview()
+                self.status_update(txt)
             
             return True
     
@@ -518,9 +538,10 @@ class Main:
         menuitem_timeline.set_sensitive(False)
         if page_num < 0: return False
         
-        tl = self.timelines[page_num].timeline
-        if tl != None and "interval" in dir(tl) and "api_method" in dir(tl):
+        tab = self.timelines[page_num]
+        if tab != None and not isinstance(tab, StreamingTimeline):
             self._toggle_change_flg = True
+            tl = tab.timeline
             method = tl.api_method.func_name
             default = self.get_default_interval(method)
             
@@ -563,7 +584,7 @@ class Main:
         
         params = {"track" : text.split(",")}
         
-        tl = StreamingView(self.twitter, self.icons, self.iconmode)
+        tl = StreamingTimeline(self.twitter, self.icons, self.iconmode)
         tl.init_timeline(params)
         tl.view.new_timeline = self.new_timeline
         

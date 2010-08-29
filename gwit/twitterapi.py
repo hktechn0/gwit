@@ -126,13 +126,6 @@ class TwitterAPI():
         
         return response
     
-    def status_update(self, status, reply_to = None, footer = ""):
-        if reply_to != None:
-            self.api_wrapper(self.api.status_update, status, in_reply_to_status_id = reply_to)
-        else:
-            if footer != "": status = u"%s %s" % (status, footer)
-            self.api_wrapper(self.api.status_update, status)
-    
     def on_twitterapi_error(self, method, e): pass
 
 # Timeline Thread
