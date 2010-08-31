@@ -42,6 +42,9 @@ class StatusView(gtk.TreeView):
     color = (None, None, None, None, None)
     pmenu = None
     
+    favico_y = None
+    favico_n = None
+    
     def __init__(self, twitter, icons, iconmode):
         gtk.TreeView.__init__(self)
         self.twitter = twitter
@@ -49,7 +52,8 @@ class StatusView(gtk.TreeView):
         
         self.store = gtk.ListStore(
             gtk.gdk.Pixbuf, str,
-            gobject.TYPE_INT64, gobject.TYPE_INT64, str)
+            gobject.TYPE_INT64, gobject.TYPE_INT64, str,
+            gtk.gdk.Pixbuf)
         self.store.set_sort_column_id(2, gtk.SORT_DESCENDING)
         
         self.set_model(self.store)
@@ -58,6 +62,8 @@ class StatusView(gtk.TreeView):
         self.connect("size-allocate", self.on_treeview_width_changed)
         self.connect("cursor-changed", self.on_treeview_cursor_changed)
         self.connect("row_activated", self.on_treeview_row_activated)
+        self.connect("motion-notify-event", self.on_treeview_motion_notify)
+        self.connect("leave-notify-event", self.on_treeview_leave_notify)
         self.connect("destroy", self.on_treeview_destroy)
         
         # Setup icon column (visible is False if no-icon)
@@ -67,15 +73,25 @@ class StatusView(gtk.TreeView):
         
         # Setup status column
         cell_t = gtk.CellRendererText()
-        cell_t.set_property("wrap-mode", pango.WRAP_WORD)
+        cell_t.set_property("wrap-mode", pango.WRAP_CHAR)
         col_status = gtk.TreeViewColumn("Status", cell_t, markup = 1)
+        col_status.set_property("sizing", gtk.TREE_VIEW_COLUMN_FIXED)
+        col_status.set_expand(True)
+        
+        # Setup fav column
+        cell_fav = gtk.CellRendererPixbuf()
+        col_fav = gtk.TreeViewColumn("Fav", cell_fav, pixbuf = 5)
+        col_fav.set_property("sizing", gtk.TREE_VIEW_COLUMN_FIXED)
+        col_fav.set_property("fixed-width", 40)
         
         # Add background color at column_id 4
         col_icon.add_attribute(cell_p, "cell-background", 4)
         col_status.add_attribute(cell_t, "cell-background", 4)
+        col_fav.add_attribute(cell_fav, "cell-background", 4)
         self.append_column(col_icon)
         self.append_column(col_status)
-        
+        self.append_column(col_fav)
+    
         # Add timeline to IconStore 
         if iconmode:
             self.icons.add_store(self.store, 3)
@@ -84,14 +100,13 @@ class StatusView(gtk.TreeView):
         self.twtools = twittertools.TwitterTools()
         self.noent_amp = re.compile("&(?![A-Za-z]+;)")
         self.added = False
+        # for motion notify
+        self._old_path = None
     
     # Get selected status
     def get_selected_status(self):
         path, column = self.get_cursor()
-        if path == None:
-            return None
-        else:
-            return self.get_status(path)
+        return self.get_status(path) if path != None else None
     
     # Get status from treeview path
     def get_status(self, path):
@@ -101,10 +116,8 @@ class StatusView(gtk.TreeView):
     # get status from mouse point
     def get_status_from_point(self, x, y):
         path = self.get_path_at_pos(x, y)
-        it = self.store.get_iter(path[0])
-        sid = self.store.get_value(it, 2)
-        return self.twitter.statuses[sid]
-
+        return self.get_status(path) if path != None else None
+    
     # Add popup menu
     def add_popup(self, menu):
         self.pmenu = menu
@@ -182,7 +195,6 @@ class StatusView(gtk.TreeView):
         m.show_all()
         mm.show_all()
     
-    
     ########################################
     # Execute in Background Thread Methods    
     
@@ -229,12 +241,16 @@ class StatusView(gtk.TreeView):
         # Bold screen_name
         message = tmpl % (name, text)
         
+        # Favorite
+        favico = self.favico_y if status.favorited else self.favico_n
+        
+        # call main method, mentions check
         self.on_status_added(i)
         
         return (self.icons.get(status.user),
                 message,
                 long(i), long(status.user.id),
-                background)
+                background, favico)
     
     # Color status
     def color_status(self, status = None):
@@ -307,6 +323,42 @@ class StatusView(gtk.TreeView):
             if self.get_selected_status().user.screen_name != self.twitter.myname:
                 self.pmenu.get_children()[4].hide()
             self.pmenu.popup(None, None, None, event.button, event.time)
+        elif event.button == 1:
+            # fav button
+            path_at_pos = self.get_path_at_pos(int(event.x), int(event.y))
+            if path_at_pos == None: return
+            path, column = path_at_pos[:2]
+
+            if self.get_columns().index(column) == 2:
+                status = self.get_status(path)
+                self.twitter.api_wrapper(self.twitter.api.favorite_create, status.id)
+                self.store[path][5] = self.favico_y
+                status.favorited = True
+    
+    def reset_favico(self, path):
+        if path != None:
+            status = self.get_status(path)
+            if not status.favorited:
+                self.store[path][5] = self.favico_n
+    
+    def on_treeview_motion_notify(self, widget, event):
+        # blink fav icon when mouse over
+        path_at_pos = self.get_path_at_pos(int(event.x), int(event.y))
+        if path_at_pos == None: return
+        path, column = path_at_pos[:2]
+        
+        if self.get_columns().index(column) == 2:
+            self.store[path][5] = self.favico_y
+        else:
+            self.reset_favico(path)
+        
+        if self._old_path != path:
+            self.reset_favico(self._old_path)
+            self._old_path = path
+    
+    def on_treeview_leave_notify(self, widget, event):
+        self.reset_favico(self._old_path)
+        self._old_path = None
     
     # Treeview width changed Event (text-wrap-width change)
     def on_treeview_width_changed(self, treeview, allocate):
@@ -317,7 +369,7 @@ class StatusView(gtk.TreeView):
         
         # Get !("Status") width
         width2 = 0
-        for i in columns[:1]:
+        for i in columns[:1] + columns[2:]:
             width2 += i.get_property("width")
         
         # Set "Status" width

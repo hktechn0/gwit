@@ -38,6 +38,7 @@ import time
 import uuid
 
 from timeline import Timeline
+from statusview import StatusView
 from twitterapi import TwitterAPI
 from iconstore import IconStore
 from saveconfig import save_configs, save_config, get_config, get_configs
@@ -98,6 +99,10 @@ class Main:
         self.builder.get_object("menuitem_tweet").set_submenu(self.menu_tweet)
         self.menu_timeline = self.builder.get_object("menu_timeline")
         self.builder.get_object("menuitem_timeline").set_submenu(self.menu_timeline)
+
+        # set class variables
+        StatusView.favico_y = self.notebook.render_icon("gtk-about", gtk.ICON_SIZE_MENU)
+        StatusView.favico_n = None
         
         # set tools
         self.twtools = twittertools.TwitterTools()
