@@ -122,11 +122,14 @@ class NewIcon(threading.Thread):
         i = cStringIO.StringIO(ico)
         o = cStringIO.StringIO()
         
-        self.create_thumbnail(ico, i, o)
-        pix = self.load_pixbuf(o.getvalue())
-        
-        i.close()
-        o.close()
+        try:
+            self.create_thumbnail(ico, i, o)
+            pix = self.load_pixbuf(o.getvalue())
+        except:
+            pix = None
+        finally:
+            i.close()
+            o.close()
         
         return pix
     

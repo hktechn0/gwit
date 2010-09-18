@@ -58,7 +58,7 @@ class StatusDetail(gtk.VPaned):
         hbox.pack_start(ico, expand = False, fill = False)
         hbox.pack_start(text)
         
-        self.view = StatusView(twitterapi, icons, iconmode)
+        self.view = StatusView()
         
         win = gtk.ScrolledWindow()
         win.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)

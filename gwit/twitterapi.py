@@ -27,18 +27,20 @@
 
 import sys
 import time
-import mutex
-import threading
-import urllib2
 import socket
+import urllib2
+import threading
 
 import twoauth
+import twoauth.streaming
 
 # Twitter API Class
-class TwitterAPI():
+class TwitterAPI:
     def __init__(self, screen_name, ckey, csecret, atoken, asecret):
         # Generate API Library instance
         self.api = twoauth.api(ckey, csecret, atoken, asecret, screen_name)
+        self.sapi = twoauth.streaming.StreamingAPI(self.api.oauth)
+        
         self.myname = self.api.user["screen_name"]
         self.me = None
         self.my_name = screen_name
@@ -61,14 +63,6 @@ class TwitterAPI():
         # Get followers
         self.followers.update([int(i) for i in self.api_wrapper(self.api.followers_ids)])
         self.following.update([int(i) for i in self.api_wrapper(self.api.friends_ids)])
-    
-    def create_timeline(self, method, interval, counts, args = (), kwargs = {}):
-        # Add New Timeline Thread
-        th = TimelineThread(getattr(self.api, method), interval, counts, args, kwargs)
-        th.on_status_added = self.add_status
-        th.statuses = self.statuses
-        #self.threads.append(th)
-        return th
     
     def add_statuses(self, slist):
         for i in slist:
@@ -127,121 +121,3 @@ class TwitterAPI():
         return response
     
     def on_twitterapi_error(self, method, e): pass
-
-# Timeline Thread
-class TimelineThread(threading.Thread):
-    def __init__(self, method, interval, counts, args, kwargs):
-        # Thread Initialize
-        threading.Thread.__init__(self)
-        self.setDaemon(True)
-        self.setName(method.func_name + str(args))
-        
-        self.timeline = set()
-        self.die = False
-        self.lastid = None
-        
-        # Event lock
-        self.lock = threading.Event()
-        self.addlock = mutex.mutex()
-        
-        self.api_method = method
-        self.interval = interval
-        
-        #socket.setdefaulttimeout(10)        
-        
-        # API Arguments
-        self.args = args
-        self.kwargs = kwargs
-        
-        # set first get count
-        self.set_count(counts[0])
-        self.count = counts[1]
-    
-    # Thread run
-    def run(self):
-        # extract cached status if gets user_timeline
-        if self.api_method.func_name == "user_timeline":
-            cached = set()
-            for i in self.statuses.itervalues():
-                if i.user.id == self.kwargs["user"]:
-                    cached.add(i.id)
-            
-            if len(cached) > 0:
-                self.add(cached)
-        
-        # Auto reloading loop
-        while not self.die:
-            statuses = self.refresh_timeline()
-            
-            # If Timeline update
-            if statuses:
-                # Append status cache
-                new = set()
-                for i in statuses:
-                    new.add(i.id)
-                    self.on_status_added(i)
-                
-                # Add statuses to timeline
-                self.add(new)
-                
-                # update lastid
-                self.lastid = statuses[-1].id
-                self.kwargs["since_id"] = self.lastid
-            
-            # Reload lock
-            self.lock.clear()
-            if self.interval != -1:
-                self.lock.wait(self.interval)
-            else:
-                self.lock.wait()
-            
-            self.set_count(self.count)
-    
-    def refresh_timeline(self):
-        for i in range(3):
-            try:
-                statuses = None
-                # Get Timeline
-                statuses = self.api_method(*self.args, **self.kwargs)
-                self.on_timeline_refresh()
-                break
-            except urllib2.HTTPError, e:                
-                if i >= 3:
-                    self.on_twitterapi_error(self, e)
-                print >>sys.stderr, "[Error] %d: TwitterAPI %s (%s)" % (i, e, self.api_method.func_name)
-                time.sleep(5)
-            except socket.timeout:
-                print >>sys.stderr, "[Error] %d: TwitterAPI timeout (%s)" % (i, self.api_method.func_name)
-            except Exception, e:
-                print >>sys.stderr, "[Error] %d: TwitterAPI %s (%s)" % (i, e, self.api_method.func_name)
-        
-        return statuses
-    
-    def add(self, ids):
-        # mutex lock
-        self.addlock.lock(self.add_mutex, ids)
-    
-    def add_mutex(self, ids):
-        # defference update = delete already exists status
-        ids.difference_update(self.timeline)
-        if ids:
-            # exec EventHander (TreeView Refresh)
-            self.reloadEventHandler(ids)
-            # add new statuse ids
-            self.timeline.update(ids)
-        
-        self.addlock.unlock()
-    
-    def destroy(self):
-        self.die = True
-        self.lock.set()
-    
-    def set_count(self, n):
-        if self.api_method.func_name == "lists_statuses":
-            self.kwargs["per_page"] = n
-        else:
-            self.kwargs["count"] = n
-    
-    def on_timeline_refresh(self): pass
-    def reloadEventHandler(self): pass
-    def on_status_added(self, status): pass

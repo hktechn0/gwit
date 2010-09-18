@@ -45,10 +45,12 @@ class StatusView(gtk.TreeView):
     favico_y = None
     favico_n = None
     
-    def __init__(self, twitter, icons, iconmode):
+    twitter = None
+    iconstore = {}
+    iconmode = True
+    
+    def __init__(self):
         gtk.TreeView.__init__(self)
-        self.twitter = twitter
-        self.icons = icons
         
         self.store = gtk.ListStore(
             gtk.gdk.Pixbuf, str,
@@ -69,7 +71,7 @@ class StatusView(gtk.TreeView):
         # Setup icon column (visible is False if no-icon)
         cell_p = gtk.CellRendererPixbuf()
         col_icon = gtk.TreeViewColumn("Icon", cell_p, pixbuf = 0)
-        col_icon.set_visible(iconmode)
+        col_icon.set_visible(self.iconmode)
         
         # Setup status column
         cell_t = gtk.CellRendererText()
@@ -93,8 +95,8 @@ class StatusView(gtk.TreeView):
         self.append_column(col_fav)
     
         # Add timeline to IconStore 
-        if iconmode:
-            self.icons.add_store(self.store, 3)
+        if self.iconmode:
+            self.iconstore.add_store(self.store, 3)
         
         # Tools setup
         self.twtools = twittertools.TwitterTools()
@@ -247,7 +249,7 @@ class StatusView(gtk.TreeView):
         # call main method, mentions check
         self.on_status_added(i)
         
-        return (self.icons.get(status.user),
+        return (self.iconstore.get(status.user),
                 message,
                 long(i), long(status.user.id),
                 background, favico)
@@ -396,7 +398,7 @@ class StatusView(gtk.TreeView):
         t.start()
     
     def on_treeview_destroy(self, treeview):
-        self.icons.remove_store(self.store)
+        self.iconstore.remove_store(self.store)
     
     # dummy events and methods
     def on_status_added(self, *args, **kwargs): pass

@@ -37,15 +37,15 @@ import random
 import time
 import uuid
 
-from timeline import Timeline
+from timeline import Timeline, StreamingTimeline
 from statusview import StatusView
+from timelinethread import BaseThread
 from twitterapi import TwitterAPI
 from iconstore import IconStore
 from saveconfig import save_configs, save_config, get_config, get_configs
 from userselection import UserSelection
 from listsselection import ListsSelection
 from statusdetail import StatusDetail
-from streamingtimeline import StreamingTimeline
 import twittertools
 
 # Main Class
@@ -81,6 +81,9 @@ class Main:
         self.twitter = TwitterAPI(screen_name, *keys)
         self.twitter.init_twitpic(self.twitpic_apikey)
         
+        # init icon store
+        self.iconstore = IconStore(self.iconmode)
+        
         # GtkBuilder instance
         self.builder = gtk.Builder()
         # Glade file input
@@ -99,8 +102,13 @@ class Main:
         self.builder.get_object("menuitem_tweet").set_submenu(self.menu_tweet)
         self.menu_timeline = self.builder.get_object("menu_timeline")
         self.builder.get_object("menuitem_timeline").set_submenu(self.menu_timeline)
-
+        
         # set class variables
+        Timeline.twitter = self.twitter
+        StatusView.twitter = self.twitter
+        StatusView.iconstore = self.iconstore
+        StatusView.iconmode = self.iconmode
+        BaseThread.twitter = self.twitter
         StatusView.favico_y = self.notebook.render_icon("gtk-about", gtk.ICON_SIZE_MENU)
         StatusView.favico_n = None
         
@@ -136,9 +144,6 @@ class Main:
         except Exception, e:
             print "[Error] Read settings: %s" % e
         
-        # init icon store
-        self.icons = IconStore(self.iconmode)
-        
         # Set Status Views
         for i in (("Home", "home_timeline"),
                   ("Mentions", "mentions")):
@@ -152,12 +157,12 @@ class Main:
         self.statusbar.show_all()
         
         # Users tab append
-        users = UserSelection(self.twitter, self.icons)
+        users = UserSelection(self.twitter, self.iconstore)
         users.new_timeline = self.new_timeline
         self.new_tab(users, "Users")
         
         # Lists tab append
-        lists = ListsSelection(self.twitter, self.icons)
+        lists = ListsSelection(self.twitter, self.iconstore)
         lists.new_timeline = self.new_timeline
         self.new_tab(lists, "Lists")
         
@@ -181,11 +186,9 @@ class Main:
     # Create new Timeline and append to notebook
     def new_timeline(self, label, method, *args, **kwargs):
         # Create Timeline Object
-        tl = Timeline(self.twitter, self.icons, self.iconmode)
-        
-        # Start sync timeline
         interval = self.get_default_interval(method)
-        tl.init_timeline(method, interval, self.scounts, args, kwargs)
+        tl = Timeline()
+        tl.set_timeline(method, interval, self.scounts, args, kwargs)
         tl.view.new_timeline = self.new_timeline
         
         # Add Notebook (Tab view)
@@ -299,7 +302,7 @@ class Main:
         treeview.append_column(colt)
         
         status = self.twitter.statuses.values()[0]
-        store.append((self.icons.get(status.user),
+        store.append((self.iconstore.get(status.user),
                       "<b>%s</b>\n%s" % (status.user.screen_name, status.text),
                       color))
         
@@ -399,7 +402,7 @@ class Main:
         myname = self.twitter.myname
         if status.in_reply_to_screen_name == myname or \
                 status.text.find("@%s" % myname) >= 0:
-            self.timelines[1].timeline.add(set((status.id,)))
+            self.timelines[1].timeline.add_statuses(((status,)))
     
     # timeline refreshed event
     def on_timeline_refresh(self):
@@ -547,7 +550,7 @@ class Main:
         if tab != None and not isinstance(tab, StreamingTimeline):
             self._toggle_change_flg = True
             tl = tab.timeline
-            method = tl.api_method.func_name
+            method = tl.method
             default = self.get_default_interval(method)
             
             if default == -1: default = None
@@ -589,8 +592,8 @@ class Main:
         
         params = {"track" : text.split(",")}
         
-        tl = StreamingTimeline(self.twitter, self.icons, self.iconmode)
-        tl.init_timeline(params)
+        tl = StreamingTimeline()
+        tl.set_timeline(params)
         tl.view.new_timeline = self.new_timeline
         
         self.new_tab(tl, "Stream", tl)
@@ -632,7 +635,7 @@ class Main:
     # Status detail
     def on_menuitem_detail_activate(self, menuitem):
         status = self.get_selected_status()
-        detail = StatusDetail(status, self.twitter, self.icons, self.iconmode)
+        detail = StatusDetail(status, self.twitter, self.iconstore, self.iconmode)
         #detail.view.add_popup(self.menu_tweet)
         self.new_tab(detail, "S: %d" % status.id)
     

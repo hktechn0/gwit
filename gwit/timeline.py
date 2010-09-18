@@ -30,18 +30,19 @@ pygtk.require('2.0')
 import gtk
 
 from statusview import StatusView
+from timelinethread import TimelineThread, StreamingThread
 
 class Timeline(gtk.ScrolledWindow):
-    def __init__(self, api, icons, iconmode):
+    twitter = None
+    
+    def __init__(self):
         gtk.ScrolledWindow.__init__(self)
-        self.twitter = api
-        self.icons = icons
         self.timeline = None
         
         # Add treeview to scrolledwindow
-        self.view = StatusView(api, icons, iconmode)
+        self.view = StatusView()
         self.add(self.view)
-
+        
         # Scrollbar policy
         self.set_policy(gtk.POLICY_NEVER, gtk.POLICY_ALWAYS)
         self.set_shadow_type(gtk.SHADOW_IN)
@@ -55,13 +56,13 @@ class Timeline(gtk.ScrolledWindow):
         vadj.connect("value-changed", self.on_vadjustment_value_changed)
     
     # Start Sync Timeline (new twitter timeline thread create)
-    def init_timeline(self, method, interval, counts, args, kwargs):
-        self.timeline = self.twitter.create_timeline(method, interval, counts, args, kwargs)
-        
-        # Set Event Hander (exec in every get timeline
-        self.timeline.reloadEventHandler = self.view.prepend_new_statuses
+    def set_timeline(self, method, interval, counts, args, kwargs):
+        self.timeline = TimelineThread(method, interval, counts, args, kwargs)
     
     def start_timeline(self):
+        # Set Event Hander (exec in every get timeline
+        self.timeline.on_received_status = self.view.prepend_new_statuses
+        
         # Start Timeline sync thread
         self.timeline.start()
     
@@ -77,7 +78,7 @@ class Timeline(gtk.ScrolledWindow):
     
     
     ########################################
-    # Gtk Signal Events    
+    # Gtk Signal Events
     
     # Scroll to top if upper(list length) changed Event
     def on_vadjustment_changed(self, adj):
@@ -99,3 +100,17 @@ class Timeline(gtk.ScrolledWindow):
         if self.timeline != None:
             self.timeline.destroy()
         self.view.destroy()
+
+
+class StreamingTimeline(Timeline):
+    # Start Sync Timeline (new twitter timeline thread create)
+    def set_timeline(self, params = {}):
+        self.timeline = StreamingThread("filter", kwargs = params)
+    
+    # Reload Timeline
+    def reload(self):
+        pass
+    
+    # Get timeline ids
+    def get_timeline_ids(self):
+        return self.timeline.timeline
