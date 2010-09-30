@@ -33,10 +33,14 @@ class BaseThread(threading.Thread):
             if isinstance(i, twoauth.twstatus):
                 self.twitter.add_status(i)
                 new_statuses.add(i.id)
+            else:
+                # deleted, favorited, followed... for StreamingAPI
+                if "friends" in i:
+                    self.twitter.following.update(i["friends"])
         
         new_statuses.difference_update(self.timeline)
-        self.timeline.update(new_statuses)
         self.on_received_status(new_statuses)
+        self.timeline.update(new_statuses)
     
     def on_received_status(self, ids): pass
 

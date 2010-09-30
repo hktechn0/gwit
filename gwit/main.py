@@ -37,7 +37,7 @@ import random
 import time
 import uuid
 
-from timeline import Timeline, StreamingTimeline
+from timeline import Timeline
 from statusview import StatusView
 from timelinethread import BaseThread
 from twitterapi import TwitterAPI
@@ -51,11 +51,12 @@ import twittertools
 # Main Class
 class Main:
     # Default settings
-    interval = (60, 300, -1)
+    interval = (300, 300, -1)
     msgfooter = u""
     alloc = gtk.gdk.Rectangle(0, 0, 240, 320)
     scounts = (20, 200)
     iconmode = True
+    userstream = True
     # My status, Mentions to me, Reply to, Reply to user, Selected user
     status_color = ("#CCCCFF", "#FFCCCC", "#FFCC99", "#FFFFCC", "#CCFFCC")
     
@@ -80,6 +81,13 @@ class Main:
         # Twitter class instance
         self.twitter = TwitterAPI(screen_name, *keys)
         self.twitter.init_twitpic(self.twitpic_apikey)
+        
+        # set event (show remaining api count)
+        self.twitter.on_twitterapi_requested = self.on_timeline_refresh
+        
+        # Get users
+        self.twitter.get_followers_bg()
+        if not self.userstream: self.twitter.get_following_bg()
         
         # init icon store
         self.iconstore = IconStore(self.iconmode)
@@ -138,6 +146,7 @@ class Main:
             self.alloc = eval(d["allocation"])
             self.scounts = eval(d["counts"])
             self.iconmode = eval(d["iconmode"])
+            self.userstream = eval(d["userstream"])
             self.status_color = eval(d["color"])
             u = get_configs(self.twitter.myname)
             self.msgfooter = u["footer"]
@@ -145,7 +154,7 @@ class Main:
             print "[Error] Read settings: %s" % e
         
         # Set Status Views
-        for i in (("Home", "home_timeline"),
+        for i in (("Home", "home_timeline", self.userstream),
                   ("Mentions", "mentions")):
             # create new timeline and tab view
             self.new_timeline(*i)
@@ -179,12 +188,13 @@ class Main:
         for i in self.timelines:
             if i != None:
                 i.destroy()
-                i.timeline.join(1)
+                if i.timeline != None: i.timeline.join(1)
+                if i.stream != None: i.stream.join(1)
         
         gtk.main_quit()
     
     # Create new Timeline and append to notebook
-    def new_timeline(self, label, method, *args, **kwargs):
+    def new_timeline(self, label, method, userstream = False, *args, **kwargs):
         # Create Timeline Object
         interval = self.get_default_interval(method)
         tl = Timeline()
@@ -200,8 +210,6 @@ class Main:
         if method != "mentions":
             tl.view.on_status_added = self.on_status_added
         
-        # Set API Limit label
-        tl.timeline.on_timeline_refresh = self.on_timeline_refresh
         # Put error to statubar
         tl.timeline.on_twitterapi_error = self.on_twitterapi_error
         
@@ -211,6 +219,12 @@ class Main:
         tl.view.on_status_activated = self.on_status_activated
         
         tl.view.add_popup(self.menu_tweet)
+
+        # Set UserStream parameter
+        if userstream:
+            tl.set_stream("user")
+            tl.start_stream()
+        
         tl.start_timeline()
     
     # Append Tab to Notebook
@@ -388,6 +402,7 @@ class Main:
         conf = (("DEFAULT", "interval", self.interval),
                 ("DEFAULT", "counts", self.scounts),
                 ("DEFAULT", "iconmode", self.iconmode),
+                ("DEFAULT", "userstream", self.userstream),
                 ("DEFAULT", "color", self.status_color),
                 (self.twitter.myname, "footer", self.msgfooter))
         save_configs(conf)
@@ -547,7 +562,7 @@ class Main:
         if page_num < 0: return False
         
         tab = self.timelines[page_num]
-        if tab != None and not isinstance(tab, StreamingTimeline):
+        if tab != None and tab.timeline != None:
             self._toggle_change_flg = True
             tl = tab.timeline
             method = tl.method
@@ -592,8 +607,8 @@ class Main:
         
         params = {"track" : text.split(",")}
         
-        tl = StreamingTimeline()
-        tl.set_timeline(params)
+        tl = Timeline()
+        tl.set_stream("filter", params)
         tl.view.new_timeline = self.new_timeline
         
         self.new_tab(tl, "Stream", tl)
@@ -603,7 +618,7 @@ class Main:
         tl.view.on_status_activated = self.on_status_activated
         
         tl.view.add_popup(self.menu_tweet)
-        tl.start_timeline()
+        tl.start_stream()
     
     
     ########################################
@@ -710,6 +725,8 @@ class Main:
         self.builder.get_object("spinbutton_maxn").set_value(self.scounts[1])
         # show icons
         self.builder.get_object("checkbutton_showicon").set_active(self.iconmode)
+        # userstream
+        self.builder.get_object("checkbutton_userstream").set_active(self.userstream)
         
         # footer
         self.builder.get_object("entry_footer").set_text(self.msgfooter)
@@ -763,6 +780,9 @@ class Main:
         
         # show icons
         self.iconmode = self.builder.get_object("checkbutton_showicon").get_active()
+        
+        # userstream
+        self.userstream = self.builder.get_object("checkbutton_userstream").get_active()
         
         # footer
         self.msgfooter = unicode(self.builder.get_object("entry_footer").get_text())

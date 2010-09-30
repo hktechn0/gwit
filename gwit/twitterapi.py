@@ -52,18 +52,20 @@ class TwitterAPI:
         self.statuses = dict()
         self.followers = set()
         self.following = set()
-        
-        t = threading.Thread(target=self.get_following_followers)
-        t.start()
     
     def init_twitpic(self, apikey):
         import twoauth.twitpic
         self.twitpic = twoauth.twitpic.Twitpic(self.api.oauth, apikey)
     
-    def get_following_followers(self):
-        # Get followers
+    def get_followers_bg(self):
+        threading.Thread(target=self.get_followers).start()
+    def get_following_bg(self):
+        threading.Thread(target=self.get_following).start()
+    
+    def get_following(self):
+        self.following.update([int(i) for i in self.api_wrapper(self.api.friends_ids)])    
+    def get_followers(self):
         self.followers.update([int(i) for i in self.api_wrapper(self.api.followers_ids)])
-        self.following.update([int(i) for i in self.api_wrapper(self.api.friends_ids)])
     
     def add_statuses(self, slist):
         for i in slist:
@@ -120,6 +122,7 @@ class TwitterAPI:
             except Exception, e:
                 print >>sys.stderr, "[Error] %d: TwitterAPI %s (%s)" % (i, e, method.func_name)
             finally:
+                self.on_twitterapi_requested()
                 self.apilock.release()
             
             time.sleep(5)
@@ -127,3 +130,4 @@ class TwitterAPI:
         return response
     
     def on_twitterapi_error(self, method, e): pass
+    def on_twitterapi_requested(self): pass
