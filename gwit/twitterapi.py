@@ -45,6 +45,7 @@ class TwitterAPI:
         self.me = None
         self.my_name = screen_name
         #self.threads = list()
+        self.apilock = threading.Lock()
         
         # User, Status Buffer
         self.users = dict()
@@ -95,6 +96,7 @@ class TwitterAPI:
     def api_wrapper(self, method, *args, **kwargs):
         for i in range(3):
             try:
+                self.apilock.acquire()
                 response = None
                 response = method(*args, **kwargs)
                 break
@@ -110,13 +112,17 @@ class TwitterAPI:
                     break
                 
                 if i >= 3:
-                    self.on_twitterapi_error(self, e)
+                    self.on_twitterapi_error(method, e)
+                
                 print >>sys.stderr, "[Error] %d: TwitterAPI %s (%s)" % (i, e, method.func_name)
-                time.sleep(5)
             except socket.timeout:
                 print >>sys.stderr, "[Error] %d: TwitterAPI timeout (%s)" % (i, method.func_name)
             except Exception, e:
                 print >>sys.stderr, "[Error] %d: TwitterAPI %s (%s)" % (i, e, method.func_name)
+            finally:
+                self.apilock.release()
+            
+            time.sleep(5)
         
         return response
     

@@ -73,7 +73,6 @@ class TimelineThread(BaseThread):
         while not self.die:
             apimethod = getattr(self.twitter.api, self.method)
             statuses = self.twitter.api_wrapper(apimethod, *self.args, **self.kwargs)
-            
             # If Timeline update
             if statuses:
                 # Add statuses to timeline
@@ -82,7 +81,6 @@ class TimelineThread(BaseThread):
                 # update lastid
                 self.lastid = statuses[-1].id
                 self.kwargs["since_id"] = self.lastid
-            
             # Reload lock
             self.lock.clear()
             if self.interval != -1:
