@@ -34,6 +34,20 @@ from ConfigParser import SafeConfigParser
 __version__ = '0.9-beta'
 __author__ = 'University of Tsukuba Linux User Group <staff@tsukuba-linux.org>'
 
+def print_version():
+    print """\
+%(name)s %(version)s
+Copyright (C) %(year)s %(copyright)s
+%(name)s comes with ABSOLUTELY NO WARRANTY.
+You may redistribute copies of %(name)s
+under the terms of the GNU General Public License.
+For more information about these matters, see the file named COPYING.""" % {
+       "name" : "gwit",
+       "version" : __version__,
+       "year" : "2010",
+       "copyright" : __author__,
+       }
+
 if __name__ == "__main__":
    # Option Parser
    p = optparse.OptionParser()
@@ -45,6 +59,10 @@ if __name__ == "__main__":
                 action="store_true", help="print version")
    
    (options, args) = p.parse_args()
+   
+   if options.version:
+      print_version()
+      exit()
    
    # Config Parser
    confp = SafeConfigParser()
@@ -61,10 +79,13 @@ if __name__ == "__main__":
    sys.path.insert(0, os.path.realpath(lib_path))
    
    # config file exist?
-   if os.path.isfile(conf_path):
+   fexist = os.path.isfile(conf_path)
+   
+   if fexist:
       # readfile
       confp.read(conf_path)
-   else:
+
+   if not fexist or options.add:
       # Run Setup Wizard
       from gwit import SetupWizard
       setup = SetupWizard()
@@ -72,13 +93,15 @@ if __name__ == "__main__":
       
       if setup.ok:
          # if setup ok, set settings
-         confp.set("DEFAULT", "default_user", setup.screen_name)
+         if not fexist:
+            confp.set("DEFAULT", "default_user", setup.screen_name)
          confp.add_section(setup.screen_name)
          confp.set(setup.screen_name, "ckey", setup.keys[0])
          confp.set(setup.screen_name, "csecret", setup.keys[1])
          confp.set(setup.screen_name, "atoken", setup.keys[2])
          confp.set(setup.screen_name, "asecret", setup.keys[3])
          confp.set(setup.screen_name, "footer", "")
+         user = setup.screen_name
          del setup
          
          # write config
@@ -96,9 +119,20 @@ if __name__ == "__main__":
       settings[i] = dict(confp.items(i))
    
    # Read settings
-   user = settings["DEFAULT"]["default_user"]
-   keys = (settings[user]["ckey"], settings[user]["csecret"], 
-           settings[user]["atoken"], settings[user]["asecret"])
+   if options.user != None:
+      user = options.user
+   elif options.add:
+      pass
+   else:
+      user = settings["DEFAULT"]["default_user"]
+   
+   try:
+      keys = (settings[user]["ckey"], settings[user]["csecret"], 
+              settings[user]["atoken"], settings[user]["asecret"])
+   except KeyError:
+      print >>sys.stderr, "[Error] User '%s' not exists in config file." % options.user
+      print >>sys.stderr, "Try `gwit --add` to add user."
+      exit()
    
    # Run Main()
    from gwit import Main
