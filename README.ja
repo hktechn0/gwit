@@ -14,12 +14,12 @@
 【製作者】 川田 裕貴（Hirotaka Kawata） 、米山 隆貴（Takaki Yoneyama）
 【開発協力】堀本 貴幸（Takayuki Horimoto）
 【種別】フリーウェア
-【開発言語】Python 2.6
-【開発環境】pyGtk <http://www.pygtk.org/> 、python-twoauth <http://www.techno-st.net/python-twoauth/> 
-【動作環境】Linux(debian,gentoo,ubuntuにて確認)		//ここはだれか直してください
-【バージョン】1.0
-【最終更新日】2010/x/x
-【WEB】http://dev.tsukuba-linux.org/gwit
+【開発言語】Python (>= 2.5)
+【開発環境】pyGtk <http://www.pygtk.org/> , python-twoauth <http://www.techno-st.net/python-twoauth/> 
+【動作環境】Linux, Windows
+【バージョン】0.9.1-beta
+【最終更新日】2010/10/03
+【WEB】http://sourceforge.jp/projects/gwit/
 
 ------------------------------------------------
 
@@ -27,10 +27,15 @@
 	「gwit」（Gtk tWITter client）はオープンソースなTwitterクライアントです。
 
 ◇ 動作条件 ◇
-	//technoたん頼みます
+   	pyGtk が必要です。なるべく、最新版をインストールしてください。
+	python-twoauth は、配布版のパッケージに同梱されていますので、そのままお使いいただけます。
+	Python Imaging Library (PIL) をインストールすると、アイコンが表示される確率が高くなります。
 	
 ◇ インストール ・アンインストール ◇
-	「INSTALL」に記載してあります。こちらをお読みください。
+	適当なディレクトリに解凍してください。
+	`python bin/gwit` を実行するとセットアップウィザードが表示されます。
+	あとは、指示にしたがって認証情報を設定すれば、起動します。
+	設定ファイルは ~/.gwit/config に保存されます。
 
 ◇ ライセンス ◇
 	「gwit」はGNU General Public License (GPL) version 3に基づいています。
@@ -38,13 +43,12 @@
 
 ◇ バグ ◇
 	パッチやバグの報告は製作者まで連絡してください。
-	
+
 ------------------------------------------------
 ◇ 企画 ◇
 	「gwit」は「TsukuLUG Make」の企画の一部です。
-	「TsukuLUG Make」については以下のwebサイトをご覧ください。
-
-http://www.tsukuba-linux.org/mediawiki/index.php?title=つくらぐ_Make
+	「TsukuLUG Make」については以下のwebサイトをご覧ください。	
+	http://www.tsukuba-linux.org/mediawiki/index.php?title=つくらぐ_Make
 
 ◇ 連絡先 ◇
 	つくらぐ：http://www.tsukuba-linux.org/

@@ -463,7 +463,7 @@
     <property name="type_hint">normal</property>
     <property name="has_separator">False</property>
     <property name="program_name">gwit</property>
-    <property name="version">0.90-beta</property>
+    <property name="version">0.9.1-beta</property>
     <property name="copyright" translatable="yes">Copyright &#xA9; 2009-2010
 University of Tsukuba Linux User Group</property>
     <property name="comments" translatable="yes">Gtk+ Twitter Client</property>

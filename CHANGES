@@ -1,3 +1,9 @@
+Version 0.9.1-beta released 2010-10-03
+ * Supports Streaming API, User Streams
+ * Added favorites button
+ * Multi account settings
+ * Some bug fixes
+
 Version 0.9-beta released 2010-07-14
 
  * Initial beta release

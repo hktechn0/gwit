@@ -25,7 +25,7 @@
 ################################################################################
 
 
-__version__ = '0.9-beta'
+__version__ = '0.9.1-beta'
 __author__ = 'University of Tsukuba Linux User Group <staff@tsukuba-linux.org>'
 
 from main import Main
