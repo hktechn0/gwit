@@ -261,9 +261,12 @@ class Main:
         n = self.notebook.get_current_page()
         if self.timelines[n] != None:
             return self.timelines[n].view.get_selected_status()
-        
-    def get_current_tab(self):
+    
+    def get_current_tab_n(self):
         return self.notebook.get_current_page()
+
+    def get_current_tab(self):
+        return self.timelines[self.notebook.get_current_page()]
     
     # Get text
     def get_textview(self):
@@ -471,7 +474,7 @@ class Main:
             self.status_update(txt)
         else:
             # Reload timeline if nothing in textview
-            n = self.get_current_tab()
+            n = self.get_current_tab_n()
             self.re = None
             if self.timelines[n] != None:
                 self.timelines[n].reload()
@@ -656,8 +659,7 @@ class Main:
     
     # favorite
     def on_menuitem_fav_activate(self, menuitem):
-        status = self.get_selected_status()
-        self.twitter.api_wrapper(self.twitter.api.favorite_create, status.id)
+        self.get_current_tab().favorite_selected_status()
     
     # Destroy status
     def on_menuitem_destroy_activate(self, menuitem):
@@ -670,7 +672,7 @@ class Main:
     def change_interval(self, interval):
         if self._toggle_change_flg: return
         
-        tl = self.timelines[self.get_current_tab()].timeline
+        tl = self.get_current_tab().timeline
         
         if interval == 0:
             method = tl.api_method.func_name

@@ -119,6 +119,25 @@ class StatusView(gtk.TreeView):
     def get_status_from_point(self, x, y):
         path = self.get_path_at_pos(x, y)
         return self.get_status(path) if path != None else None
+
+    def favorite_selected_status(self, path):
+        path, column = self.get_cursor()
+        return self.favorite_status(path)
+    
+    def favorite_status(self, path):
+        status = self.get_status(path)
+        
+        # Toggle favorited
+        if status.favorited:
+            self.twitter.api_wrapper(
+                self.twitter.api.favorite_destroy, status.id)
+            self.store[path][5] = self.favico_y
+        else:
+            self.twitter.api_wrapper(
+                self.twitter.api.favorite_create, status.id)
+            self.store[path][5] = self.favico_n
+
+        status.favorited = not status.favorited
     
     # Add popup menu
     def add_popup(self, menu):
@@ -196,6 +215,7 @@ class StatusView(gtk.TreeView):
         # Show popup menu
         m.show_all()
         mm.show_all()
+    
     
     ########################################
     # Execute in Background Thread Methods    
@@ -330,12 +350,9 @@ class StatusView(gtk.TreeView):
             path_at_pos = self.get_path_at_pos(int(event.x), int(event.y))
             if path_at_pos == None: return
             path, column = path_at_pos[:2]
-
+            
             if self.get_columns().index(column) == 2:
-                status = self.get_status(path)
-                self.twitter.api_wrapper(self.twitter.api.favorite_create, status.id)
-                self.store[path][5] = self.favico_y
-                status.favorited = True
+                self.favorite_status(path)
     
     def reset_favico(self, path):
         if path != None:
