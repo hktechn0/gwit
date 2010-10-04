@@ -104,6 +104,8 @@ class StatusView(gtk.TreeView):
         self.added = False
         # for motion notify
         self._old_path = None
+        # for width changed
+        self._old_width = None
     
     # Get selected status
     def get_selected_status(self):
@@ -160,7 +162,7 @@ class StatusView(gtk.TreeView):
                 string[:e.start() + (4 * i)],
                 string[e.start() + (4 * i) + 1:])
         
-        return string    
+        return string
     
     # Tweet menu setup
     def menu_setup(self, status):
@@ -383,6 +385,14 @@ class StatusView(gtk.TreeView):
     def on_treeview_width_changed(self, treeview, allocate):
         # Get Treeview Width
         width = treeview.get_allocation().width
+        
+        # Really changed?
+        # (this event is called when add statuses too.)
+        if self._old_width == width:
+            return
+        else:
+            self._old_width = width
+        
         # Get Treeview Columns
         columns = treeview.get_columns()
         
@@ -397,18 +407,18 @@ class StatusView(gtk.TreeView):
         
         def refresh_text():
             # Reset all data to change row height
-            i = self.store.get_iter_first()
-            while i:
+            for row in self.store:
                 # Maybe no affects performance
                 # if treeview.allocation.width != width:
                 #     break
-                txt = self.store.get_value(i, 1)
+                status_id = row[2]
+                packed_row = self.status_pack(status_id)
                 
                 gtk.gdk.threads_enter()
-                self.store.set_value(i, 1, txt)
+                self.store[row.path] = packed_row
                 gtk.gdk.threads_leave()
-                
-                i = self.store.iter_next(i)
+            
+            self.color_status_in_thread()
         
         t = threading.Thread(target=refresh_text)
         t.setName("refresh_text")
