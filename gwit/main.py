@@ -42,9 +42,9 @@ from statusview import StatusView
 from timelinethread import BaseThread
 from twitterapi import TwitterAPI
 from iconstore import IconStore
-from saveconfig import save_configs, save_config, get_config, get_configs
+from saveconfig import Config
 from userselection import UserSelection
-from listsselection import ListsSelection
+from listsselection import ListsSelection, ListsView
 from statusdetail import StatusDetail
 import twittertools
 
@@ -84,6 +84,7 @@ class Main:
         
         # set event (show remaining api count)
         self.twitter.on_twitterapi_requested = self.on_timeline_refresh
+        self.twitter.new_timeline = self.new_timeline
         
         # Get users
         self.twitter.get_followers_bg()
@@ -116,10 +117,15 @@ class Main:
         StatusView.twitter = self.twitter
         StatusView.iconstore = self.iconstore
         StatusView.iconmode = self.iconmode
+        StatusView.pmenu = self.menu_tweet
         BaseThread.twitter = self.twitter
         StatusView.favico_y = self.notebook.render_icon("gtk-about", gtk.ICON_SIZE_MENU)
         StatusView.favico_n = None
-        
+        StatusDetail.twitter = self.twitter
+        StatusDetail.iconstore = self.iconstore
+        ListsView.twitter = self.twitter
+        ListsView.iconstore = self.iconstore
+
         # set tools
         self.twtools = twittertools.TwitterTools()
         
@@ -141,14 +147,14 @@ class Main:
     def initialize(self):
         try:
             # Read settings
-            d = get_configs("DEFAULT")
+            d = Config.get_section("DEFAULT")
             self.interval = eval(d["interval"])
             self.alloc = eval(d["allocation"])
             self.scounts = eval(d["counts"])
             self.iconmode = eval(d["iconmode"])
             self.userstream = eval(d["userstream"])
             self.status_color = eval(d["color"])
-            u = get_configs(self.twitter.myname)
+            u = Config.get_section(self.twitter.myname)
             self.msgfooter = u["footer"]
         except Exception, e:
             print "[Error] Read settings: %s" % e
@@ -171,8 +177,7 @@ class Main:
         self.new_tab(users, "Users")
         
         # Lists tab append
-        lists = ListsSelection(self.twitter, self.iconstore)
-        lists.new_timeline = self.new_timeline
+        lists = ListsSelection()
         self.new_tab(lists, "Lists")
         
         self.notebook.set_current_page(0)
@@ -181,7 +186,7 @@ class Main:
     def close(self, widget):
         # Save Allocation (window position, size)
         alloc = repr(self.builder.get_object("window1").allocation)
-        save_config("DEFAULT", "allocation", alloc)
+        Config.save("DEFAULT", "allocation", alloc)
         
         self.save_settings()
         
@@ -218,8 +223,6 @@ class Main:
         # Reply on double click
         tl.view.on_status_activated = self.on_status_activated
         
-        tl.view.add_popup(self.menu_tweet)
-
         # Set UserStream parameter
         if userstream:
             tl.set_stream("user")
@@ -408,7 +411,7 @@ class Main:
                 ("DEFAULT", "userstream", self.userstream),
                 ("DEFAULT", "color", self.status_color),
                 (self.twitter.myname, "footer", self.msgfooter))
-        save_configs(conf)
+        Config.save_section(conf)
     
     
     ########################################
@@ -523,7 +526,7 @@ class Main:
         
         del self.timelines[n]
         
-        for (i, m) in self.tlhash.iteritems():
+        for i, m in self.tlhash.iteritems():
             if m > n: self.tlhash[i] -= 1
         
         p = self.notebook.get_current_page()
@@ -616,11 +619,8 @@ class Main:
         
         self.new_tab(tl, "Stream", tl)
         tl.view.set_color(self.status_color)
-        tl.view.add_popup(self.menu_tweet)
         tl.view.on_status_selection_changed = self.on_status_selection_changed
         tl.view.on_status_activated = self.on_status_activated
-        
-        tl.view.add_popup(self.menu_tweet)
         tl.start_stream()
     
     
@@ -653,8 +653,7 @@ class Main:
     # Status detail
     def on_menuitem_detail_activate(self, menuitem):
         status = self.get_selected_status()
-        detail = StatusDetail(status, self.twitter, self.iconstore, self.iconmode)
-        #detail.view.add_popup(self.menu_tweet)
+        detail = StatusDetail(status)
         self.new_tab(detail, "S: %d" % status.id)
     
     # favorite

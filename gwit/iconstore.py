@@ -171,11 +171,9 @@ class NewIcon(threading.Thread):
         
         # Icon Refresh
         for store, n in self.stores:
-            i = store.get_iter_first()
-            while i:
-                uid = store.get_value(i, n)
-                if uid == self.user.id:
+           for row in store:
+               # replace icon to all user's status
+                if row[n] == self.user.id:
                     gtk.gdk.threads_enter()
-                    store.set_value(i, 0, icopix)
+                    store[row.path][0] = icopix
                     gtk.gdk.threads_leave()
-                i = store.iter_next(i)

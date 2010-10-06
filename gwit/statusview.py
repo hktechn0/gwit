@@ -67,6 +67,7 @@ class StatusView(gtk.TreeView):
         self.connect("motion-notify-event", self.on_treeview_motion_notify)
         self.connect("leave-notify-event", self.on_treeview_leave_notify)
         self.connect("destroy", self.on_treeview_destroy)
+        self.connect("button-press-event", self.on_treeview_button_press)
         
         # Setup icon column (visible is False if no-icon)
         cell_p = gtk.CellRendererPixbuf()
@@ -140,11 +141,6 @@ class StatusView(gtk.TreeView):
             self.store[path][5] = self.favico_n
 
         status.favorited = not status.favorited
-    
-    # Add popup menu
-    def add_popup(self, menu):
-        self.pmenu = menu
-        self.connect("button-press-event", self.on_treeview_button_press)
     
     # Set background color
     def set_color(self, colortuple):
@@ -225,16 +221,16 @@ class StatusView(gtk.TreeView):
     # Prepend new stat uses
     def prepend_new_statuses(self, new_ids):
         # pack New Status
-        statuses = [self.status_pack(i) for i in new_ids]
+        statuses = (self.status_pack(i) for i in new_ids)
         
         # Set added flag (for auto scroll
         self.added = True
         
         # New Status Prepend to Liststore (Add row)
-        gtk.gdk.threads_enter()
         for i in statuses:
+            gtk.gdk.threads_enter()
             self.store.prepend(i)
-        gtk.gdk.threads_leave()
+            gtk.gdk.threads_leave()
         
         self.color_status()
     
@@ -290,12 +286,11 @@ class StatusView(gtk.TreeView):
         if status == None:
             status = self.get_selected_status()
         
-        i = self.store.get_iter_first()
-        while i:
-            bg = None   
+        for row in self.store:
+            bg = None
             
-            id = self.store.get_value(i, 2)
-            s = self.twitter.statuses[id]
+            status_id = row[2]
+            s = self.twitter.statuses[status_id]
             u = s.user
             
             if u.id == myid:
@@ -318,11 +313,9 @@ class StatusView(gtk.TreeView):
                     bg = self.color[4]
             
             gtk.gdk.threads_enter()
-            self.store.set_value(i, 4, bg)
+            self.store[row.path][4] = bg
             gtk.gdk.threads_leave()
-            
-            i = self.store.iter_next(i)
-
+    
     
     ########################################
     # Gtk Signal Events    

@@ -34,12 +34,13 @@ import threading
 from statusview import StatusView
 
 class StatusDetail(gtk.VPaned):
-    _old_alloc = None
-    
-    def __init__(self, status, twitterapi, icons, iconmode):
+    twitter = None
+    iconstore = None
+
+    def __init__(self, status):
         gtk.VPaned.__init__(self)
         
-        ico = gtk.image_new_from_pixbuf(icons.get(status.user))
+        ico = gtk.image_new_from_pixbuf(self.iconstore.get(status.user))
         markup = "<big><b>%s</b></big> - %s\n%s\n<small><span foreground='#666666'>%s via %s</span></small>"
         text = gtk.Label()
         text.set_padding(30, 10)
@@ -57,36 +58,44 @@ class StatusDetail(gtk.VPaned):
         hbox.set_border_width(10)
         hbox.pack_start(ico, expand = False, fill = False)
         hbox.pack_start(text)
+
+        self._box = gtk.VBox()
+        self._box.pack_start(hbox)
         
         self.view = StatusView()
-        
+                
         win = gtk.ScrolledWindow()
         win.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         win.add(self.view)
         
-        self.pack1(hbox, shrink = False)
+        self.pack1(self._box, shrink = False)
         self.pack2(win)
-        
-        self.twitter = twitterapi
-        self.icons = icons
         
         t = threading.Thread(target = self.get_conversation, args = (status,))
         t.setDaemon(True)
         t.start()
-
+        
         self.show_all()
     
     def get_conversation(self, status):
         s = status
         i = s.in_reply_to_status_id
         
+        # Loading label
+        loading = gtk.Label("Now Loading...")
+        self._box.pack_end(loading)
+
         while i != None:
             if i in self.twitter.statuses:
+                # already exists status
                 self.view.prepend_new_statuses([i])
                 s = self.twitter.statuses[i]
                 i = s.in_reply_to_status_id
             else:
+                # not found in cache
                 statuses = self.twitter.api_wrapper(
                     self.twitter.api.user_timeline,
                     s.in_reply_to_user_id, count = 200, max_id = i)
                 self.twitter.add_statuses(statuses)
+        
+        self._box.remove(loading)

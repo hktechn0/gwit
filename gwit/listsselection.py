@@ -31,7 +31,10 @@ import gtk
 import gobject
 
 class ListsView(gtk.ScrolledWindow):
-    def __init__(self, user, memberships = False):
+    twitter = None
+    iconstore = None
+    
+    def __init__(self, user = None, memberships = False):
         gtk.ScrolledWindow.__init__(self)
         self.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         
@@ -61,17 +64,17 @@ class ListsView(gtk.ScrolledWindow):
         vbox.pack_start(self.btn_more, expand = False)
         self.add_with_viewport(vbox)
         
-        self.user = user
+        if user == None:
+            self.user = self.twitter.myname
+        else:
+            self.user = user
+        
         self.memberships = memberships
         
         self.lists = dict()
         self._cursor = -1
-        self.twitter = None
-    
-    def set_twitterapi(self, api, icons):
-        self.twitter = api
-        self.icons = icons
-        self.icons.add_store(self.store, 2)
+        
+        self.iconstore.add_store(self.store, 2)
     
     # Load Lists index
     def load(self):
@@ -114,8 +117,8 @@ class ListsView(gtk.ScrolledWindow):
             
             self.twitter.add_user(user)
             self.lists[listid] = l
-            self.store.append(
-                (self.icons.get(l["user"]), text, userid, listid, private_ico, count))
+            self.store.append((self.iconstore.get(l["user"]),
+                               text, userid, listid, private_ico, count))
         
         self._cursor = int(data["next_cursor"])
         
@@ -124,11 +127,6 @@ class ListsView(gtk.ScrolledWindow):
             self.btn_more.hide()
         else:
             self.btn_more.set_label("Get more 20 lists.")        
-    
-    # for override
-    def new_timeline(self, label, method, *args, **kwargs):
-        pass
-    
     
     ### Event
     def on_button_more_clicked(self, widget):
@@ -139,28 +137,18 @@ class ListsView(gtk.ScrolledWindow):
         l = self.lists[listid]
         listlabel = "@%s/%s" % (l["user"]["screen_name"], l["name"])
         auth = True if l["mode"] == "private" else False
-        self.new_timeline("L: %s" % listlabel, "lists_statuses",
-                          list_id = l["id"], user = l["user"]["id"], auth = auth)
+        self.twitter.new_timeline("L: %s" % listlabel, "lists_statuses",
+                                  list_id = l["id"], user = l["user"]["id"], auth = auth)
+
 
 class ListsSelection(gtk.Notebook):
-    def __init__(self, twitter, icons):
+    def __init__(self):
         gtk.Notebook.__init__(self)
-        self.twitter = twitter
-        self.icons = icons
         
-        sub = ListsView(self.twitter.myname, False)
-        mem = ListsView(self.twitter.myname, True)
-        
-        sub.set_twitterapi(self.twitter, self.icons)
-        sub.new_timeline = self.new_timeline_wrap
-        mem.set_twitterapi(self.twitter, self.icons)
-        mem.new_timeline = self.new_timeline_wrap
+        sub = ListsView(memberships = False)
+        mem = ListsView(memberships = True)
         
         self.append_page(sub, gtk.Label("Subscriptions"))
         self.append_page(mem, gtk.Label("Memberships"))
-    
-    def new_timeline_wrap(self, *args, **kwargs):
-        self.new_timeline(*args, **kwargs)
-    
-    # for override
-    def new_timeline(self, *args, **kwargs): pass
+
+        self.show_all()
