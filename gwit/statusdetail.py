@@ -32,6 +32,7 @@ import gobject
 
 import threading
 from statusview import StatusView
+from twittertools import TwitterTools
 
 class StatusDetail(gtk.VPaned):
     twitter = None
@@ -52,6 +53,7 @@ class StatusDetail(gtk.VPaned):
             status.text,
             status.created_at.strftime("%Y/%m/%d %H:%M:%S"),
             status.source_name)
+        label_text = TwitterTools.replace_amp(label_text)
         text.set_markup(label_text)
         
         hbox = gtk.HBox()
