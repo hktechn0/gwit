@@ -27,18 +27,20 @@
 
 import re
 import datetime
+import htmlentitydefs
 
 class TwitterTools:
     _urlpattern = u'''(?P<url>https?://[^\s　]*)'''
     _userpattern = u'''@(?P<user>\w+)'''
+    reurl = re.compile(_urlpattern)
+    reuser = re.compile(_userpattern)
+    reentity = re.compile("&([A-Za-z]+);")
+    reamp = re.compile("&(?P<after>((?P<name>[A-Za-z]+);)?[^&]*)")
     
-    def __init__(self):
-        self.reurl = re.compile(self._urlpattern)
-        self.reuser = re.compile(self._userpattern)
-
-    def get_footer(self, status):
-        time = self.get_time_hms(status.created_at)
-        ago = self.get_time_ago(status.created_at)
+    @classmethod
+    def get_footer(cls, status):
+        time = cls.get_time_hms(status.created_at)
+        ago = cls.get_time_ago(status.created_at)
         
         if "source" in status.keys():
             source = status.source_name
@@ -51,13 +53,15 @@ class TwitterTools:
     
     ## Status
     # URL
-    def get_colored_url(self, string):
-        return self.reurl.sub(
+    @classmethod
+    def get_colored_url(cls, string):
+        return cls.reurl.sub(
             '<span foreground="#0000FF" underline="single">\g<url></span>',
             string)
     
-    def get_urls(self, string):
-        url_iter = self.reurl.finditer(string)
+    @classmethod
+    def get_urls(cls, string):
+        url_iter = cls.reurl.finditer(string)
         urls = list()
         for i in url_iter:
             urls.append(i.group('url'))
@@ -65,8 +69,9 @@ class TwitterTools:
         return tuple(urls)
     
     # User
-    def get_users(self, string):
-        match = self.reuser.finditer(string)
+    @classmethod
+    def get_users(cls, string):
+        match = cls.reuser.finditer(string)
         
         users = list()
         for i in match:
@@ -75,7 +80,8 @@ class TwitterTools:
         return users
     
     # source
-    def get_source_name(self, source):
+    @staticmethod
+    def get_source_name(source):
         if source == "web":
             return u"web"
         else:
@@ -86,7 +92,8 @@ class TwitterTools:
                 return unicode(source)
     
     ## Datetime
-    def get_datetime(self, timestr):
+    @staticmethod
+    def get_datetime(timestr):
         # Sample
         # Wed Nov 18 18:54:12 +0000 2009
         format = "%m %d %H:%M:%S +0000 %Y"
@@ -103,10 +110,12 @@ class TwitterTools:
         dt -= datetime.timedelta(seconds = offset)
         return dt
     
-    def get_time_hms(self, dt):
+    @staticmethod
+    def get_time_hms(dt):
         return dt.strftime("%H:%M:%S")
     
-    def get_time_ago(self, dt):
+    @staticmethod
+    def get_time_ago(dt):
         now = datetime.datetime.now()
 
         if now < dt:
@@ -140,11 +149,13 @@ class TwitterTools:
             return "Just now!"
         
     ## Retweet
+    @staticmethod
     def isretweet(status):
         return "retweeted_status" in status.keys()
     
     ## Lists
-    def get_listed_count(self, api, ret = None):
+    @staticmethod
+    def get_listed_count(api, ret = None):
         listed = 0
         cursor = -1
 
@@ -154,12 +165,44 @@ class TwitterTools:
             listed += len(lists["lists"])
             if cursor <= 0:
                 break
-
+        
         if ret != None: ret = listed
         
         return listed
-
+    
+    @staticmethod
     def listed_count_background(api, ret):
         th = threading.Thread(target = listed_count, args = (api, ret))
         th.isDaemon()
         th.start()
+
+    # Replace & -> &amp;
+    @classmethod
+    def replace_amp(cls, string):
+        amp = string.find('&')
+        if amp == -1:
+            return string
+        
+        entity_match = cls.reamp.finditer(string)
+        
+        for m in entity_match:
+            if m.group("name") not in ["gt", "lt", "amp"]:
+                # cannot use htmlentitydefs cheeb(ry...
+                string = string.replace(m.group(), m.expand("&amp;%s" % m.group("after")))
+        
+        return string
+    
+    @classmethod
+    def replace_htmlentity(cls, string):
+        amp = string.find('&')
+        if amp == -1:
+            return string
+        
+        entity_match = cls.reentity.findall(string)
+        
+        for name in entity_match:
+            if name in htmlentitydefs.name2codepoint:
+                c = htmlentitydefs.name2codepoint[name]
+                string = string.replace("&%s;" % name, unichr(c))
+        
+        return string

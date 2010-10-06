@@ -32,7 +32,7 @@ import gobject
 import pango
 
 import re
-import twittertools
+from twittertools import TwitterTools
 
 import time
 import threading
@@ -99,10 +99,8 @@ class StatusView(gtk.TreeView):
         if self.iconmode:
             self.iconstore.add_store(self.store, 3)
         
-        # Tools setup
-        self.twtools = twittertools.TwitterTools()
-        self.noent_amp = re.compile("&(?![A-Za-z]+;)")
         self.added = False
+        
         # for motion notify
         self._old_path = None
         # for width changed
@@ -146,27 +144,13 @@ class StatusView(gtk.TreeView):
     def set_color(self, colortuple):
         self.color = tuple(colortuple)
     
-    # Replace & -> &amp;
-    def _replace_amp(self, string):
-        amp = string.find('&')
-        if amp == -1: return string
-        
-        entity_match = self.noent_amp.finditer(string)
-        
-        for i, e in enumerate(entity_match):
-            string = "%s&amp;%s" % (
-                string[:e.start() + (4 * i)],
-                string[e.start() + (4 * i) + 1:])
-        
-        return string
-    
     # Tweet menu setup
     def menu_setup(self, status):
         # Get Urls
-        urls = self.twtools.get_urls(status.text if "retweeted_status" not in status.keys()
+        urls = TwitterTools.get_urls(status.text if "retweeted_status" not in status.keys()
                                      else status.retweeted_status.text)
         # Get mentioned users
-        users = self.twtools.get_users(status.text)
+        users = TwitterTools.get_users(status.text)
         
         # URL Menu
         m = gtk.Menu()
@@ -246,11 +230,6 @@ class StatusView(gtk.TreeView):
             name = "%s <span foreground='#333333'><small>- Retweeted by %s</small></span>" % (
                 status.user.screen_name, rtstatus.user.screen_name)
         
-        # colord url
-        text = self.twtools.get_colored_url(status.text)
-        # replace no entity & -> &amp;
-        text = self._replace_amp(text)
-        
         if status.user.id in self.twitter.followers or self.twitter.followers == None:
             # Bold screen_name if follower
             tmpl = "<b>%s</b>\n%s"
@@ -258,8 +237,13 @@ class StatusView(gtk.TreeView):
             # or gray
             tmpl = "<span foreground='#666666'><b>%s</b></span>\n%s"
         
-        # Bold screen_name
+        # colord url
+        text = TwitterTools.get_colored_url(status.text)
+        # screen_name + text
         message = tmpl % (name, text)
+        
+        # replace no entity & -> &amp;
+        message = TwitterTools.replace_amp(message)
         
         # Favorite
         favico = self.favico_y if status.favorited else self.favico_n

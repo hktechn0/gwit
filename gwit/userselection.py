@@ -35,14 +35,17 @@ import threading
 import sched
 import time
 
+from twittertools import TwitterTools
+
 class UserSelection(gtk.VBox):
-    def __init__(self, twitter, icons):
+    twitter = None
+    iconstore = None
+    
+    def __init__(self):
         gtk.VBox.__init__(self)
         hbox = gtk.HBox()
         
-        self.twitter = twitter
-        self.icons = icons
-        self.users = twitter.users
+        self.users = self.twitter.users
         self.userids = frozenset()
         
         # Setting up screen_name entry
@@ -58,7 +61,7 @@ class UserSelection(gtk.VBox):
         hbox.pack_start(button, expand = False, padding = 5)
         
         self.store = gtk.ListStore(gtk.gdk.Pixbuf, str, gobject.TYPE_INT64, str, gtk.gdk.Pixbuf, gtk.gdk.Pixbuf)
-        self.icons.add_store(self.store, 2)
+        self.iconstore.add_store(self.store, 2)
         
         # sort order by screen_name ASC
         self.store.set_sort_column_id(3, gtk.SORT_ASCENDING)
@@ -131,10 +134,10 @@ class UserSelection(gtk.VBox):
         for uid in diff:
             user = self.users[uid]
             text = "<b>%s</b>\n<small><span foreground='#666666'>%s</span></small>" % (
-                user.screen_name, unicode(user.name).replace("&", "&amp;"))
+                user.screen_name, TwitterTools.replace_amp(user.name))
             is_friend = user.id in self.twitter.following
             is_follower = user.id in self.twitter.followers
-            icon = self.icons.get(user)
+            icon = self.iconstore.get(user)
             
             following = self.pix_follow if is_friend else self.pix_nofollow
             follower = self.pix_follow if is_follower else self.pix_nofollow
@@ -151,23 +154,32 @@ class UserSelection(gtk.VBox):
         
         user = self.twitter.get_user_from_screen_name(sname)
         if user != None:
-            self.new_timeline("@%s" % sname, "user_timeline",
-                              user = user.id)
+            self.twitter.new_timeline("@%s" % sname, "user_timeline",
+                                      user = user.id)
         else:
-            self.new_timeline("@%s" % sname, "user_timeline",
-                              user = sname, is_screen_name = True)
+            self.twitter.new_timeline("@%s" % sname, "user_timeline",
+                                      user = sname, is_screen_name = True)
     
-    def refresh_user_information(self, user):
-        bio = """<big><b>%s</b></big> - %s\n<small><span foreground='#666666'>Location: %s\nBio: %s\nWeb: %s</span></small>\n<b>%d</b> following, <b>%d</b> followers, <b>%d</b> tweets""" % (
-            user.screen_name, unicode(user.name).replace("&", "&amp;"),
-            unicode(user.location).replace("&", "&amp;"),
-            unicode(user.description).replace("\n", "").replace("&", "&amp;"),
-            ("<a href='%s'>%s</a>" % (user.url, user.url)) if user.url != None else None,
-            user.friends_count, user.followers_count, user.statuses_count)
+    def refresh_user_information(self, user):        
+        bio = """
+<big><b>%s</b></big> - %s\n
+<small><span foreground='#666666'>Location: %s\n
+Bio: %s\n
+Web: %s</span></small>\n
+<b>%d</b> following, <b>%d</b> followers, <b>%d</b> tweets""" % (
+            user.screen_name,
+            user.name,
+            user.location,
+            user.description.replace("\n", ""),
+            "<a href='%s'>%s</a>" % (user.url, user.url) if user.url != None else None,
+            user.friends_count,
+            user.followers_count,
+            user.statuses_count)
 
         if user.protected: bio += "\n[Protected user]"
+        bio = TwitterTools.replace_amp(bio)
         
-        img = gtk.image_new_from_pixbuf(self.icons.get(user))
+        img = gtk.image_new_from_pixbuf(self.iconstore.get(user))
         is_follow = user.id in self.twitter.following
         button = gtk.ToggleButton("Following" if is_follow else "Follow")
         button.set_active(is_follow)
@@ -198,10 +210,6 @@ class UserSelection(gtk.VBox):
         self.paned.remove(self._now_box)
         self._now_box = hbox
         self.paned.pack1(self._now_box, shrink = False)
-    
-    # for override
-    def new_timeline(self, label, method, sleep, *args, **kwargs):
-        pass
     
     ### Event    
     def on_entry_activate(self, entry):

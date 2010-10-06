@@ -46,7 +46,7 @@ from saveconfig import Config
 from userselection import UserSelection
 from listsselection import ListsSelection, ListsView
 from statusdetail import StatusDetail
-import twittertools
+from twittertools import TwitterTools
 
 # Main Class
 class Main:
@@ -125,10 +125,9 @@ class Main:
         StatusDetail.iconstore = self.iconstore
         ListsView.twitter = self.twitter
         ListsView.iconstore = self.iconstore
+        UserSelection.twitter = self.twitter
+        UserSelection.iconstore = self.iconstore
 
-        # set tools
-        self.twtools = twittertools.TwitterTools()
-        
         self.initialize()
     
     def main(self):
@@ -172,8 +171,7 @@ class Main:
         self.statusbar.show_all()
         
         # Users tab append
-        users = UserSelection(self.twitter, self.iconstore)
-        users.new_timeline = self.new_timeline
+        users = UserSelection()
         self.new_tab(users, "Users")
         
         # Lists tab append
@@ -444,7 +442,7 @@ class Main:
     def on_status_selection_changed(self, status):
         self.builder.get_object("menuitem_tweet").set_sensitive(True)
         self.statusbar.pop(0)
-        self.statusbar.push(0, self.twtools.get_footer(status))
+        self.statusbar.push(0, TwitterTools.get_footer(status))
     
     # status activated event (to Reply
     def on_status_activated(self, status):
