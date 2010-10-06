@@ -379,13 +379,6 @@ class StatusView(gtk.TreeView):
         # Get Treeview Width
         width = treeview.get_allocation().width
         
-        # Really changed?
-        # (this event is called when add statuses too.)
-        if self._old_width == width:
-            return
-        else:
-            self._old_width = width
-        
         # Get Treeview Columns
         columns = treeview.get_columns()
         
@@ -394,9 +387,19 @@ class StatusView(gtk.TreeView):
         for i in columns[:1] + columns[2:]:
             width2 += i.get_property("width")
         
+        # -10 is margin
+        text_width = width - width2 - 10
+        
+        # Really changed?
+        # (this event is called when add statuses too.)
+        if self._old_width == text_width:
+            return
+        else:
+            self._old_width = text_width
+        
         # Set "Status" width
         cellr = columns[1].get_cell_renderers()
-        cellr[0].set_property("wrap-width", width - width2 - 10)
+        cellr[0].set_property("wrap-width", text_width)
         
         def refresh_text():
             # Reset all data to change row height
