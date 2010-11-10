@@ -57,7 +57,7 @@ class BaseThread(threading.Thread):
         new_statuses = set()
         
         for i in statuses:
-            if isinstance(i, twoauth.twstatus):
+            if isinstance(i, twoauth.TwitterStatus):
                 self.twitter.add_status(i)
                 new_statuses.add(i.id)
             else:
