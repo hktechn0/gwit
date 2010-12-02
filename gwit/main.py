@@ -82,6 +82,8 @@ class Main:
         self.twitter = TwitterAPI(screen_name, *keys)
         self.twitter.init_twitpic(self.twitpic_apikey)
         
+        self.read_settings()
+        
         # set event (show remaining api count)
         self.twitter.on_twitterapi_requested = self.on_timeline_refresh
         self.twitter.new_timeline = self.new_timeline
@@ -91,7 +93,8 @@ class Main:
         if not self.userstream: self.twitter.get_following_bg()
         
         # init icon store
-        self.iconstore = IconStore(self.iconmode)
+        IconStore.iconmode = self.iconmode
+        self.iconstore = IconStore()
         
         # GtkBuilder instance
         self.builder = gtk.Builder()
@@ -127,7 +130,7 @@ class Main:
         ListsView.iconstore = self.iconstore
         UserSelection.twitter = self.twitter
         UserSelection.iconstore = self.iconstore
-
+        
         self.initialize()
     
     def main(self):
@@ -142,8 +145,7 @@ class Main:
         gtk.main()
         gtk.gdk.threads_leave()
     
-    # Initialize Tabs (in another thread)
-    def initialize(self):
+    def read_settings(self):
         try:
             # Read settings
             d = Config.get_section("DEFAULT")
@@ -157,7 +159,9 @@ class Main:
             self.msgfooter = u["footer"]
         except Exception, e:
             print "[Error] Read settings: %s" % e
-        
+    
+    # Initialize Tabs (in another thread)
+    def initialize(self):
         # Set Status Views
         for i in (("Home", "home_timeline", self.userstream),
                   ("Mentions", "mentions")):

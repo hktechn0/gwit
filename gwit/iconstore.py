@@ -45,8 +45,9 @@ else:
 
 # User Icon Store
 class IconStore:
-    def __init__(self, iconmode = True):
-        self.iconmode = iconmode
+    iconmode = True
+    
+    def __init__(self):
         self.data = dict()
         self.stores = list()
         self.semaphore = threading.BoundedSemaphore(5)
@@ -167,7 +168,7 @@ class NewIcon(threading.Thread):
         self.icons[self.user.id] = icopix
         
         # delay for replace icons (temporary bug fix...
-        time.sleep(1)
+        #time.sleep(1)
         
         # Icon Refresh
         for store, n in self.stores:
