@@ -49,92 +49,92 @@ For more information about these matters, see the file named COPYING.""" % {
        }
 
 if __name__ == "__main__":
-   # Option Parser
-   p = optparse.OptionParser()
-   p.add_option("-u", "--user", dest="user", 
-                help="choose auth user", metavar="USER")
-   p.add_option("--add", dest="add", action="store_true", 
-                help="add new user")
-   p.add_option("-v", "--version", dest="version", 
-                action="store_true", help="print version")
-   
-   (options, args) = p.parse_args()
-   
-   if options.version:
-      print_version()
-      exit()
-   
-   # Config Parser
-   confp = SafeConfigParser()
-   
-   # Config file absolute path (~/.gwit/config)
-   conf_dir = os.path.expanduser("~/.gwit")
-   if not os.path.isdir(conf_dir):
-      os.mkdir(conf_dir)
-   conf_path = os.path.join(conf_dir, "config")
-   
-   # Set gwit library path into python path
-   script_path = os.path.realpath(__file__)
-   lib_path = os.path.join(os.path.dirname(script_path), "../")
-   sys.path.insert(0, os.path.realpath(lib_path))
-   
-   # config file exist?
-   fexist = os.path.isfile(conf_path)
-   
-   if fexist:
-      # readfile
-      confp.read(conf_path)
+    # Option Parser
+    p = optparse.OptionParser()
+    p.add_option("-u", "--user", dest="user", 
+                 help="choose auth user", metavar="USER")
+    p.add_option("--add", dest="add", action="store_true", 
+                 help="add new user")
+    p.add_option("-v", "--version", dest="version", 
+                 action="store_true", help="print version")
+    
+    (options, args) = p.parse_args()
+    
+    if options.version:
+        print_version()
+        exit()
+        
+    # Config Parser
+    confp = SafeConfigParser()
+        
+    # Config file absolute path (~/.gwit/config)
+    conf_dir = os.path.expanduser("~/.gwit")
+    if not os.path.isdir(conf_dir):
+        os.mkdir(conf_dir)
+    conf_path = os.path.join(conf_dir, "config")
+        
+    # Set gwit library path into python path
+    script_path = os.path.realpath(__file__)
+    lib_path = os.path.join(os.path.dirname(script_path), "../")
+    sys.path.insert(0, os.path.realpath(lib_path))
+    
+    # config file exist?
+    fexist = os.path.isfile(conf_path)
+    
+    if fexist:
+        # readfile
+        confp.read(conf_path)
 
-   if not fexist or options.add:
-      # Run Setup Wizard
-      from gwit import SetupWizard
-      setup = SetupWizard()
-      setup.main()
-      
-      if setup.ok:
-         # if setup ok, set settings
-         if not fexist:
-            confp.set("DEFAULT", "default_user", setup.screen_name)
-         confp.add_section(setup.screen_name)
-         confp.set(setup.screen_name, "ckey", setup.keys[0])
-         confp.set(setup.screen_name, "csecret", setup.keys[1])
-         confp.set(setup.screen_name, "atoken", setup.keys[2])
-         confp.set(setup.screen_name, "asecret", setup.keys[3])
-         confp.set(setup.screen_name, "footer", "")
-         user = setup.screen_name
-         del setup
-         
-         # write config
-         fp = open(conf_path, "w")
-         confp.write(fp)
-         fp.close()
-      else:
-         # or die
-         exit()
+    if not fexist or options.add:
+        # Run Setup Wizard
+        from gwit import SetupWizard
+        setup = SetupWizard()
+        setup.main()
+        
+        if setup.ok:
+            # if setup ok, set settings
+            if not fexist:
+                confp.set("DEFAULT", "default_user", setup.screen_name)
+            confp.add_section(setup.screen_name)
+            confp.set(setup.screen_name, "ckey", setup.keys[0])
+            confp.set(setup.screen_name, "csecret", setup.keys[1])
+            confp.set(setup.screen_name, "atoken", setup.keys[2])
+            confp.set(setup.screen_name, "asecret", setup.keys[3])
+            confp.set(setup.screen_name, "footer", "")
+            user = setup.screen_name
+            del setup
+            
+            # write config
+            fp = open(conf_path, "w")
+            confp.write(fp)
+            fp.close()
+        else:
+            # or die
+            exit()
+    
+    # Settings dict
+    settings = dict()
+    settings["DEFAULT"] = dict(confp.items("DEFAULT"))
+    for i in confp.sections():
+        settings[i] = dict(confp.items(i))
    
-   # Settings dict
-   settings = dict()
-   settings["DEFAULT"] = dict(confp.items("DEFAULT"))
-   for i in confp.sections():
-      settings[i] = dict(confp.items(i))
-   
-   # Read settings
-   if options.user != None:
-      user = options.user
-   elif options.add:
-      pass
-   else:
-      user = settings["DEFAULT"]["default_user"]
-   
-   try:
-      keys = (settings[user]["ckey"], settings[user]["csecret"], 
-              settings[user]["atoken"], settings[user]["asecret"])
-   except KeyError:
-      print >>sys.stderr, "[Error] User '%s' not exists in config file." % options.user
-      print >>sys.stderr, "Try `gwit --add` to add user."
-      exit()
-   
-   # Run Main()
-   from gwit import Main
-   gwit = Main(user, keys)
-   gwit.main()
+    # Read settings
+    if options.user != None:
+        user = options.user
+    elif options.add:
+        pass
+    else:
+        user = settings["DEFAULT"]["default_user"]
+    
+    try:
+        keys = (settings[user]["ckey"], settings[user]["csecret"], 
+                settings[user]["atoken"], settings[user]["asecret"])
+    except KeyError:
+        print >>sys.stderr, "[Error] User '%s' not exists in config file." % options.user
+        print >>sys.stderr, "Try `gwit --add` to add user."
+        exit()
+    
+    # Run Main()
+    from gwit import Main
+    gwit = Main(user, keys)
+    gwit.main()

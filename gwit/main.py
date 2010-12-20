@@ -378,8 +378,11 @@ class Main:
     
     def status_update(self, status):
         args = dict()
+
+        gtk.gdk.threads_enter()
         self.textview.set_sensitive(False)
         self.btnupdate.set_sensitive(False)
+        gtk.gdk.threads_leave()
         
         if self.re != None:
             args["in_reply_to_status_id"] = self.re
@@ -389,12 +392,15 @@ class Main:
         resp = self.twitter.api_wrapper(self.twitter.api.status_update,
                                         status, **args)
         
+        gtk.gdk.threads_enter()
         if resp != None:
             self.clear_textview()
             self.re = None
         
         self.textview.set_sensitive(True)
         self.btnupdate.set_sensitive(True)
+        self.textview.grab_focus()
+        gtk.gdk.threads_leave()
     
     def get_default_interval(self, method):
         if method == "home_timeline":
@@ -476,7 +482,7 @@ class Main:
         
         if txt != "":
             # Status Update
-            self.status_update(txt)
+            self.status_update_thread(txt)
         else:
             # Reload timeline if nothing in textview
             n = self.get_current_tab_n()
@@ -492,7 +498,7 @@ class Main:
             
             # if update button enabled (== len(text) <= 140
             if self.btnupdate.get_sensitive() and txt != "":
-                self.status_update(txt)
+                self.status_update_thread(txt)
             
             return True
     
