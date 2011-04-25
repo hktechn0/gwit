@@ -205,7 +205,7 @@ class StatusView(gtk.TreeView):
     # Prepend new stat uses
     def prepend_new_statuses(self, new_ids):
         # pack New Status
-        statuses = (self.status_pack(i) for i in new_ids)
+        statuses = [self.status_pack(i) for i in new_ids]
         
         # Set added flag (for auto scroll
         self.added = True
@@ -230,7 +230,9 @@ class StatusView(gtk.TreeView):
             name = "%s <span foreground='#333333'><small>- Retweeted by %s</small></span>" % (
                 status.user.screen_name, rtstatus.user.screen_name)
         
-        if status.user.id in self.twitter.followers or self.twitter.followers == None:
+        if status.user.id in self.twitter.followers or \
+                status.user.id == self.twitter.my_id or \
+                self.twitter.followers == None:
             # Bold screen_name if follower
             tmpl = "<b>%s</b>\n%s"
         else:
@@ -263,8 +265,8 @@ class StatusView(gtk.TreeView):
         t.start()
     
     def color_status_in_thread(self, status = None):
-        myname = self.twitter.myname
-        myid = self.twitter.me.id if self.twitter.me != None else -1
+        myname = self.twitter.my_name
+        myid = self.twitter.my_id
         
         # if not set target status
         if status == None:
@@ -321,7 +323,7 @@ class StatusView(gtk.TreeView):
     def on_treeview_button_press(self, widget, event):
         if event.button == 3 and self.pmenu != None:
             self.pmenu.show_all()
-            if self.get_selected_status().user.screen_name != self.twitter.myname:
+            if self.get_selected_status().user.id != self.twitter.my_id:
                 self.pmenu.get_children()[4].hide()
             self.pmenu.popup(None, None, None, event.button, event.time)
         elif event.button == 1:

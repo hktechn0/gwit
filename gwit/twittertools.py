@@ -29,7 +29,7 @@ import re
 import datetime
 import htmlentitydefs
 
-class TwitterTools:
+class TwitterTools(object):
     _urlpattern = u'''(?P<url>https?://[^\s　]*)'''
     _userpattern = u'''@(?P<user>\w+)'''
     reurl = re.compile(_urlpattern)

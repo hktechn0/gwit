@@ -49,7 +49,7 @@ from statusdetail import StatusDetail
 from twittertools import TwitterTools
 
 # Main Class
-class Main:
+class Main(object):
     # Default settings
     interval = (300, 300, -1)
     msgfooter = u""
@@ -155,7 +155,7 @@ class Main:
             self.iconmode = eval(d["iconmode"])
             self.userstream = eval(d["userstream"])
             self.status_color = eval(d["color"])
-            u = Config.get_section(self.twitter.myname)
+            u = Config.get_section(self.twitter.my_name)
             self.msgfooter = u["footer"]
         except Exception, e:
             print "[Error] Read settings: %s" % e
@@ -269,7 +269,7 @@ class Main:
     
     def get_current_tab_n(self):
         return self.notebook.get_current_page()
-
+    
     def get_current_tab(self):
         return self.timelines[self.notebook.get_current_page()]
     
@@ -418,7 +418,7 @@ class Main:
                 ("DEFAULT", "iconmode", self.iconmode),
                 ("DEFAULT", "userstream", self.userstream),
                 ("DEFAULT", "color", self.status_color),
-                (self.twitter.myname, "footer", self.msgfooter))
+                (self.twitter.my_name, "footer", self.msgfooter))
         Config.save_section(conf)
     
     
@@ -428,9 +428,11 @@ class Main:
     # status added event
     def on_status_added(self, i):
         status = self.twitter.statuses[i]
-        myname = self.twitter.myname
-        if status.in_reply_to_screen_name == myname or \
+        myid = self.twitter.my_id
+        myname = self.twitter.my_name
+        if status.in_reply_to_user_id == myid or \
                 status.text.find("@%s" % myname) >= 0:
+            # add mentions tab, dirty
             self.timelines[1].timeline.add_statuses(((status,)))
     
     # timeline refreshed event
@@ -741,7 +743,7 @@ class Main:
         self.builder.get_object("entry_footer").set_text(self.msgfooter)
 
         # OAuth information
-        self.builder.get_object("entry_myname").set_text(self.twitter.myname)
+        self.builder.get_object("entry_myname").set_text(self.twitter.my_name)
         self.builder.get_object("entry_ckey").set_text(self.twitter.api.oauth.ckey)
         self.builder.get_object("entry_csecret").set_text(self.twitter.api.oauth.csecret)
         self.builder.get_object("entry_atoken").set_text(self.twitter.api.oauth.atoken)

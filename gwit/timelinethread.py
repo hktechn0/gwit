@@ -93,7 +93,7 @@ class TimelineThread(BaseThread):
         # extract cached status if gets user_timeline
         if self.method == "user_timeline":
             cached = list()
-            for i in self.twitter.statuses.itervalues():
+            for i in self.twitter.statuses.values():
                 if i.user.id == self.kwargs["user"]:
                     cached.append(i)
             
