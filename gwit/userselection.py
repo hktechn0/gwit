@@ -31,6 +31,7 @@ import gtk
 import gobject
 import pango
 
+import os.path
 import threading
 import sched
 import time
@@ -55,12 +56,18 @@ class UserSelection(gtk.VBox):
         self.entry.connect("focus-out-event", self.on_entry_focus_out)
         hbox.pack_start(self.entry, padding = 5)
         
-        button = gtk.Button()
-        button.set_image(gtk.image_new_from_stock("gtk-add", gtk.ICON_SIZE_BUTTON))
-        button.connect("clicked", self.on_button_clicked)
-        hbox.pack_start(button, expand = False, padding = 5)
+        button_add = gtk.Button()
+        button_add.set_image(gtk.image_new_from_stock("gtk-add", gtk.ICON_SIZE_BUTTON))
+        button_add.connect("clicked", self.on_button_add_clicked)
+        hbox.pack_start(button_add, expand = False, padding = 5)
+
+        button_refresh = gtk.Button()
+        button_refresh.set_image(gtk.image_new_from_stock("gtk-refresh", gtk.ICON_SIZE_BUTTON))
+        button_refresh.connect("clicked", self.on_button_refresh_clicked)
+        hbox.pack_start(button_refresh, expand = False, padding = 5)
         
-        self.store = gtk.ListStore(gtk.gdk.Pixbuf, str, gobject.TYPE_INT64, str, gtk.gdk.Pixbuf, gtk.gdk.Pixbuf)
+        # icon, screen_name, user.id, description, followicon, follwoericon, following, follower
+        self.store = gtk.ListStore(gtk.gdk.Pixbuf, str, gobject.TYPE_INT64, str, gtk.gdk.Pixbuf, gtk.gdk.Pixbuf, bool, bool)
         self.iconstore.add_store(self.store, 2)
         
         # sort order by screen_name ASC
@@ -68,7 +75,8 @@ class UserSelection(gtk.VBox):
         
         # setup treeview
         self.treeview = gtk.TreeView(self.store)
-        #self.treeview.set_headers_visible(False)
+        self.treeview.set_headers_visible(True)
+        self.treeview.set_headers_clickable(True)
         self.treeview.set_rules_hint(True)
         self.treeview.set_enable_search(True)
         self.treeview.set_search_column(3)
@@ -85,16 +93,23 @@ class UserSelection(gtk.VBox):
         cell_name.set_property("wrap-width", 300)
         col_name = gtk.TreeViewColumn("Name", cell_name, markup = 1)
         col_name.set_expand(True)
+        col_name.set_clickable(True)
+        col_name.connect("clicked", self.on_column_clicked, 1)
         self.treeview.append_column(col_name)
         
-        self.treeview.append_column(
-            gtk.TreeViewColumn("Following?", gtk.CellRendererPixbuf(), pixbuf = 4))
-        self.treeview.append_column(
-            gtk.TreeViewColumn("Follower?", gtk.CellRendererPixbuf(), pixbuf = 5))
+        col_following = gtk.TreeViewColumn("Following?", gtk.CellRendererPixbuf(), pixbuf = 4)
+        col_following.set_clickable(True)
+        col_following.connect("clicked", self.on_column_clicked, 6)
+        self.treeview.append_column(col_following)
+        
+        col_follower = gtk.TreeViewColumn("Follower?", gtk.CellRendererPixbuf(), pixbuf = 5)
+        col_follower.set_clickable(True)
+        col_follower.connect("clicked", self.on_column_clicked, 7)
+        self.treeview.append_column(col_follower)
         
         self.scrwin = gtk.ScrolledWindow()
         self.scrwin.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_ALWAYS)
-        self.scrwin.set_shadow_type(gtk.SHADOW_IN)
+        self.scrwin.set_shadow_type(gtk.SHADOW_NONE)
         self.scrwin.add(self.treeview)
         
         self._now_box = gtk.Label()
@@ -143,7 +158,7 @@ class UserSelection(gtk.VBox):
             follower = self.pix_follow if is_follower else self.pix_nofollow
             
             gtk.gdk.threads_enter()
-            self.store.append((icon, text, user.id, user.screen_name, following, follower))
+            self.store.append((icon, text, user.id, user.screen_name, following, follower, is_friend, is_follower))
             gtk.gdk.threads_leave()
         
         self.userids = now
@@ -162,19 +177,21 @@ class UserSelection(gtk.VBox):
     
     def refresh_user_information(self, user):        
         bio = """
-<big><b>%s</b></big> - %s\n
-<small><span foreground='#666666'>Location: %s\n
-Bio: %s\n
-Web: %s</span></small>\n
-<b>%d</b> following, <b>%d</b> followers, <b>%d</b> tweets""" % (
+<big><b>%s</b></big> - %s
+<b>%d</b> following, <b>%d</b> followers, <b>%d</b> tweets
+<small><span foreground='#666666'>Location: %s
+Bio: %s
+Web: %s</span></small>
+""" % (
             user.screen_name,
             user.name,
-            user.location,
-            user.description.replace("\n", ""),
-            "<a href='%s'>%s</a>" % (user.url, user.url) if user.url != None else None,
             user.friends_count,
             user.followers_count,
-            user.statuses_count)
+            user.statuses_count,
+            user.location,
+            unicode(user.description).replace("\n", ""),
+            "<a href='%s'>%s</a>" % (user.url, user.url) if user.url != None else None,
+            )
 
         if user.protected: bio += "\n[Protected user]"
         bio = TwitterTools.replace_amp(bio)
@@ -197,6 +214,7 @@ Web: %s</span></small>\n
         label.set_alignment(0, 0.5)
         label.set_line_wrap(True)
         label.set_markup(bio)
+        label.set_property("height-request", 150)
         
         hbox = gtk.HBox()
         hbox.set_border_width(10)
@@ -211,12 +229,12 @@ Web: %s</span></small>\n
         self._now_box = hbox
         self.paned.pack1(self._now_box, shrink = False)
     
-    ### Event    
+    ### Event
     def on_entry_activate(self, entry):
         sname = entry.get_text()
         return self.activate_user(sname)
     
-    def on_button_clicked(self, button):
+    def on_button_add_clicked(self, button):
         sname = self.entry.get_text()
         return self.activate_user(sname)
     
@@ -260,3 +278,28 @@ Web: %s</span></small>\n
             button.set_image(gtk.image_new_from_stock("gtk-add", gtk.ICON_SIZE_BUTTON))
             button.set_label("Follow")
             self.twitter.following.remove(uid)
+
+    def on_column_clicked(self, column, n):
+        nowsort, is_asc = self.treeview.get_model().get_sort_column_id()
+        
+        if nowsort == n:
+            self.treeview.get_model().set_sort_column_id(n, gtk.SORT_ASCENDING if is_asc != gtk.SORT_ASCENDING else gtk.SORT_DESCENDING)
+        else:
+            self.treeview.get_model().set_sort_column_id(n, gtk.SORT_ASCENDING if n == 1 else gtk.SORT_DESCENDING)
+
+    def on_button_refresh_clicked(self, button):
+        builder = gtk.Builder()
+        gladefile = os.path.join(os.path.dirname(__file__), "glade/getfollow.glade")
+        builder.add_from_file(gladefile)
+        builder.connect_signals(self)
+        win = builder.get_object("assistant_getfollow")
+        win.show_all()
+    
+    def on_assistant_getfollow_prepare(self, assistant, page):
+        pass
+
+    def on_assistant_getfollow_apply(self, assistant):
+        assistant.destroy()
+    
+    def on_assistant_getfollow_cancel(self, assistant):
+        assistant.destroy()

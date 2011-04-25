@@ -30,6 +30,9 @@ pygtk.require('2.0')
 import gtk
 import gobject
 
+import twoauth
+from twittertools import TwitterTools
+
 class ListsView(gtk.ScrolledWindow):
     twitter = None
     iconstore = None
@@ -65,7 +68,7 @@ class ListsView(gtk.ScrolledWindow):
         self.add_with_viewport(vbox)
         
         if user == None:
-            self.user = self.twitter.myname
+            self.user = self.twitter.my_name
         else:
             self.user = user
         
@@ -95,16 +98,15 @@ class ListsView(gtk.ScrolledWindow):
                     c = int(mydata["next_cursor"])
                 lists[0:0] = mylists
         
-        for l in reversed(lists):
-            user = l["user"]
-            userid = int(user["id"])
-            screen_name = user["screen_name"]
+        for l in lists:
+            user = twoauth.TwitterUser(l["user"])
+            self.twitter.add_user(user)
             
             listid = int(l["id"])
             listname = l["name"]
-            description = l["description"]
-
-            text = "@%s/%s" % (screen_name, listname)
+            description = TwitterTools.replace_amp(l["description"])
+            
+            text = "@%s/<b>%s</b>" % (user.screen_name, listname)
             if description != None:
                 text += "\n<small><span foreground='#666666'>%s</span></small>" % description
             
@@ -115,10 +117,9 @@ class ListsView(gtk.ScrolledWindow):
             else:
                 private_ico = None
             
-            self.twitter.add_user(user)
             self.lists[listid] = l
-            self.store.append((self.iconstore.get(l["user"]),
-                               text, userid, listid, private_ico, count))
+            self.store.append((self.iconstore.get(user),
+                               text, user.id, listid, private_ico, count))
         
         self._cursor = int(data["next_cursor"])
         

@@ -44,7 +44,7 @@ else:
     USE_PIL = True
 
 # User Icon Store
-class IconStore:
+class IconStore(object):
     iconmode = True
     
     def __init__(self):

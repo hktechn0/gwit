@@ -35,16 +35,15 @@ import twoauth
 import twoauth.streaming
 
 # Twitter API Class
-class TwitterAPI:
+class TwitterAPI(object):
     def __init__(self, screen_name, ckey, csecret, atoken, asecret):
         # Generate API Library instance
         self.api = twoauth.api(ckey, csecret, atoken, asecret, screen_name)
         self.sapi = twoauth.streaming.StreamingAPI(self.api.oauth)
         
-        self.myname = self.api.user["screen_name"]
-        self.me = None
+        self._my_id = -1
         self.my_name = screen_name
-        #self.threads = list()
+        
         self.apilock = threading.Lock()
         
         # User, Status Buffer
@@ -52,6 +51,22 @@ class TwitterAPI:
         self.statuses = dict()
         self.followers = set()
         self.following = set()
+    
+    @property
+    def my_id(self):
+        if self._my_id != -1:
+            return self._my_id
+        else:
+            for user in self.users.itervalues():
+                if user.screen_name == self.my_name:
+                    self._my_id = user.id
+                    return user.id
+        
+        return -1
+    
+    @property
+    def me(self):
+        self.users.get(self.my_id)
     
     def init_twitpic(self, apikey):
         import twoauth.twitpic
@@ -80,9 +95,6 @@ class TwitterAPI:
     
     def add_user(self, user):
         self.users[user.id] = user
-        
-        if user.screen_name == self.myname:
-            self.me = user
     
     def get_user_from_screen_name(self, screen_name):
         # search user from screen_name

@@ -4,7 +4,7 @@
 import os
 from ConfigParser import SafeConfigParser
 
-class Config:
+class Config(object):
     CONF_PATH = os.path.expanduser("~/.gwit/config")
     
     @staticmethod
