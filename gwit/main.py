@@ -164,7 +164,7 @@ class Main:
     def initialize(self):
         # Set Status Views
         for i in (("Home", "home_timeline", self.userstream),
-                  ("Mentions", "mentions")):
+                  ("@Mentions", "mentions")):
             # create new timeline and tab view
             self.new_timeline(*i)
         
@@ -263,13 +263,13 @@ class Main:
         self.notebook.set_current_page(n)
     
     def get_selected_status(self):
-        n = self.notebook.get_current_page()
-        if self.timelines[n] != None:
-            return self.timelines[n].view.get_selected_status()
+        tab = self.get_current_tab()
+        if tab != None:
+            return tab.view.get_selected_status()
     
     def get_current_tab_n(self):
         return self.notebook.get_current_page()
-
+    
     def get_current_tab(self):
         return self.timelines[self.notebook.get_current_page()]
     
@@ -520,7 +520,11 @@ class Main:
             f = open(filename)
             message = self.get_textview()
             res = self.twitter.twitpic.upload(f, message)
-            self.add_textview(" %s" % res["url"])
+            
+            try:
+                self.add_textview(" %s" % res["url"])
+            except KeyError:
+                print >>sys.stderr, "[Error] Cannot upload Twitpic.\n%s" % (res)
     
     # Timeline Tab Close
     def on_tabclose_clicked(self, widget, uid):
