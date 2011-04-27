@@ -65,8 +65,13 @@ class BaseThread(threading.Thread):
                 if "friends" in i:
                     self.twitter.following.update(i["friends"])
                 elif "delete" in i:
-                    self.twitter.delete_status(i["delete"]["status"]["id"])
-        
+                    self.twitter.delete_event(i["delete"]["status"]["id"])
+                elif "event" in i:
+                    if "favorite" == i["event"]:
+                        self.twitter.favorite_event(i["target_object"], i["source"])
+#                    elif "follow" in i["event"]:
+#                        self.twitter.follow_event(i["follow"]["status"]["id"])
+
         new_statuses.difference_update(self.timeline)
         self.on_received_status(new_statuses)
         self.timeline.update(new_statuses)

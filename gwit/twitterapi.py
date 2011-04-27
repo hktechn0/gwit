@@ -113,10 +113,22 @@ class TwitterAPI(object):
     def get_statuses(self, ids):
         return tuple(self.statuses[i] for i in sorted(tuple(ids), reverse=True))
 
-    def delete_status(self, i):
+    def delete_event(self, i):
         if i in self.statuses:
             self.statuses[i]["deleted"] = True
             self.on_tweet_event(i)
+
+    def favorite_event(self, tweet, user):
+        if tweet["id"] not in self.statuses:
+            self.statuses[tweet["id"]] = tweet
+        
+        if "faved_by" in self.statuses[tweet["id"]]:
+            self.statuses[tweet["id"]]["faved_by"].append(user["id"])
+        else:
+            self.statuses[tweet["id"]]["faved_by"] = [user["id"]]
+        
+        self.on_notify_event("@%s favorited your tweet" % user["screen_name"], tweet["text"])
+        self.on_tweet_event(tweet["id"])
     
     def api_wrapper(self, method, *args, **kwargs):
         for i in range(3):
@@ -155,3 +167,4 @@ class TwitterAPI(object):
     def on_twitterapi_error(self, method, e): pass
     def on_twitterapi_requested(self): pass
     def on_tweet_event(self, i): pass
+    def on_notify_event(self, title, text, icon): pass

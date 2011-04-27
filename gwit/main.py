@@ -93,6 +93,7 @@ class Main(object):
         self.twitter = TwitterAPI(screen_name, *keys)
         self.twitter.init_twitpic(self.twitpic_apikey)
         self.twitter.on_tweet_event = self.refresh_tweet
+        self.twitter.on_notify_event = self.notify
         
         self.read_settings()
         
@@ -438,10 +439,11 @@ class Main(object):
         Config.save_section(conf)
 
     # desktop notify
-    def notify(self, title, text, icon_pixbuf):
+    def notify(self, title, text, icon_pixbuf = None):
         if USE_NOTIFY:
             notify = pynotify.Notification(title, text)
-            notify.set_icon_from_pixbuf(icon_pixbuf)
+            if icon_pixbuf:
+                notify.set_icon_from_pixbuf(icon_pixbuf)
             notify.show()
     
     def refresh_tweet(self, i):
