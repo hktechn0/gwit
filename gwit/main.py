@@ -92,6 +92,7 @@ class Main(object):
         # Twitter class instance
         self.twitter = TwitterAPI(screen_name, *keys)
         self.twitter.init_twitpic(self.twitpic_apikey)
+        self.twitter.on_tweet_event = self.refresh_tweet
         
         self.read_settings()
         
@@ -442,6 +443,10 @@ class Main(object):
             notify = pynotify.Notification(title, text)
             notify.set_icon_from_pixbuf(icon_pixbuf)
             notify.show()
+    
+    def refresh_tweet(self, i):
+        for tl in self.timelines:
+            if tl: tl.view.reset_status_text()
     
     
     ########################################

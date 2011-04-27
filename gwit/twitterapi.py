@@ -112,6 +112,11 @@ class TwitterAPI(object):
     
     def get_statuses(self, ids):
         return tuple(self.statuses[i] for i in sorted(tuple(ids), reverse=True))
+
+    def delete_status(self, i):
+        if i in self.statuses:
+            self.statuses[i]["deleted"] = True
+            self.on_tweet_event(i)
     
     def api_wrapper(self, method, *args, **kwargs):
         for i in range(3):
@@ -149,3 +154,4 @@ class TwitterAPI(object):
     
     def on_twitterapi_error(self, method, e): pass
     def on_twitterapi_requested(self): pass
+    def on_tweet_event(self, i): pass

@@ -134,8 +134,11 @@ class StatusView(gtk.TreeView):
         path, column = self.get_cursor()
         return self.favorite_status(path)
     
+    # favorited
     def favorite_status(self, path):
         status = self.get_status(path)
+    
+        if "deleted" in status: return
         
         # Toggle favorited
         if status.favorited:
@@ -146,7 +149,7 @@ class StatusView(gtk.TreeView):
             self.twitter.api_wrapper(
                 self.twitter.api.favorite_create, status.id)
             self.store[path][5] = self.favico_n
-
+        
         status.favorited = not status.favorited
     
     # Set background color
@@ -250,10 +253,13 @@ class StatusView(gtk.TreeView):
         # colord url
         text = TwitterTools.get_colored_url(status.text)
         # screen_name + text
-        message = tmpl % (name, text)
-        
+        message = tmpl % (name, text)        
         # replace no entity & -> &amp;
         message = TwitterTools.replace_amp(message)
+
+        # deleted
+        if "deleted" in status:
+            message = "<span foreground='#666666'><s>%s</s></span>" % message
         
         # Favorite
         favico = self.favico_y if status.favorited else self.favico_n
@@ -357,9 +363,18 @@ class StatusView(gtk.TreeView):
     # Menu popup
     def on_treeview_button_press(self, widget, event):
         if event.button == 3 and self.pmenu != None:
+            status = self.get_selected_status()
             self.pmenu.show_all()
-            if self.get_selected_status().user.id != self.twitter.my_id:
+
+            if "deleted" in status:
+                self.pmenu.get_children()[0].hide()
+                self.pmenu.get_children()[1].hide()
+                self.pmenu.get_children()[2].hide()
+                self.pmenu.get_children()[3].hide()
+            
+            if status.user.id != self.twitter.my_id:
                 self.pmenu.get_children()[4].hide()
+
             self.pmenu.popup(None, None, None, event.button, event.time)
         elif event.button == 1:
             # fav button

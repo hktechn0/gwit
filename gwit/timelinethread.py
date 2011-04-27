@@ -64,12 +64,12 @@ class BaseThread(threading.Thread):
                 # deleted, favorited, followed... for StreamingAPI
                 if "friends" in i:
                     self.twitter.following.update(i["friends"])
+                elif "delete" in i:
+                    self.twitter.delete_status(i["delete"]["status"]["id"])
         
         new_statuses.difference_update(self.timeline)
-        
-        if new_statuses:        
-            self.on_received_status(new_statuses)
-            self.timeline.update(new_statuses)
+        self.on_received_status(new_statuses)
+        self.timeline.update(new_statuses)
     
     def on_received_status(self, ids): pass
 
