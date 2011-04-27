@@ -37,6 +37,7 @@ import sched
 import time
 
 from twittertools import TwitterTools
+from getfriendswizard import GetFriendsWizard
 
 class UserSelection(gtk.VBox):
     twitter = None
@@ -60,7 +61,8 @@ class UserSelection(gtk.VBox):
         button_add.set_image(gtk.image_new_from_stock("gtk-add", gtk.ICON_SIZE_BUTTON))
         button_add.connect("clicked", self.on_button_add_clicked)
         hbox.pack_start(button_add, expand = False, padding = 5)
-
+        
+        # get followings/followers button
         button_refresh = gtk.Button()
         button_refresh.set_image(gtk.image_new_from_stock("gtk-refresh", gtk.ICON_SIZE_BUTTON))
         button_refresh.connect("clicked", self.on_button_refresh_clicked)
@@ -287,19 +289,7 @@ Web: %s</span></small>
         else:
             self.treeview.get_model().set_sort_column_id(n, gtk.SORT_ASCENDING if n == 1 else gtk.SORT_DESCENDING)
 
+    # open get followings followers wizard
     def on_button_refresh_clicked(self, button):
-        builder = gtk.Builder()
-        gladefile = os.path.join(os.path.dirname(__file__), "glade/getfollow.glade")
-        builder.add_from_file(gladefile)
-        builder.connect_signals(self)
-        win = builder.get_object("assistant_getfollow")
-        win.show_all()
-    
-    def on_assistant_getfollow_prepare(self, assistant, page):
-        pass
-
-    def on_assistant_getfollow_apply(self, assistant):
-        assistant.destroy()
-    
-    def on_assistant_getfollow_cancel(self, assistant):
-        assistant.destroy()
+        w = GetFriendsWizard()
+        w.show_all()

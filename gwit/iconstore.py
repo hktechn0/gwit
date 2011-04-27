@@ -80,9 +80,15 @@ class IconStore(object):
         self.stores.append((store, n))
 
     def remove_store(self, store):
+        remove = None
+        
         for i in self.stores:
             if store == i[0]:
-                self.stores.remove(i)
+                remove = i
+                break
+        
+        if remove:
+            self.stores.remove(remove)
 
 class NewIcon(threading.Thread):
     def __init__(self, user, stores, icons, semaphore):
@@ -172,8 +178,8 @@ class NewIcon(threading.Thread):
         
         # Icon Refresh
         for store, n in self.stores:
-           for row in store:
-               # replace icon to all user's status
+            for row in store:
+                # replace icon to all user's status
                 if row[n] == self.user.id:
                     gtk.gdk.threads_enter()
                     store[row.path][0] = icopix

@@ -82,8 +82,8 @@ class TwitterAPI(object):
     def get_followers(self):
         self.followers.update([int(i) for i in self.api_wrapper(self.api.followers_ids)])
     
-    def add_statuses(self, slist):
-        for i in slist:
+    def add_statuses(self, statuses):
+        for i in statuses:
             self.add_status(i)
     
     def add_status(self, status):
@@ -92,6 +92,12 @@ class TwitterAPI(object):
         
         if status.retweeted_status != None:
             self.add_status(status.retweeted_status)
+    
+    def add_users(self, users):
+        if isinstance(users, dict):
+            self.users.update(users)
+        else:
+            self.users.update([(i.id, i) for i in users])
     
     def add_user(self, user):
         self.users[user.id] = user
@@ -137,7 +143,7 @@ class TwitterAPI(object):
                 self.on_twitterapi_requested()
                 self.apilock.release()
             
-            time.sleep(5)
+            time.sleep(1)
         
         return response
     

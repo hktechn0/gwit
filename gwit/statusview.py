@@ -105,6 +105,15 @@ class StatusView(gtk.TreeView):
         self._old_path = None
         # for width changed
         self._old_width = None
+
+        self.render_event = threading.Event()
+        self._render_color_only = False
+        
+        # background thread for rewrite
+        t = threading.Thread(target=self._render_thread)
+        t.setName("status render")
+        t.setDaemon(True)
+        t.start()
     
     # Get selected status
     def get_selected_status(self):
@@ -258,13 +267,27 @@ class StatusView(gtk.TreeView):
                 long(i), long(status.user.id),
                 background, favico)
     
+    # background render thread function
+    def _render_thread(self):
+        while True:
+            self.render_event.wait()
+            self.render_event.clear()
+            
+            status = self._render_color_only
+            self._render_color_only = False
+            
+            if status == False:
+                self._reset_status_text_in_thread()
+                status = None
+            
+            self._color_status_in_thread(status)
+    
     # Color status
     def color_status(self, status = None):
-        t = threading.Thread(target=self.color_status_in_thread, args=(status,))
-        t.setName("color_status")
-        t.start()
+        self._render_color_only = status
+        self.render_event.set()
     
-    def color_status_in_thread(self, status = None):
+    def _color_status_in_thread(self, status = None):
         myname = self.twitter.my_name
         myid = self.twitter.my_id
         
@@ -273,6 +296,8 @@ class StatusView(gtk.TreeView):
             status = self.get_selected_status()
         
         for row in self.store:
+            if self.render_event.is_set(): break
+            
             bg = None
             
             status_id = row[2]
@@ -302,6 +327,20 @@ class StatusView(gtk.TreeView):
             self.store[row.path][4] = bg
             gtk.gdk.threads_leave()
     
+    # Reset all data to change row height
+    def reset_status_text(self):
+        self.render_event.set()
+    
+    def _reset_status_text_in_thread(self):
+        for row in self.store:
+            if self.render_event.is_set(): break
+            
+            status_id = row[2]
+            packed_row = self.status_pack(status_id)
+            
+            gtk.gdk.threads_enter()
+            self.store[row.path] = packed_row
+            gtk.gdk.threads_leave()
     
     ########################################
     # Gtk Signal Events    
@@ -378,33 +417,14 @@ class StatusView(gtk.TreeView):
         
         # Really changed?
         # (this event is called when add statuses too.)
-        if self._old_width == text_width:
-            return
-        else:
+        if self._old_width != text_width:
             self._old_width = text_width
-        
-        # Set "Status" width
-        cellr = columns[1].get_cell_renderers()
-        cellr[0].set_property("wrap-width", text_width)
-        
-        def refresh_text():
-            # Reset all data to change row height
-            for row in self.store:
-                # Maybe no affects performance
-                # if treeview.allocation.width != width:
-                #     break
-                status_id = row[2]
-                packed_row = self.status_pack(status_id)
-                
-                gtk.gdk.threads_enter()
-                self.store[row.path] = packed_row
-                gtk.gdk.threads_leave()
             
-            self.color_status_in_thread()
-        
-        t = threading.Thread(target=refresh_text)
-        t.setName("refresh_text")
-        t.start()
+            # Set "Status" width
+            cellr = columns[1].get_cell_renderers()
+            cellr[0].set_property("wrap-width", text_width)
+            
+            self.reset_status_text()
     
     def on_treeview_destroy(self, treeview):
         self.iconstore.remove_store(self.store)

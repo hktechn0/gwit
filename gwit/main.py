@@ -47,6 +47,7 @@ from userselection import UserSelection
 from listsselection import ListsSelection, ListsView
 from statusdetail import StatusDetail
 from twittertools import TwitterTools
+from getfriendswizard import GetFriendsWizard
 
 # Main Class
 class Main(object):
@@ -71,8 +72,10 @@ class Main(object):
     # Constractor
     def __init__(self, screen_name, keys):
         # Gtk Multithread Setup
-        gtk.gdk.threads_init()
-        gobject.threads_init()
+        if sys.platform == "win32":
+            gobject.threads_init()
+        else:
+            gtk.gdk.threads_init()
         
         # init status timelines
         self.timelines = list()
@@ -130,11 +133,11 @@ class Main(object):
         ListsView.iconstore = self.iconstore
         UserSelection.twitter = self.twitter
         UserSelection.iconstore = self.iconstore
+        GetFriendsWizard.twitter = self.twitter
         
         self.initialize()
     
     def main(self):
-        gtk.gdk.threads_enter()
         window = self.builder.get_object("window1")
         
         # settings allocation
@@ -143,7 +146,6 @@ class Main(object):
         
         # Start gtk main loop
         gtk.main()
-        gtk.gdk.threads_leave()
     
     def read_settings(self):
         try:
@@ -373,10 +375,10 @@ class Main(object):
         return color
     
     def status_update_thread(self, status):
-        t = threading.Thread(target = self.status_update, args = (status,))
+        t = threading.Thread(target = self._status_update, args = (status,))
         t.start()
     
-    def status_update(self, status):
+    def _status_update(self, status):
         args = dict()
 
         gtk.gdk.threads_enter()
