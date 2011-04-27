@@ -37,6 +37,13 @@ import random
 import time
 import uuid
 
+try:
+    import pynotify
+except ImportError:
+    USE_NOTIFY = False
+else:
+    USE_NOTIFY = True
+
 from timeline import Timeline
 from statusview import StatusView
 from timelinethread import BaseThread
@@ -80,6 +87,7 @@ class Main(object):
         # init status timelines
         self.timelines = list()
         self.tlhash = dict()
+        self.timeline_mention = None
         
         # Twitter class instance
         self.twitter = TwitterAPI(screen_name, *keys)
@@ -211,13 +219,16 @@ class Main(object):
         tl.view.new_timeline = self.new_timeline
         
         # Add Notebook (Tab view)
-        self.new_tab(tl, label, tl)
+        uid = self.new_tab(tl, label, tl)
         
        # Set color
         tl.view.set_color(self.status_color)
         
-        if method != "mentions":
-            tl.view.on_status_added = self.on_status_added
+        if method == "mentions":
+            self.timeline_mention = uid
+            tl.on_status_added = self.on_mentions_added
+        else:
+            tl.on_status_added = self.on_status_added
         
         # Put error to statubar
         tl.timeline.on_twitterapi_error = self.on_twitterapi_error
@@ -226,7 +237,7 @@ class Main(object):
         tl.view.on_status_selection_changed = self.on_status_selection_changed
         # Reply on double click
         tl.view.on_status_activated = self.on_status_activated
-        
+       
         # Set UserStream parameter
         if userstream:
             tl.set_stream("user")
@@ -263,6 +274,8 @@ class Main(object):
         self.notebook.append_page(widget, box)
         self.notebook.show_all()
         self.notebook.set_current_page(n)
+
+        return uid
     
     def get_selected_status(self):
         tab = self.get_current_tab()
@@ -422,6 +435,13 @@ class Main(object):
                 ("DEFAULT", "color", self.status_color),
                 (self.twitter.my_name, "footer", self.msgfooter))
         Config.save_section(conf)
+
+    # desktop notify
+    def notify(self, title, text, icon_pixbuf):
+        if USE_NOTIFY:
+            notify = pynotify.Notification(title, text)
+            notify.set_icon_from_pixbuf(icon_pixbuf)
+            notify.show()
     
     
     ########################################
@@ -432,10 +452,17 @@ class Main(object):
         status = self.twitter.statuses[i]
         myid = self.twitter.my_id
         myname = self.twitter.my_name
-        if status.in_reply_to_user_id == myid or \
-                status.text.find("@%s" % myname) >= 0:
-            # add mentions tab, dirty
-            self.timelines[1].timeline.add_statuses(((status,)))
+        
+        if status.in_reply_to_user_id == myid or status.text.find("@%s" % myname) >= 0:
+            # add mentions tab
+            mentiontab = self.timelines[self.tlhash[self.timeline_mention]]
+            if status.id not in mentiontab.get_timeline_ids():
+                mentiontab.timeline.add_statuses(((status,)))
+    
+    def on_mentions_added(self, i):
+        status = self.twitter.statuses[i]
+        self.notify("@%s mentioned you." % status.user.screen_name,
+                    status.text, self.iconstore.get(status.user))
     
     # timeline refreshed event
     def on_timeline_refresh(self):
@@ -534,6 +561,9 @@ class Main(object):
     def on_tabclose_clicked(self, widget, uid):
         n = self.tlhash[uid]
         del self.tlhash[uid]
+
+        if self.timeline_mention == uid:
+            self.timeline_mention = None
         
         self.notebook.remove_page(n)
         

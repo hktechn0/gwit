@@ -39,7 +39,7 @@ class Timeline(gtk.ScrolledWindow):
         gtk.ScrolledWindow.__init__(self)
         self.timeline = None
         self.stream = None
-        
+
         # Add treeview to scrolledwindow
         self.view = StatusView()
         self.add(self.view)
@@ -85,10 +85,23 @@ class Timeline(gtk.ScrolledWindow):
         stream = self.stream.timeline if self.stream != None else set()
         
         return timeline.union(stream)
+
+    # FIXME for notify event
+    def get_processing_ids(self):
+        timeline = self.timeline._processing if self.timeline != None else set()
+        stream = self.stream._processing if self.stream != None else set()
+        
+        return timeline.union(stream)
     
     def on_received_statuses(self, ids):
-        self.view.prepend_new_statuses(ids.difference(self.get_timeline_ids()))
+        statuses = ids.difference(self.get_timeline_ids())
+        self.view.prepend_new_statuses(statuses)
+        
+        if not self.timeline or not self.timeline._initial_load:
+            for i in statuses:
+                self.on_status_added(i)
     
+    def on_status_added(self, ids): pass
     
     ########################################
     # Gtk Signal Events

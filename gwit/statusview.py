@@ -99,8 +99,8 @@ class StatusView(gtk.TreeView):
         if self.iconmode:
             self.iconstore.add_store(self.store, 3)
         
+        # for scroll
         self.added = False
-        
         # for motion notify
         self._old_path = None
         # for width changed
@@ -257,9 +257,6 @@ class StatusView(gtk.TreeView):
         
         # Favorite
         favico = self.favico_y if status.favorited else self.favico_n
-        
-        # call main method, mentions check
-        self.on_status_added(i)
         
         return (self.iconstore.get(status.user),
                 message,
@@ -429,7 +426,6 @@ class StatusView(gtk.TreeView):
         self.iconstore.remove_store(self.store)
     
     # dummy events and methods
-    def on_status_added(self, *args, **kwargs): pass
     def on_status_selection_changed(self, *args, **kwargs): pass
     def on_status_activated(self, *args, **kwargs): pass
     def new_timeline(self, *args, **kwargs): pass

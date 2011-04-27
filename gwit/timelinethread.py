@@ -45,7 +45,7 @@ class BaseThread(threading.Thread):
         self.args = args
         self.kwargs = kwargs
         
-        self.timeline = set()    
+        self.timeline = set()
         self.die = False
     
     def run(self): pass
@@ -66,8 +66,10 @@ class BaseThread(threading.Thread):
                     self.twitter.following.update(i["friends"])
         
         new_statuses.difference_update(self.timeline)
-        self.on_received_status(new_statuses)
-        self.timeline.update(new_statuses)
+        
+        if new_statuses:        
+            self.on_received_status(new_statuses)
+            self.timeline.update(new_statuses)
     
     def on_received_status(self, ids): pass
 
@@ -85,6 +87,7 @@ class TimelineThread(BaseThread):
         # set first get count
         self.set_count(counts[0])
         self.count = counts[1]
+        self._initial_load = True
     
     # Thread run
     def run(self):
@@ -99,11 +102,20 @@ class TimelineThread(BaseThread):
             
             if len(cached) > 0:
                 self.add_statuses(cached)
+
+        self.lock.set()
         
         # Auto reloading loop
         while not self.die:
+            # Reload lock
+            if self.interval != -1:
+                self.lock.wait(self.interval)
+            else:
+                self.lock.wait()
+            
             apimethod = getattr(self.twitter.api, self.method)
             statuses = self.twitter.api_wrapper(apimethod, *self.args, **self.kwargs)
+            
             # If Timeline update
             if statuses:
                 # Add statuses to timeline
@@ -112,14 +124,10 @@ class TimelineThread(BaseThread):
                 # update lastid
                 self.lastid = statuses[-1].id
                 self.kwargs["since_id"] = self.lastid
-            # Reload lock
-            self.lock.clear()
-            if self.interval != -1:
-                self.lock.wait(self.interval)
-            else:
-                self.lock.wait()
             
             self.set_count(self.count)
+            self._initial_load = False            
+            self.lock.clear()
     
     def destroy(self):
         self.die = True
