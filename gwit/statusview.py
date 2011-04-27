@@ -236,12 +236,11 @@ class StatusView(gtk.TreeView):
         if status.retweeted_status != None:
             rtstatus = status
             status = status.retweeted_status
+            status.favorited = False # FIX? rtstatus.favorited
             name = "%s <span foreground='#333333'><small>- Retweeted by %s</small></span>" % (
                 status.user.screen_name, rtstatus.user.screen_name)
         
-        if status.user.id in self.twitter.followers or \
-                status.user.id == self.twitter.my_id or \
-                self.twitter.followers == None:
+        if status.user.id in self.twitter.followers or status.user.id == self.twitter.my_id or not self.twitter.followers:
             # Bold screen_name if follower
             tmpl = "<b>%s</b>\n%s"
         else:
