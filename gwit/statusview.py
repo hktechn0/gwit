@@ -175,6 +175,7 @@ class StatusView(gtk.TreeView):
                 # Menuitem create
                 item = gtk.ImageMenuItem(label)
                 item.set_image(gtk.image_new_from_stock("gtk-new", gtk.ICON_SIZE_MENU))
+                item.set_always_show_image(True)
                 # Connect click event (open browser)
                 item.connect("activate", self.on_menuitem_url_clicked, i)
                 # append to menu
@@ -192,6 +193,7 @@ class StatusView(gtk.TreeView):
                 # Menuitem create
                 item = gtk.ImageMenuItem("@%s" % i.replace("_", "__"))
                 item.set_image(gtk.image_new_from_stock("gtk-add", gtk.ICON_SIZE_MENU))
+                item.set_always_show_image(True)
                 # Connect click event (add tab)
                 item.connect("activate", self.on_menuitem_user_clicked, i)
                 # append to menu
@@ -209,6 +211,7 @@ class StatusView(gtk.TreeView):
                 # Menuitem create
                 item = gtk.ImageMenuItem("#%s" % i.replace("_", "__"))
                 item.set_image(gtk.image_new_from_stock("gtk-add", gtk.ICON_SIZE_MENU))
+                item.set_always_show_image(True)
                 # Connect click event (Streaming API)
                 item.connect("activate", self.on_menuitem_hash_clicked, i)
                 # append to menu

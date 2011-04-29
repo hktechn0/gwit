@@ -253,6 +253,7 @@
         <property name="visible">True</property>
         <property name="image">image14</property>
         <property name="use_stock">False</property>
+        <property name="always_show_image">True</property>
         <signal name="activate" handler="on_menuitem_shorten_activate"/>
       </object>
     </child>
