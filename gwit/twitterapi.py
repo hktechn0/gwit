@@ -104,7 +104,7 @@ class TwitterAPI(object):
     
     def get_user_from_screen_name(self, screen_name):
         # search user from screen_name
-        for user in self.users.itervalues():
+        for user in self.users.values():
             if user.screen_name == screen_name:
                 return user
         

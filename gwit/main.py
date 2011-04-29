@@ -215,15 +215,23 @@ class Main(object):
     # Create new Timeline and append to notebook
     def new_timeline(self, label, method, userstream = False, *args, **kwargs):
         # Create Timeline Object
-        interval = self.get_default_interval(method)
         tl = Timeline()
-        tl.set_timeline(method, interval, self.scounts, args, kwargs)
+        
+        if method == "filter":
+            tl.set_stream("filter", kwargs)
+        else:
+            interval = self.get_default_interval(method)        
+            tl.set_timeline(method, interval, self.scounts, args, kwargs)
+            # Put error to statubar
+            tl.timeline.on_twitterapi_error = self.on_twitterapi_error
+        
+        # for Event
         tl.view.new_timeline = self.new_timeline
         
         # Add Notebook (Tab view)
         uid = self.new_tab(tl, label, tl)
         
-       # Set color
+        # Set color
         tl.view.set_color(self.status_color)
         
         if method == "mentions":
@@ -231,9 +239,6 @@ class Main(object):
             tl.on_status_added = self.on_mentions_added
         else:
             tl.on_status_added = self.on_status_added
-        
-        # Put error to statubar
-        tl.timeline.on_twitterapi_error = self.on_twitterapi_error
         
         # Put tweet information to statusbar
         tl.view.on_status_selection_changed = self.on_status_selection_changed
@@ -243,8 +248,8 @@ class Main(object):
         # Set UserStream parameter
         if userstream:
             tl.set_stream("user")
-            tl.start_stream()
         
+        tl.start_stream()
         tl.start_timeline()
     
     # Append Tab to Notebook
@@ -665,16 +670,7 @@ class Main(object):
         dialog.destroy()
         
         params = {"track" : text.split(",")}
-        
-        tl = Timeline()
-        tl.set_stream("filter", params)
-        tl.view.new_timeline = self.new_timeline
-        
-        self.new_tab(tl, "Stream", tl)
-        tl.view.set_color(self.status_color)
-        tl.view.on_status_selection_changed = self.on_status_selection_changed
-        tl.view.on_status_activated = self.on_status_activated
-        tl.start_stream()
+        self.new_timeline("Stream: %s" % text, "filter", track = params)
     
     
     ########################################

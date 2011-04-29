@@ -64,14 +64,16 @@ class Timeline(gtk.ScrolledWindow):
         self.stream = StreamingThread(method, kwargs = kwargs)
     
     def start_timeline(self):
-        # Set Event Hander (exec in every get timeline
-        self.timeline.on_received_status = self.on_received_statuses
-        # Start Timeline sync thread
-        self.timeline.start()
+        if self.timeline and not self.timeline.is_alive():
+            # Set Event Hander (exec in every get timeline
+            self.timeline.on_received_status = self.on_received_statuses
+            # Start Timeline sync thread
+            self.timeline.start()
         
     def start_stream(self):
-        self.stream.on_received_status = self.on_received_statuses
-        self.stream.start()
+        if self.stream and not self.stream.is_alive():
+            self.stream.on_received_status = self.on_received_statuses
+            self.stream.start()
     
     # Reload Timeline
     def reload(self):

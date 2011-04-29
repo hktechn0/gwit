@@ -159,13 +159,14 @@ class StatusView(gtk.TreeView):
     # Tweet menu setup
     def menu_setup(self, status):
         # Get Urls
-        urls = TwitterTools.get_urls(status.text if "retweeted_status" not in status.keys()
-                                     else status.retweeted_status.text)
+        urls = TwitterTools.get_urls(status)
         # Get mentioned users
-        users = TwitterTools.get_users(status.text)
+        users = TwitterTools.get_user_mentions(status)
+        # Get Hashtags
+        hashes = TwitterTools.get_hashtags(status)
         
         # URL Menu
-        m = gtk.Menu()
+        urlmenu = gtk.Menu()
         if urls:
             # if exist url in text, add menu
             for i in urls:
@@ -177,18 +178,15 @@ class StatusView(gtk.TreeView):
                 # Connect click event (open browser)
                 item.connect("activate", self.on_menuitem_url_clicked, i)
                 # append to menu
-                m.append(item)
+                urlmenu.append(item)
         else:
             # not, show None
             item = gtk.MenuItem("None")
             item.set_sensitive(False)
-            m.append(item)
-        
-        # urls submenu append
-        self.pmenu.get_children()[-1].set_submenu(m)
+            urlmenu.append(item)
         
         # Mentioned User Menu
-        mm = gtk.Menu()
+        usermenu = gtk.Menu()
         if users:
             for i in users:
                 # Menuitem create
@@ -197,18 +195,39 @@ class StatusView(gtk.TreeView):
                 # Connect click event (add tab)
                 item.connect("activate", self.on_menuitem_user_clicked, i)
                 # append to menu
-                mm.append(item)
+                usermenu.append(item)
         else:
             # not, show None
             item = gtk.MenuItem("None")
             item.set_sensitive(False)
-            mm.append(item)
+            usermenu.append(item)
         
-        self.pmenu.get_children()[-2].set_submenu(mm)
+        # Hashtags Menu
+        hashmenu = gtk.Menu()
+        if hashes:
+            for i in hashes:
+                # Menuitem create
+                item = gtk.ImageMenuItem("#%s" % i.replace("_", "__"))
+                item.set_image(gtk.image_new_from_stock("gtk-add", gtk.ICON_SIZE_MENU))
+                # Connect click event (Streaming API)
+                item.connect("activate", self.on_menuitem_hash_clicked, i)
+                # append to menu
+                hashmenu.append(item)
+        else:
+            # not, show None
+            item = gtk.MenuItem("None")
+            item.set_sensitive(False)
+            hashmenu.append(item)
+        
+        # urls submenu append
+        self.pmenu.get_children()[-1].set_submenu(urlmenu)
+        self.pmenu.get_children()[-2].set_submenu(hashmenu)
+        self.pmenu.get_children()[-3].set_submenu(usermenu)
         
         # Show popup menu
-        m.show_all()
-        mm.show_all()
+        urlmenu.show_all()
+        usermenu.show_all()
+        hashmenu.show_all()
     
     
     ########################################
@@ -236,7 +255,7 @@ class StatusView(gtk.TreeView):
         
         name = status.user.screen_name
         
-        if status.retweeted_status != None:
+        if TwitterTools.isretweet(status):
             rtstatus = status
             status = status.retweeted_status
             status.favorited = False # FIX? rtstatus.favorited
@@ -251,12 +270,12 @@ class StatusView(gtk.TreeView):
             tmpl = "<span foreground='#666666'><b>%s</b></span>\n%s"
         
         # colord url
-        text = TwitterTools.get_colored_url(status.text)
+        text = TwitterTools.get_colored_url(status)
         # screen_name + text
         message = tmpl % (name, text)        
         # replace no entity & -> &amp;
         message = TwitterTools.replace_amp(message)
-
+        
         # deleted
         if "deleted" in status:
             message = "<span foreground='#666666'><s>%s</s></span>" % message
@@ -461,4 +480,8 @@ class StatusView(gtk.TreeView):
             # force specify screen_name if not found
             self.new_timeline("@%s" % sname, "user_timeline", user = sname, sn = True)
         
+        return True
+
+    def on_menuitem_hash_clicked(self, menuitem, hashtag):
+        self.new_timeline("Stream: #%s" % hashtag, "filter", track = [hashtag])
         return True

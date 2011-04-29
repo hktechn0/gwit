@@ -310,16 +310,6 @@
       </object>
     </child>
     <child>
-      <object class="GtkImageMenuItem" id="menuitem_detail">
-        <property name="label" translatable="yes">Detail</property>
-        <property name="visible">True</property>
-        <property name="image">image11</property>
-        <property name="use_stock">False</property>
-        <property name="always_show_image">True</property>
-        <signal name="activate" handler="on_menuitem_detail_activate"/>
-      </object>
-    </child>
-    <child>
       <object class="GtkImageMenuItem" id="menuitem_usertl">
         <property name="label" translatable="yes">User Timeline</property>
         <property name="visible">True</property>
@@ -330,10 +320,34 @@
       </object>
     </child>
     <child>
+      <object class="GtkImageMenuItem" id="menuitem_detail">
+        <property name="label" translatable="yes">Show conversation</property>
+        <property name="visible">True</property>
+        <property name="image">image11</property>
+        <property name="use_stock">False</property>
+        <property name="always_show_image">True</property>
+        <signal name="activate" handler="on_menuitem_detail_activate"/>
+      </object>
+    </child>
+    <child>
+      <object class="GtkSeparatorMenuItem" id="menuitem3">
+        <property name="visible">True</property>
+      </object>
+    </child>
+    <child>
       <object class="GtkImageMenuItem" id="menuitem_mentioned_user">
         <property name="label" translatable="yes">Mentioned users</property>
         <property name="visible">True</property>
         <property name="image">image7</property>
+        <property name="use_stock">False</property>
+        <property name="always_show_image">True</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkImageMenuItem" id="menuitem_hashtags">
+        <property name="label" translatable="yes">Hashtags</property>
+        <property name="visible">True</property>
+        <property name="image">image13</property>
         <property name="use_stock">False</property>
         <property name="always_show_image">True</property>
       </object>
@@ -351,35 +365,43 @@
   <object class="GtkImage" id="image1">
     <property name="visible">True</property>
     <property name="stock">gtk-redo</property>
+    <property name="icon-size">1</property>
   </object>
   <object class="GtkImage" id="image2">
     <property name="visible">True</property>
     <property name="stock">gtk-refresh</property>
+    <property name="icon-size">1</property>
   </object>
   <object class="GtkImage" id="image5">
     <property name="visible">True</property>
     <property name="yalign">0.47999998927116394</property>
     <property name="stock">gtk-refresh</property>
+    <property name="icon-size">1</property>
   </object>
   <object class="GtkImage" id="image3">
     <property name="visible">True</property>
     <property name="stock">gtk-about</property>
+    <property name="icon-size">1</property>
   </object>
   <object class="GtkImage" id="image8">
     <property name="visible">True</property>
     <property name="stock">gtk-delete</property>
+    <property name="icon-size">1</property>
   </object>
   <object class="GtkImage" id="image4">
     <property name="visible">True</property>
     <property name="stock">gtk-add</property>
+    <property name="icon-size">1</property>
   </object>
   <object class="GtkImage" id="image7">
     <property name="visible">True</property>
     <property name="stock">gtk-find</property>
+    <property name="icon-size">1</property>
   </object>
   <object class="GtkImage" id="image6">
     <property name="visible">True</property>
     <property name="stock">gtk-home</property>
+    <property name="icon-size">1</property>
   </object>
   <object class="GtkMenu" id="menu_timeline">
     <property name="visible">True</property>
@@ -389,7 +411,6 @@
         <property name="label" translatable="yes">Every 10 minutes</property>
         <property name="use_underline">True</property>
         <property name="draw_as_radio">True</property>
-        <property name="group">radiomenuitem1</property>
         <signal name="toggled" handler="on_menuitem_time_600_toggled"/>
       </object>
     </child>
@@ -399,7 +420,6 @@
         <property name="label" translatable="yes">Every 5 minutes</property>
         <property name="use_underline">True</property>
         <property name="draw_as_radio">True</property>
-        <property name="group">radiomenuitem1</property>
         <signal name="toggled" handler="on_menuitem_time_300_toggled"/>
       </object>
     </child>
@@ -409,7 +429,6 @@
         <property name="label" translatable="yes">Every 2 minutes</property>
         <property name="use_underline">True</property>
         <property name="draw_as_radio">True</property>
-        <property name="group">radiomenuitem1</property>
         <signal name="toggled" handler="on_menuitem_time_120_toggled"/>
       </object>
     </child>
@@ -419,7 +438,6 @@
         <property name="label" translatable="yes">Every 1 minute</property>
         <property name="use_underline">True</property>
         <property name="draw_as_radio">True</property>
-        <property name="group">radiomenuitem1</property>
         <signal name="toggled" handler="on_menuitem_time_60_toggled"/>
       </object>
     </child>
@@ -429,7 +447,6 @@
         <property name="label" translatable="yes">Every 30 seconds</property>
         <property name="use_underline">True</property>
         <property name="draw_as_radio">True</property>
-        <property name="group">radiomenuitem1</property>
         <signal name="toggled" handler="on_menuitem_time_30_toggled"/>
       </object>
     </child>
@@ -443,7 +460,7 @@
         <property name="visible">True</property>
         <property name="label" translatable="yes">Default ()</property>
         <property name="use_underline">True</property>
-        <property name="group">radiomenuitem1</property>
+        <property name="draw_as_radio">True</property>
         <signal name="toggled" handler="on_menuitem_time_default_toggled"/>
       </object>
     </child>
@@ -453,7 +470,6 @@
         <property name="label" translatable="yes">Stop</property>
         <property name="use_underline">True</property>
         <property name="draw_as_radio">True</property>
-        <property name="group">radiomenuitem1</property>
         <signal name="toggled" handler="on_menuitem_time_none_toggled"/>
       </object>
     </child>
@@ -461,7 +477,6 @@
   <object class="GtkAboutDialog" id="dialog_about">
     <property name="border_width">5</property>
     <property name="type_hint">normal</property>
-    <property name="has_separator">False</property>
     <property name="program_name">gwit</property>
     <property name="version">0.9.1-beta</property>
     <property name="copyright" translatable="yes">Copyright &#xA9; 2009-2010
@@ -515,7 +530,6 @@ http://www.tsukuba-linux.org/</property>
   <object class="GtkDialog" id="dialog_settings">
     <property name="border_width">5</property>
     <property name="type_hint">normal</property>
-    <property name="has_separator">False</property>
     <signal name="close" handler="on_dialog_settings_close"/>
     <child internal-child="vbox">
       <object class="GtkVBox" id="dialog-vbox2">
@@ -1414,20 +1428,22 @@ http://www.tsukuba-linux.org/</property>
     <property name="step_increment">1</property>
     <property name="page_increment">10</property>
   </object>
-  <object class="GtkRadioMenuItem" id="radiomenuitem1">
-    <property name="visible">True</property>
-    <property name="draw_as_radio">True</property>
-  </object>
   <object class="GtkTextBuffer" id="textbuffer1">
     <signal name="changed" handler="on_textbuffer1_changed"/>
   </object>
   <object class="GtkImage" id="image11">
     <property name="visible">True</property>
     <property name="stock">gtk-info</property>
+    <property name="icon-size">1</property>
   </object>
   <object class="GtkImage" id="image12">
     <property name="visible">True</property>
     <property name="xalign">0.44999998807907104</property>
     <property name="stock">gtk-media-forward</property>
+  </object>
+  <object class="GtkImage" id="image13">
+    <property name="visible">True</property>
+    <property name="stock">gtk-find</property>
+    <property name="icon-size">1</property>
   </object>
 </interface>

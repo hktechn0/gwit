@@ -82,6 +82,7 @@ class BaseThread(threading.Thread):
 class TimelineThread(BaseThread):
     def __init__(self, method, interval, counts, args = (), kwargs = {}):
         BaseThread.__init__(self, method, args, kwargs)
+        self.kwargs["include_entities"] = 1
         
         # Event lock
         self.lock = threading.Event()
@@ -107,7 +108,7 @@ class TimelineThread(BaseThread):
             
             if len(cached) > 0:
                 self.add_statuses(cached)
-
+        
         self.lock.set()
         
         # Auto reloading loop

@@ -32,8 +32,11 @@ import htmlentitydefs
 class TwitterTools(object):
     _urlpattern = u'''(?P<url>https?://[^\s　]*)'''
     _userpattern = u'''@(?P<user>\w+)'''
+    _hashpattern = u'''#(?P<hashtag>\w+)'''
+    
     reurl = re.compile(_urlpattern)
     reuser = re.compile(_userpattern)
+    rehash = re.compile(_hashpattern)
     reentity = re.compile("&([A-Za-z]+);")
     reamp = re.compile("&(?P<after>((?P<name>[A-Za-z]+);)?[^&]*)")
     
@@ -54,30 +57,50 @@ class TwitterTools(object):
     ## Status
     # URL
     @classmethod
-    def get_colored_url(cls, string):
-        return cls.reurl.sub(
-            '<span foreground="#0000FF" underline="single">\g<url></span>',
-            string)
+    def get_colored_url(cls, status):
+        if status.entities == None:
+            return cls.reurl.sub(
+                '<span foreground="#0000FF" underline="single">\g<url></span>',
+                status)
+        
+        text = status.text
+        
+        for i in status.entities.urls:
+            text = text.replace(
+                i.url,'<span foreground="#0000FF" underline="single">%s</span>' % i.url)
+        return text
     
     @classmethod
-    def get_urls(cls, string):
-        url_iter = cls.reurl.finditer(string)
-        urls = list()
-        for i in url_iter:
-            urls.append(i.group('url'))
+    def get_urls(cls, status):
+        if cls.isretweet(status):
+            status = status.retweeted_status
         
-        return tuple(urls)
+        if not status.entities:
+            return [i.url for i in status.entities.urls]
+        else:
+            url_iter = cls.reurl.finditer(status.text)
+            return [i.group('url') for i in url_iter]
     
     # User
     @classmethod
-    def get_users(cls, string):
-        match = cls.reuser.finditer(string)
+    def get_user_mentions(cls, status):
+        if not status.entities:
+            return [i.screen_name for i in status.entities.user_mentions]
+        else:
+            match = cls.reuser.finditer(status.text)      
+            return [i.group('user') for i in match]
+    
+    # Hashtags
+    @classmethod
+    def get_hashtags(cls, status):
+        if cls.isretweet(status):
+            status = status.retweeted_status
         
-        users = list()
-        for i in match:
-            users.append(i.group('user'))
-        
-        return users
+        if not status.entities:
+            return [i.text for i in status.entities.hashtags]
+        else:
+            match = cls.rehash.finditer(status.text)
+            return [i.group('hashtag') for i in match]
     
     # source
     @staticmethod
@@ -151,7 +174,7 @@ class TwitterTools(object):
     ## Retweet
     @staticmethod
     def isretweet(status):
-        return "retweeted_status" in status.keys()
+        return bool(status.get("retweeted_status"))
     
     ## Lists
     @staticmethod

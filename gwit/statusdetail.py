@@ -97,7 +97,8 @@ class StatusDetail(gtk.VPaned):
                 # not found in cache
                 statuses = self.twitter.api_wrapper(
                     self.twitter.api.user_timeline,
-                    s.in_reply_to_user_id, count = 20, max_id = i)
+                    s.in_reply_to_user_id, count = 20, max_id = i,
+                    include_entities = 1)
                 self.twitter.add_statuses(statuses)
         
         self._box.remove(loading)
