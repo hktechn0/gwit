@@ -35,7 +35,8 @@ import urllib2
 import cStringIO
 import time
 import os.path
-
+import random
+import Queue
 try:
     import Image
 except ImportError:
@@ -47,38 +48,40 @@ else:
 class IconStore(object):
     iconmode = True
     
-    def __init__(self):
-        self.data = dict()
+    def __init__(self, background_slot = 5):
+        self.icons = dict()
         self.stores = list()
-        self.semaphore = threading.BoundedSemaphore(5)
+        self.iconthread = list()
         
         # load default icon
         iconpath = os.path.join(os.path.dirname(__file__), "img/none.png")
         self.default_icon = gtk.gdk.pixbuf_new_from_file(iconpath)
+        
+        for i in range(background_slot):
+            t = IconThread(self.icons, self.stores)
+            t.start()
+            self.iconthread.append(t)
     
     def get(self, user):
-        if user.id in self.data:
+        if user.id in self.icons:
             # if exist in cache
-            return self.data[user.id]
+            return self.icons[user.id]
         elif self.iconmode:
             # or get new icon
             self.new(user)
+            self.icons[user.id] = self.default_icon
         
         # Return Default Image
         return self.default_icon
     
     def new(self, user):
         # New Icon thread start if iconmode is True
-        self.data[user.id] = self.default_icon
-        newico = NewIcon(user, self.stores, self.data, self.semaphore)
-        try:
-            newico.start()
-        except:
-            print >>sys.stderr, "[Error] Iconstore Over Capacity"
+        n = random.randint(0, 4)
+        self.iconthread[n].put(user)
     
     def add_store(self, store, n):
         self.stores.append((store, n))
-
+    
     def remove_store(self, store):
         remove = None
         
@@ -90,17 +93,54 @@ class IconStore(object):
         if remove:
             self.stores.remove(remove)
 
-class NewIcon(threading.Thread):
-    def __init__(self, user, stores, icons, semaphore):
+class IconThread(threading.Thread):
+    def __init__(self, icons, stores):
         threading.Thread.__init__(self)
         self.setDaemon(True)
-        self.setName("icon:%s" % user.screen_name)
+        self.setName("icon")
         
-        self.user = user
-        self.stores = stores
         self.icons = icons
-        self.semaphore = semaphore
-
+        self.stores = stores
+        self.queue = Queue.Queue()
+    
+    def put(self, user):
+        self.queue.put(user)
+    
+    def run(self):
+        while True:
+            user = self.queue.get()
+            
+            # Icon Image Get
+            for i in range(3):
+                conn = urllib2.urlopen(user.profile_image_url)
+                try:
+                    ico = conn.read()
+                    break
+                except Exception, e:
+                    ico = None
+                    print >>sys.stderr, "[Error] %d: IconStore %s" % (i, e)
+                finally:
+                    conn.close()
+            
+            # Get pixbuf
+            filetype = user.profile_image_url[-3:]
+            icopix = self.convert_pixbuf(ico, filetype)
+            
+            if icopix == None:
+                print >>sys.stderr, "[warning] Can't convert icon image: %s" % user.screen_name
+            
+            # Add iconstore
+            self.icons[user.id] = icopix
+        
+            # Icon Refresh
+            for store, n in self.stores:
+                for row in store:
+                    # replace icon to all user's status
+                    if row[n] == user.id:
+                        gtk.gdk.threads_enter()
+                        store[row.path][0] = icopix
+                        gtk.gdk.threads_leave()
+    
     # create pixbuf
     def load_pixbuf(self, ico):
         loader = gtk.gdk.PixbufLoader()
@@ -112,11 +152,11 @@ class NewIcon(threading.Thread):
         
         return pix
     
-    def convert_pixbuf(self, ico):
+    def convert_pixbuf(self, ico, filetype):
         if ico == None: return None
         if USE_PIL:
             # use Python Imaging Library if exists
-            pix = self.convert_pixbuf_pil(ico)    
+            pix = self.convert_pixbuf_pil(ico, filetype)
         else:
             pix = self.load_pixbuf(ico)
             if pix != None:
@@ -125,12 +165,12 @@ class NewIcon(threading.Thread):
         return pix
     
     # Convert Pixbuf with PIL
-    def convert_pixbuf_pil(self, ico):
+    def convert_pixbuf_pil(self, ico, filetype):
         i = cStringIO.StringIO(ico)
         o = cStringIO.StringIO()
         
         try:
-            self.create_thumbnail(ico, i, o)
+            self.create_thumbnail(filetype, ico, i, o)
             pix = self.load_pixbuf(o.getvalue())
         except:
             pix = None
@@ -141,46 +181,11 @@ class NewIcon(threading.Thread):
         return pix
     
     # Try convert PIL, if installed Python Imaging Library
-    def create_thumbnail(self, img, i, o):
+    def create_thumbnail(self, img, filetype, i, o):
         pimg = Image.open(i)
         thumb = pimg.resize((48, 48))
         
-        ext = self.user.profile_image_url[-3:]        
-        if ext == "jpg":
+        if filetype == "jpg":
             thumb = thumb.convert("RGB")
         
         thumb.save(o, "png")
-    
-    def run(self):
-        # Icon Data Get (if can get semaphore or block)
-        self.semaphore.acquire()
-        for i in range(3):
-            try:
-                ico = urllib2.urlopen(self.user.profile_image_url).read()
-                break
-            except Exception, e:
-                ico = None
-                print >>sys.stderr, "[Error] %d: IconStore %s" % (i, e)
-        self.semaphore.release()
-        
-        # Get pixbuf
-        icopix = self.convert_pixbuf(ico)
-        
-        if icopix == None:
-            print >>sys.stderr, "[warning] Can't convert icon image: %s" % self.user.screen_name
-            return
-        
-        # Add iconstore
-        self.icons[self.user.id] = icopix
-        
-        # delay for replace icons (temporary bug fix...
-        #time.sleep(1)
-        
-        # Icon Refresh
-        for store, n in self.stores:
-            for row in store:
-                # replace icon to all user's status
-                if row[n] == self.user.id:
-                    gtk.gdk.threads_enter()
-                    store[row.path][0] = icopix
-                    gtk.gdk.threads_leave()
