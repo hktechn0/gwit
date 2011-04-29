@@ -28,6 +28,7 @@
 import re
 import datetime
 import htmlentitydefs
+import bitly
 
 class TwitterTools(object):
     _urlpattern = u'''(?P<url>https?://[^\s　]*)'''
@@ -71,6 +72,11 @@ class TwitterTools(object):
         return text
     
     @classmethod
+    def get_urls_from_text(cls, text):
+        url_iter = cls.reurl.finditer(text)
+        return [i.group('url') for i in url_iter]        
+    
+    @classmethod
     def get_urls(cls, status):
         if cls.isretweet(status):
             status = status.retweeted_status
@@ -78,8 +84,7 @@ class TwitterTools(object):
         if not status.entities:
             return [i.url for i in status.entities.urls]
         else:
-            url_iter = cls.reurl.finditer(status.text)
-            return [i.group('url') for i in url_iter]
+            return cls.get_urls_from_text(status.text)
     
     # User
     @classmethod
@@ -229,3 +234,20 @@ class TwitterTools(object):
                 string = string.replace("&%s;" % name, unichr(c))
         
         return string
+
+    @classmethod
+    def is_bitly_url(cls, urls):
+        if url.startswith(("http://bit.ly", "http://j.mp")):
+            return bitly.Bitly.expand(url)[0]
+        else:
+            return False
+    
+    @classmethod
+    def url_shorten(cls, text):
+        urls = TwitterTools.get_urls_from_text(text)
+        for longurl in urls:
+            shorturl = bitly.Bitly.shorten(longurl)
+            text = text.replace(longurl, shorturl)
+        
+        return text
+

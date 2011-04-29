@@ -247,10 +247,20 @@
         <signal name="activate" handler="on_menuitem_twitpic_activate"/>
       </object>
     </child>
+    <child>
+      <object class="GtkImageMenuItem" id="menuitem_shorten">
+        <property name="label" translatable="yes">Shorten URL</property>
+        <property name="visible">True</property>
+        <property name="image">image14</property>
+        <property name="use_stock">False</property>
+        <signal name="activate" handler="on_menuitem_shorten_activate"/>
+      </object>
+    </child>
   </object>
   <object class="GtkImage" id="image10">
     <property name="visible">True</property>
     <property name="stock">gtk-open</property>
+    <property name="icon-size">1</property>
   </object>
   <object class="GtkMenu" id="menu_tweet">
     <property name="visible">True</property>
@@ -1444,6 +1454,11 @@ http://www.tsukuba-linux.org/</property>
   <object class="GtkImage" id="image13">
     <property name="visible">True</property>
     <property name="stock">gtk-find</property>
+    <property name="icon-size">1</property>
+  </object>
+  <object class="GtkImage" id="image14">
+    <property name="visible">True</property>
+    <property name="stock">gtk-zoom-out</property>
     <property name="icon-size">1</property>
   </object>
 </interface>

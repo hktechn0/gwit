@@ -671,7 +671,18 @@ class Main(object):
         
         params = {"track" : text.split(",")}
         self.new_timeline("Stream: %s" % text, "filter", track = params)
-    
+
+    def on_menuitem_shorten_activate(self, menuitem):
+        self.textview.set_sensitive(False)
+        self.btnupdate.set_sensitive(False)
+        
+        text = self.get_textview()
+        text = TwitterTools.url_shorten(text)
+        self.clear_textview()
+        self.add_textview(text)
+        
+        self.textview.set_sensitive(True)
+        self.btnupdate.set_sensitive(True)
     
     ########################################
     # Tweet menu event
