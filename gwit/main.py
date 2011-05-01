@@ -564,14 +564,26 @@ class Main(object):
         dialog.destroy()
         
         if ret == gtk.RESPONSE_OK:
-            f = open(filename)
-            message = self.get_textview()
-            res = self.twitter.twitpic.upload(f, message)
+            self.textview.set_sensitive(False)
+            self.btnupdate.set_sensitive(False)
             
-            try:
-                self.add_textview(" %s" % res["url"])
-            except KeyError:
-                print >>sys.stderr, "[Error] Cannot upload Twitpic.\n%s" % (res)
+            message = self.get_textview()
+            
+            t = threading.Thread(target = self._twitpic_upload, args = (filename, message))
+            t.start()
+    
+    def _twitpic_upload(self, filename, message):
+        res = self.twitter.twitpic.upload(filename, message)
+        
+        try:
+            gtk.gdk.threads_enter()
+            self.add_textview(" %s" % res["url"])
+        except KeyError:
+            print >>sys.stderr, "[Error] Cannot upload Twitpic.\n%s" % (res)
+        finally:
+            self.textview.set_sensitive(True)
+            self.btnupdate.set_sensitive(True)
+            gtk.gdk.threads_leave()
     
     # Timeline Tab Close
     def on_tabclose_clicked(self, widget, uid):
