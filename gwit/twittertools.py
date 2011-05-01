@@ -89,7 +89,7 @@ class TwitterTools(object):
     # User
     @classmethod
     def get_user_mentions(cls, status):
-        if not status.entities:
+        if status.entities:
             return [i.screen_name for i in status.entities.user_mentions]
         else:
             match = cls.reuser.finditer(status.text)      
@@ -101,7 +101,7 @@ class TwitterTools(object):
         if cls.isretweet(status):
             status = status.retweeted_status
         
-        if not status.entities:
+        if status.entities:
             return [i.text for i in status.entities.hashtags]
         else:
             match = cls.rehash.finditer(status.text)
