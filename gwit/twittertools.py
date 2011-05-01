@@ -59,10 +59,10 @@ class TwitterTools(object):
     # URL
     @classmethod
     def get_colored_url(cls, status):
-        if status.entities == None:
+        if not status.entities:
             return cls.reurl.sub(
                 '<span foreground="#0000FF" underline="single">\g<url></span>',
-                status)
+                status.text)
         
         text = status.text
         
@@ -81,7 +81,7 @@ class TwitterTools(object):
         if cls.isretweet(status):
             status = status.retweeted_status
         
-        if not status.entities:
+        if status.entities:
             return [i.url for i in status.entities.urls]
         else:
             return cls.get_urls_from_text(status.text)
