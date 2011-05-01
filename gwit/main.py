@@ -86,7 +86,8 @@ class Main(object):
         
         # force change gtk icon settings
         settings = gtk.settings_get_default()
-        settings.props.gtk_button_images = True
+        if not getattr(settings.props, 'gtk_button_images', True):
+            settings.props.gtk_button_images = True
         
         # init status timelines
         self.timelines = list()

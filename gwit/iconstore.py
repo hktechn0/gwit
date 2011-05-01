@@ -172,6 +172,14 @@ class IconThread(threading.Thread):
         try:
             self.create_thumbnail(ico, i, o)
             pix = self.load_pixbuf(o.getvalue())
+            
+            # fix for win32
+            if not pix:
+                i.seek(0)
+                o.seek(0)
+                o.truncate()
+                self.create_thumbnail(ico, i, o, "PPM")
+                pix = self.load_pixbuf(o.getvalue())
         except Exception, e:
             pix = None
         finally:
@@ -181,8 +189,8 @@ class IconThread(threading.Thread):
         return pix
     
     # Try convert PIL, if installed Python Imaging Library
-    def create_thumbnail(self, img, i, o):
+    def create_thumbnail(self, img, i, o, filetype = "BMP"):
         pimg = Image.open(i)
         pimg.thumbnail((48, 48), Image.ANTIALIAS)
         pimg = pimg.convert("RGB")
-        pimg.save(o, "BMP")
+        pimg.save(o, filetype)
