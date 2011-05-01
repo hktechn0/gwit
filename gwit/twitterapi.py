@@ -83,21 +83,23 @@ class TwitterAPI(object):
         self.followers.update([int(i) for i in self.api_wrapper(self.api.followers_ids)])
     
     def add_statuses(self, statuses):
-        for i in statuses:
-            self.add_status(i)
+        if isinstance(users, dict):
+            map(self.add_status, statuses.iteritems())
+        else:
+            map(self.add_status, statuses)
     
     def add_status(self, status):
         self.statuses[status.id] = status
         self.add_user(status.user)
         
-        if status.retweeted_status != None:
+        if status.retweeted_status:
             self.add_status(status.retweeted_status)
     
     def add_users(self, users):
         if isinstance(users, dict):
-            self.users.update(users)
+            map(self.add_user, users.iteritems())
         else:
-            self.users.update([(i.id, i) for i in users])
+            map(self.add_user, users)
     
     def add_user(self, user):
         self.users[user.id] = user
@@ -117,18 +119,44 @@ class TwitterAPI(object):
         if i in self.statuses:
             self.statuses[i]["deleted"] = True
             self.on_tweet_event(i)
-
-    def favorite_event(self, tweet, user):
-        if tweet["id"] not in self.statuses:
-            self.statuses[tweet["id"]] = tweet
+    
+    def favorite_event(self, status, user):
+        self.add_status(status)
         
-        if "faved_by" in self.statuses[tweet["id"]]:
-            self.statuses[tweet["id"]]["faved_by"].append(user["id"])
+        if "faved_by" in self.statuses[status.id]:
+            self.statuses[status.id]["faved_by"].append(user.id)
         else:
-            self.statuses[tweet["id"]]["faved_by"] = [user["id"]]
+            self.statuses[status.id]["faved_by"] = [user.id]
         
-        self.on_notify_event("@%s favorited your tweet" % user["screen_name"], tweet["text"])
-        self.on_tweet_event(tweet["id"])
+        self.on_notify_event("@%s favorited tweet" % user.screen_name, 
+                             "@%s: %s" % (status.user.screen_name, status.text),
+                             user)
+        self.on_tweet_event(status.id)
+    
+    def unfavorite_event(self, status, user):
+        self.add_status(status)
+        
+        if "faved_by" in self.statuses[status.id]:
+            try:
+                self.statuses[status.id]["faved_by"].remove(user.id)
+            except ValueError:
+                pass
+        
+        self.on_notify_event("@%s unfavorited tweet" % user.screen_name, 
+                             "%s\n%s" % (status.user.screen_name, status.text),
+                             user)
+        self.on_tweet_event(status.id)
+    
+    def follow_event(self, source, target):
+        self.add_users((source, target))
+        
+        if source.id == self.my_id:
+            self.followers.add(source.id)
+        else:
+            self.following.add(source.id)
+            self.on_notify_event("@%s is following you" % source.screen_name, 
+                                 "%s\n%s" % (source.name, source.description),
+                                 source)
     
     def api_wrapper(self, method, *args, **kwargs):
         for i in range(3):
@@ -167,4 +195,4 @@ class TwitterAPI(object):
     def on_twitterapi_error(self, method, e): pass
     def on_twitterapi_requested(self): pass
     def on_tweet_event(self, i): pass
-    def on_notify_event(self, title, text, icon): pass
+    def on_notify_event(self, title, text, icon_user): pass

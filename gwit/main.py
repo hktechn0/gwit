@@ -448,11 +448,12 @@ class Main(object):
         Config.save_section(conf)
 
     # desktop notify
-    def notify(self, title, text, icon_pixbuf = None):
+    def notify(self, title, text, icon_user = None):
         if USE_NOTIFY:
             notify = pynotify.Notification(title, text)
-            if icon_pixbuf:
-                notify.set_icon_from_pixbuf(icon_pixbuf)
+            if icon_user:
+                icon = self.iconstore.get(icon_user)
+                notify.set_icon_from_pixbuf(icon)
             notify.show()
     
     def refresh_tweet(self, i):
@@ -478,7 +479,7 @@ class Main(object):
     def on_mentions_added(self, i):
         status = self.twitter.statuses[i]
         self.notify("@%s mentioned you." % status.user.screen_name,
-                    status.text, self.iconstore.get(status.user))
+                    status.text, status.user)
     
     # timeline refreshed event
     def on_timeline_refresh(self):

@@ -55,23 +55,27 @@ class BaseThread(threading.Thread):
     
     def add_statuses(self, statuses):
         new_statuses = set()
-        
+         
         for i in statuses:
             if isinstance(i, twoauth.TwitterStatus):
+                # Status
                 self.twitter.add_status(i)
                 new_statuses.add(i.id)
+            elif isinstance(i, twoauth.TwitterEvent):
+                # Userstreams Event
+                if "favorite" == i.event:
+                    self.twitter.favorite_event(i.target_object, i.source)
+                elif "unfavorite" == i.event:
+                    self.twitter.unfavorite_event(i.target_object, i.source)
+                elif "follow" == i.event:
+                    self.twitter.follow_event(i.source, i.target)
             else:
-                # deleted, favorited, followed... for StreamingAPI
+                # deleted, friends
                 if "friends" in i:
                     self.twitter.following.update(i["friends"])
                 elif "delete" in i:
                     self.twitter.delete_event(i["delete"]["status"]["id"])
-                elif "event" in i:
-                    if "favorite" == i["event"]:
-                        self.twitter.favorite_event(i["target_object"], i["source"])
-#                    elif "follow" in i["event"]:
-#                        self.twitter.follow_event(i["follow"]["status"]["id"])
-
+        
         new_statuses.difference_update(self.timeline)
         self.on_received_status(new_statuses)
         self.timeline.update(new_statuses)
