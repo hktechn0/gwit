@@ -83,7 +83,7 @@ class TwitterAPI(object):
         self.followers.update([int(i) for i in self.api_wrapper(self.api.followers_ids)])
     
     def add_statuses(self, statuses):
-        if isinstance(users, dict):
+        if isinstance(statuses, dict):
             map(self.add_status, statuses.iteritems())
         else:
             map(self.add_status, statuses)
@@ -97,7 +97,7 @@ class TwitterAPI(object):
     
     def add_users(self, users):
         if isinstance(users, dict):
-            map(self.add_user, users.iteritems())
+            map(self.add_user, users.itervalues())
         else:
             map(self.add_user, users)
     
@@ -143,7 +143,7 @@ class TwitterAPI(object):
                 pass
         
         self.on_notify_event("@%s unfavorited tweet" % user.screen_name, 
-                             "%s\n%s" % (status.user.screen_name, status.text),
+                             "@%s: %s" % (status.user.screen_name, status.text),
                              user)
         self.on_tweet_event(status.id)
     

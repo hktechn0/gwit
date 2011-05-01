@@ -63,21 +63,22 @@ class IconStore(object):
             self.iconthread.append(t)
     
     def get(self, user):
-        if user.id in self.icons:
-            # if exist in cache
-            return self.icons[user.id]
-        elif self.iconmode:
-            # or get new icon
-            self.new(user)
-            self.icons[user.id] = self.default_icon
+        # get from cache
+        icon = self.icons.get(user.id)
         
-        # Return Default Image
-        return self.default_icon
+        if not icon:
+            icon = self.default_icon
+            if user.id not in self.icons:
+                self.icons[user.id] = None
+                self.new(user)
+        
+        return icon
     
     def new(self, user):
         # New Icon thread start if iconmode is True
-        n = random.randint(0, 4)
-        self.iconthread[n].put(user)
+        if self.iconmode:
+            n = random.randint(0, 4)
+            self.iconthread[n].put(user)
     
     def add_store(self, store, n):
         self.stores.append((store, n))
@@ -123,23 +124,22 @@ class IconThread(threading.Thread):
                     conn.close()
             
             # Get pixbuf
-            filetype = user.profile_image_url[-3:]
-            icopix = self.convert_pixbuf(ico, filetype)
+            icopix = self.convert_pixbuf(ico)
             
             if icopix == None:
                 print >>sys.stderr, "[warning] Can't convert icon image: %s" % user.screen_name
-            
-            # Add iconstore
-            self.icons[user.id] = icopix
-        
-            # Icon Refresh
-            for store, n in self.stores:
-                for row in store:
-                    # replace icon to all user's status
-                    if row[n] == user.id:
-                        gtk.gdk.threads_enter()
-                        store[row.path][0] = icopix
-                        gtk.gdk.threads_leave()
+            else:
+                # Add iconstore
+                self.icons[user.id] = icopix
+                
+                # Icon Refresh
+                for store, n in self.stores:
+                    for row in store:
+                        # replace icon to all user's status
+                        if row[n] == user.id:
+                            gtk.gdk.threads_enter()
+                            store[row.path][0] = self.icons.get(user.id)
+                            gtk.gdk.threads_leave()
     
     # create pixbuf
     def load_pixbuf(self, ico):
@@ -152,11 +152,11 @@ class IconThread(threading.Thread):
         
         return pix
     
-    def convert_pixbuf(self, ico, filetype):
+    def convert_pixbuf(self, ico):
         if ico == None: return None
         if USE_PIL:
             # use Python Imaging Library if exists
-            pix = self.convert_pixbuf_pil(ico, filetype)
+            pix = self.convert_pixbuf_pil(ico)
         else:
             pix = self.load_pixbuf(ico)
             if pix != None:
@@ -165,14 +165,14 @@ class IconThread(threading.Thread):
         return pix
     
     # Convert Pixbuf with PIL
-    def convert_pixbuf_pil(self, ico, filetype):
+    def convert_pixbuf_pil(self, ico):
         i = cStringIO.StringIO(ico)
         o = cStringIO.StringIO()
         
         try:
-            self.create_thumbnail(filetype, ico, i, o)
+            self.create_thumbnail(ico, i, o)
             pix = self.load_pixbuf(o.getvalue())
-        except:
+        except Exception, e:
             pix = None
         finally:
             i.close()
@@ -181,11 +181,8 @@ class IconThread(threading.Thread):
         return pix
     
     # Try convert PIL, if installed Python Imaging Library
-    def create_thumbnail(self, img, filetype, i, o):
+    def create_thumbnail(self, img, i, o):
         pimg = Image.open(i)
-        thumb = pimg.resize((48, 48))
-        
-        if filetype == "jpg":
-            thumb = thumb.convert("RGB")
-        
-        thumb.save(o, "png")
+        pimg.thumbnail((48, 48), Image.ANTIALIAS)
+        pimg = pimg.convert("RGB")
+        pimg.save(o, "BMP")
