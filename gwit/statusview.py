@@ -260,14 +260,16 @@ class StatusView(gtk.TreeView):
         
         if TwitterTools.isretweet(status):
             rtstatus = status
-            status = status.retweeted_status
-            status.favorited = False # FIX? rtstatus.favorited
+            status = self.twitter.statuses[status.retweeted_status.id]
+            #status.favorited = False # FIX? rtstatus.favorited
             name = "%s <span foreground='#333333'><small>- Retweeted by %s</small></span>" % (
                 status.user.screen_name, rtstatus.user.screen_name)
         
-        if status.user.id in self.twitter.followers or status.user.id == self.twitter.my_id or not self.twitter.followers:
+        if status.user.id in self.twitter.followers or status.user.id == self.twitter.my_id:
             # Bold screen_name if follower
             tmpl = "<b>%s</b>\n%s"
+        elif not self.twitter.followers:
+            tmpl = "<b><i>%s</i></b>\n%s"
         else:
             # or gray
             tmpl = "<span foreground='#666666'><b>%s</b></span>\n%s"
@@ -283,6 +285,11 @@ class StatusView(gtk.TreeView):
         if "deleted" in status:
             message = "<span foreground='#666666'><s>%s</s></span>" % message
         
+        if "faved_by" in status and status["faved_by"]:
+            message = "%s\n<small>\nFaved by: %s</small>" % (
+                message, ", ".join(["@" + self.twitter.users[u].screen_name 
+                                    for u in status["faved_by"]]))
+        
         # Favorite
         favico = self.favico_y if status.favorited else self.favico_n
         
@@ -296,7 +303,7 @@ class StatusView(gtk.TreeView):
         while True:
             self.render_event.wait()
             self.render_event.clear()
-            
+
             status = self._render_color_only
             self._render_color_only = False
             
@@ -356,6 +363,7 @@ class StatusView(gtk.TreeView):
         self.render_event.set()
     
     def _reset_status_text_in_thread(self):
+        # FIX ME : cannot force reload when favorite, unfavorite, delete
         for row in self.store:
             if self.render_event.is_set(): break
             
