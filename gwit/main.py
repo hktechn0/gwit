@@ -131,7 +131,8 @@ class Main(object):
         self.menu_tweet = self.builder.get_object("menu_tweet")
         self.builder.get_object("menuitem_tweet").set_submenu(self.menu_tweet)
         self.menu_timeline = self.builder.get_object("menu_timeline")
-        self.builder.get_object("menuitem_timeline").set_submenu(self.menu_timeline)
+        self.builder.get_object("menuitem_timeline").set_submenu(
+            self.menu_timeline)
         
         # set class variables
         Timeline.twitter = self.twitter
@@ -140,8 +141,6 @@ class Main(object):
         StatusView.iconmode = self.iconmode
         StatusView.pmenu = self.menu_tweet
         BaseThread.twitter = self.twitter
-        StatusView.favico_y = self.notebook.render_icon("gtk-about", gtk.ICON_SIZE_MENU)
-        StatusView.favico_n = None
         StatusDetail.twitter = self.twitter
         StatusDetail.iconstore = self.iconstore
         ListsView.twitter = self.twitter
@@ -149,6 +148,21 @@ class Main(object):
         UserSelection.twitter = self.twitter
         UserSelection.iconstore = self.iconstore
         GetFriendsWizard.twitter = self.twitter
+        
+        imgpath = os.path.join(os.path.dirname(__file__), "img/")
+        StatusView.favico_off = gtk.gdk.pixbuf_new_from_file(
+            imgpath + "favorite.png")
+        StatusView.favico_hover = gtk.gdk.pixbuf_new_from_file(
+            imgpath + "favorite_hover.png")
+        StatusView.favico_on = gtk.gdk.pixbuf_new_from_file(
+            imgpath + "favorite_on.png")
+
+        StatusView.rtico_off = gtk.gdk.pixbuf_new_from_file(
+            imgpath + "retweet.png")
+        StatusView.rtico_hover = gtk.gdk.pixbuf_new_from_file(
+            imgpath + "retweet_hover.png")
+        StatusView.rtico_on = gtk.gdk.pixbuf_new_from_file(
+            imgpath + "retweet_on.png")
         
         self.initialize()
     
@@ -710,9 +724,8 @@ class Main(object):
     
     # Retweet menu clicked
     def on_menuitem_retweet_activate(self, memuitem):
-        status = self.get_selected_status()
-        self.twitter.api_wrapper(self.twitter.api.status_retweet, status.id)
-        
+        self.get_current_tab().view.retweet_selected_status()
+    
     # Retweet with comment menu clicked
     def on_menuitem_reteet_with_comment_activate(self, memuitem):
         status = self.get_selected_status()
@@ -736,12 +749,15 @@ class Main(object):
     
     # favorite
     def on_menuitem_fav_activate(self, menuitem):
-        self.get_current_tab().favorite_selected_status()
+        self.get_current_tab().view.favorite_selected_status()
     
     # Destroy status
     def on_menuitem_destroy_activate(self, menuitem):
         status = self.get_selected_status()
         self.twitter.api_wrapper(self.twitter.api.status_destroy, status.id)
+        status["deleted"] = True
+        if TwitterTools.isretweeted(status):
+            self.twitter.statuses[status.retweeted_status.id]["retweeted"] = False
     
     ########################################
     # Timeline menu Event

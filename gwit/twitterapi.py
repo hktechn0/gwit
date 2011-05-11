@@ -89,13 +89,18 @@ class TwitterAPI(object):
             map(self.add_status, statuses)
     
     def add_status(self, status, overwrite = True):
-        if overwrite or status.id not in self.statuses:
+        found = status.id in self.statuses
+        if overwrite or not found:
+            # fix: twitter api response is broken?
+            if found: status.retweeted = self.statuses[status.id].retweeted
             self.statuses[status.id] = status
         
         self.add_user(status.user)
+        status["user"] = self.users[status.user.id]
         
         if status.retweeted_status:
             self.add_status(status.retweeted_status, overwrite = False)
+            status["retweeted_status"] = self.statuses[status.retweeted_status.id]
     
     def add_users(self, users):
         if isinstance(users, dict):

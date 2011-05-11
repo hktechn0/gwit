@@ -134,7 +134,7 @@ class UserSelection(gtk.VBox):
         t.start()
     
     def _delay(self, n):
-        time.sleep(10)
+        time.sleep(5)
     
     def user_count(self):
         return int(len(self.users))
