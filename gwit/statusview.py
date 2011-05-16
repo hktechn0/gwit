@@ -145,7 +145,7 @@ class StatusView(gtk.TreeView):
         path = self.get_path_at_pos(x, y)
         return self.get_status(path) if path != None else None
 
-    def favorite_selected_status(self, path):
+    def favorite_selected_status(self):
         path, column = self.get_cursor()
         return self.favorite_status(path)
     
@@ -167,7 +167,7 @@ class StatusView(gtk.TreeView):
         
         status.favorited = not status.favorited
     
-    def retweet_selected_status(self, path):
+    def retweet_selected_status(self):
         path, column = self.get_cursor()
         return self.retweet_status(path)
     

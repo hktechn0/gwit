@@ -702,8 +702,8 @@ class Main(object):
         dialog.destroy()
         
         params = {"track" : text.split(",")}
-        self.new_timeline("Stream: %s" % text, "filter", track = params)
-
+        self.new_timeline("Stream: %s" % text, "filter", **params)
+    
     def on_menuitem_shorten_activate(self, menuitem):
         self.textview.set_sensitive(False)
         self.btnupdate.set_sensitive(False)
