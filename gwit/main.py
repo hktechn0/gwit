@@ -84,6 +84,9 @@ class Main(object):
         else:
             gtk.gdk.threads_init()
         
+        if USE_NOTIFY:
+            pynotify.init("gwit")
+        
         # force change gtk icon settings
         settings = gtk.settings_get_default()
         if not getattr(settings.props, 'gtk_button_images', True):
