@@ -85,7 +85,7 @@ class TwitterAPI(object):
     def add_statuses(self, statuses):
         if isinstance(statuses, dict):
             map(self.add_status, statuses.iteritems())
-        else:
+        elif statuses:
             map(self.add_status, statuses)
     
     def add_status(self, status, overwrite = True):
@@ -105,7 +105,7 @@ class TwitterAPI(object):
     def add_users(self, users):
         if isinstance(users, dict):
             map(self.add_user, users.itervalues())
-        else:
+        elif users:
             map(self.add_user, users)
     
     def add_user(self, user):
