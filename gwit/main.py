@@ -200,7 +200,8 @@ class Main(object):
         for i in (("Home", "home_timeline", self.userstream),
                   ("@Mentions", "mentions")):
             # create new timeline and tab view
-            self.new_timeline(*i)
+            deny_close = {"deny_close" : True}
+            self.new_timeline(*i, **deny_close)
         
         # Set statusbar (Show API Remaining)
         self.label_apilimit = gtk.Label()
@@ -210,11 +211,11 @@ class Main(object):
         
         # Users tab append
         users = UserSelection()
-        self.new_tab(users, "Users")
+        self.new_tab(users, "Users", deny_close = True)
         
         # Lists tab append
         lists = ListsSelection()
-        self.new_tab(lists, "Lists")
+        self.new_tab(lists, "Lists", deny_close = True)
         
         self.notebook.set_current_page(0)
     
@@ -251,7 +252,7 @@ class Main(object):
         tl.view.new_timeline = self.new_timeline
         
         # Add Notebook (Tab view)
-        uid = self.new_tab(tl, label, tl)
+        uid = self.new_tab(tl, label, tl, kwargs.get("deny_close", False))
         
         # Set color
         tl.view.set_color(self.status_color)
@@ -275,7 +276,7 @@ class Main(object):
         tl.start_timeline()
     
     # Append Tab to Notebook
-    def new_tab(self, widget, label, timeline = None):
+    def new_tab(self, widget, label, timeline = None, deny_close = False):
         # close button
         button = gtk.Button()
         button.set_relief(gtk.RELIEF_NONE)
@@ -293,7 +294,8 @@ class Main(object):
         
         box = gtk.HBox()
         box.pack_start(lbl, True, True)
-        box.pack_start(button, False, False)
+        if not deny_close:
+            box.pack_start(button, False, False)
         box.show_all()
         
         if timeline != None:
@@ -303,7 +305,7 @@ class Main(object):
         self.notebook.append_page(widget, box)
         self.notebook.show_all()
         self.notebook.set_current_page(n)
-
+        
         return uid
     
     def get_selected_status(self):
