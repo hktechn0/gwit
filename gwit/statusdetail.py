@@ -82,6 +82,7 @@ class StatusDetail(gtk.VPaned):
     def get_conversation(self, status):
         s = status
         i = s.in_reply_to_status_id
+        lim = 0
         
         # Loading label
         loading = gtk.Label("Now Loading...")
@@ -93,6 +94,7 @@ class StatusDetail(gtk.VPaned):
                 self.view.prepend_new_statuses([i])
                 s = self.twitter.statuses[i]
                 i = s.in_reply_to_status_id
+                lim = 0
             else:
                 # not found in cache
                 statuses = self.twitter.api_wrapper(
@@ -100,5 +102,8 @@ class StatusDetail(gtk.VPaned):
                     s.in_reply_to_user_id, count = 20, max_id = i,
                     include_entities = 1)
                 self.twitter.add_statuses(statuses)
+                lim += 1
+
+            if lim >= 3: break
         
         self._box.remove(loading)
