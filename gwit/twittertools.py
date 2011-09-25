@@ -67,14 +67,16 @@ class TwitterTools(object):
         text = status.text
         
         for i in status.entities.urls:
+            url = i.display_url if i.expanded_url else i.url
             text = text.replace(
-                i.url,'<span foreground="#0000FF" underline="single">%s</span>' % i.url)
+                i.url,'<span foreground="#0000FF" underline="single">%s</span>' % url)
         return text
     
     @classmethod
     def get_urls_from_text(cls, text):
         url_iter = cls.reurl.finditer(text)
-        return [i.group('url') for i in url_iter]        
+        # shorten_url, display_url
+        return [(i.group('url'), i.group('url')) for i in url_iter]
     
     @classmethod
     def get_urls(cls, status):
@@ -82,7 +84,8 @@ class TwitterTools(object):
             status = status.retweeted_status
         
         if status.entities:
-            return [i.url for i in status.entities.urls]
+            return [(i.url, i.display_url if i.expanded_url else i.url) 
+                    for i in status.entities.urls]
         else:
             return cls.get_urls_from_text(status.text)
     

@@ -200,8 +200,8 @@ class StatusView(gtk.TreeView):
         urlmenu = gtk.Menu()
         if urls:
             # if exist url in text, add menu
-            for i in urls:
-                label = "%s..." % i[:47] if len(i) > 50 else i
+            for url, display_url in urls:
+                label = "%s..." % display_url[:47] if len(display_url) > 50 else display_url
                 
                 # Menuitem create
                 item = gtk.ImageMenuItem(label)
@@ -209,7 +209,7 @@ class StatusView(gtk.TreeView):
                         "gtk-new", gtk.ICON_SIZE_MENU))
                 item.set_always_show_image(True)
                 # Connect click event (open browser)
-                item.connect("activate", self.on_menuitem_url_clicked, i)
+                item.connect("activate", self.on_menuitem_url_clicked, url)
                 # append to menu
                 urlmenu.append(item)
         else:
