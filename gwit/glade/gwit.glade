@@ -1055,6 +1055,12 @@ http://www.tsukuba-linux.org/</property>
     <property name="stock">gtk-home</property>
     <property name="icon-size">1</property>
   </object>
+  <object class="GtkImage" id="image16">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="stock">gtk-media-record</property>
+    <property name="icon-size">1</property>
+  </object>
   <object class="GtkImage" id="image2">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
@@ -1330,6 +1336,17 @@ http://www.tsukuba-linux.org/</property>
         <property name="can_focus">False</property>
         <property name="use_action_appearance">False</property>
         <property name="image">image6</property>
+        <property name="use_stock">False</property>
+        <property name="always_show_image">True</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkImageMenuItem" id="menuitem_geo">
+        <property name="label" translatable="yes">Geo</property>
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="use_action_appearance">False</property>
+        <property name="image">image16</property>
         <property name="use_stock">False</property>
         <property name="always_show_image">True</property>
       </object>

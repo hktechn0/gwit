@@ -121,6 +121,9 @@ class StatusView(gtk.TreeView):
         # for width changed
         self._old_width = None
         
+        # geo menu
+        self._geo_handler_id = None
+        
         self.render_event = threading.Event()
         self._render_color_only = False
         
@@ -257,11 +260,26 @@ class StatusView(gtk.TreeView):
             hashmenu.append(item)
         
         # urls submenu append
-        self.pmenu.get_children()[-1].set_submenu(urlmenu)
-        self.pmenu.get_children()[-2].set_submenu(hashmenu)
-        self.pmenu.get_children()[-3].set_submenu(usermenu)
+        self.pmenu.get_children()[10].set_submenu(usermenu)
+        self.pmenu.get_children()[11].set_submenu(hashmenu)
+        self.pmenu.get_children()[12].set_submenu(urlmenu)
         
         self.pmenu.get_children()[6].set_label("@%s Timeline" % status.user.screen_name)
+        
+        # geo
+        if status.geo:
+            self.pmenu.get_children()[13].show()
+            self.pmenu.get_children()[13].set_label(
+                "Geo: %.6f, %.6f" % (status.geo.coordinates[0], status.geo.coordinates[1]))
+            
+            if self._geo_handler_id:
+                self.pmenu.get_children()[13].disconnect(self._geo_handler_id)
+            
+            self._geo_handler_id = self.pmenu.get_children()[13].connect(
+                "activate", self.on_menuitem_url_clicked,
+                "http://maps.google.com/?q=%s" % (",".join(map(str,status.geo.coordinates))))
+        else:
+            self.pmenu.get_children()[13].hide()
         
         # Show popup menu
         urlmenu.show_all()
@@ -291,6 +309,7 @@ class StatusView(gtk.TreeView):
     def status_pack(self, i):
         status = self.twitter.statuses[i]
         background = None
+        footer = ""
         
         name = status.user.screen_name
         
@@ -322,10 +341,17 @@ class StatusView(gtk.TreeView):
         if "deleted" in status:
             message = "<span foreground='#666666'><s>%s</s></span>" % message
         
+        # Faved by
         if "faved_by" in status and status["faved_by"]:
-            message = "%s\n<small>\nFaved by: %s</small>" % (
-                message, ", ".join([self.twitter.users[u].screen_name 
-                                    for u in status["faved_by"]]))
+            footer += "\n<small>Faved by: %s</small>" % (", ".join(
+                    [self.twitter.users[u].screen_name for u in status["faved_by"]]))
+        
+        # geo tag
+        if status["place"]:
+            footer += "\n<small>Place: %s</small>" % (status["place"]["full_name"])
+        
+        if footer:
+            message = "%s\n%s" % (message, footer)
         
         # Favorite, RT
         favico = self.favico_on if status.favorited else self.favico_off
