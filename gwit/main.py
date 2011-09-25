@@ -761,7 +761,7 @@ class Main(object):
         status = self.get_selected_status()
         self.twitter.api_wrapper(self.twitter.api.status_destroy, status.id)
         status["deleted"] = True
-        if TwitterTools.isretweeted(status):
+        if TwitterTools.isretweet(status):
             self.twitter.statuses[status.retweeted_status.id]["retweeted"] = False
     
     ########################################
