@@ -56,20 +56,26 @@ class TwitterTools(object):
         return footer
     
     ## Status
-    # URL
+    # Text decoration
     @classmethod
-    def get_colored_url(cls, status):
-        if not status.entities:
-            return cls.reurl.sub(
-                '<span foreground="#0000FF" underline="single">\g<url></span>',
-                status.text)
-        
+    def get_decoration_text(cls, status):
         text = status.text
         
-        for i in status.entities.urls:
-            url = i.display_url if i.expanded_url else i.url
+        # replace hashtags
+        for h in cls.get_hashtags(status):
             text = text.replace(
-                i.url,'<span foreground="#0000FF" underline="single">%s</span>' % url)
+                "#" + h,'<span foreground="#666666">#%s</span>' % h)
+        
+        # replace URL
+        if not status.entities:
+            text = cls.reurl.sub(
+                '<span foreground="#0000FF" underline="single">\g<url></span>', text)
+        else:
+            for i in status.entities.urls:
+                url = i.display_url if i.expanded_url else i.url
+                text = text.replace(
+                    i.url,'<span foreground="#0000FF" underline="single">%s</span>' % url)
+        
         return text
     
     @classmethod

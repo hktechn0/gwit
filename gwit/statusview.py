@@ -261,6 +261,8 @@ class StatusView(gtk.TreeView):
         self.pmenu.get_children()[-2].set_submenu(hashmenu)
         self.pmenu.get_children()[-3].set_submenu(usermenu)
         
+        self.pmenu.get_children()[6].set_label("@%s Timeline" % status.user.screen_name)
+        
         # Show popup menu
         urlmenu.show_all()
         usermenu.show_all()
@@ -309,8 +311,8 @@ class StatusView(gtk.TreeView):
             # or gray
             tmpl = "<span foreground='#666666'><b>%s</b></span>\n%s"
         
-        # colord url
-        text = TwitterTools.get_colored_url(status)
+        # status decoration
+        text = TwitterTools.get_decoration_text(status)
         # screen_name + text
         message = tmpl % (name, text)        
         # replace no entity & -> &amp;
@@ -440,7 +442,7 @@ class StatusView(gtk.TreeView):
             
             if status.user.id != self.twitter.my_id:
                 self.pmenu.get_children()[4].hide()
-
+            
             self.pmenu.popup(None, None, None, event.button, event.time)
         elif event.button == 1:
             # fav button

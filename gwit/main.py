@@ -36,6 +36,7 @@ import threading
 import random
 import time
 import uuid
+import webbrowser
 
 try:
     import pynotify
@@ -746,7 +747,7 @@ class Main(object):
         self.new_timeline("@%s" % status.user.screen_name,
                           "user_timeline", user = status.user.id)
     
-    # Status detail
+    # view conversation
     def on_menuitem_detail_activate(self, menuitem):
         status = self.get_selected_status()
         detail = StatusDetail(status)
@@ -763,6 +764,12 @@ class Main(object):
         status["deleted"] = True
         if TwitterTools.isretweet(status):
             self.twitter.statuses[status.retweeted_status.id]["retweeted"] = False
+    
+    # view on twitter.com
+    def on_menuitem_ontwitter_activate(self, menuitem):
+        status = self.get_selected_status()
+        url = "https://twitter.com/%s/status/%s" % (status.user.screen_name, status.id)
+        webbrowser.open_new_tab(url)
     
     ########################################
     # Timeline menu Event

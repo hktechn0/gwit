@@ -180,7 +180,7 @@ class UserSelection(gtk.VBox):
     def refresh_user_information(self, user):        
         bio = """
 <big><b>%s</b></big> - %s
-<b>%d</b> following, <b>%d</b> followers, <b>%d</b> tweets
+<b>%d</b> following, <b>%d</b> followers, <b>%d</b> tweets, <b>%d</b> favs
 <small><span foreground='#666666'>Location: %s
 Bio: %s
 Web: %s</span></small>
@@ -190,6 +190,7 @@ Web: %s</span></small>
             user.friends_count,
             user.followers_count,
             user.statuses_count,
+            user.favourites_count,
             user.location,
             unicode(user.description).replace("\n", ""),
             "<a href='%s'>%s</a>" % (user.url, user.url) if user.url != None else None,
