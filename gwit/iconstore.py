@@ -95,6 +95,8 @@ class IconStore(object):
             self.stores.remove(remove)
 
 class IconThread(threading.Thread):
+    twitter = None
+    
     def __init__(self, icons, stores):
         threading.Thread.__init__(self)
         self.setDaemon(True)
@@ -113,15 +115,14 @@ class IconThread(threading.Thread):
             
             # Icon Image Get
             for i in range(3):
-                conn = urllib2.urlopen(user.profile_image_url)
                 try:
-                    ico = conn.read()
+                    ico = urllib2.urlopen(user.profile_image_url).read()
+                    #ico = self.twitter.api.user_profile_image(
+                    #    user.screen_name, size = "normal")
                     break
                 except Exception, e:
                     ico = None
                     print >>sys.stderr, "[Error] %d: IconStore %s" % (i, e)
-                finally:
-                    conn.close()
             
             # Get pixbuf
             icopix = self.convert_pixbuf(ico)
@@ -156,11 +157,9 @@ class IconThread(threading.Thread):
         if ico == None: return None
         if USE_PIL:
             # use Python Imaging Library if exists
-            pix = self.convert_pixbuf_pil(ico)
+            pix = self.load_pixbuf(ico) or self.convert_pixbuf_pil(ico)
         else:
             pix = self.load_pixbuf(ico)
-            if pix != None:
-                pix = pix.scale_simple(48, 48, gtk.gdk.INTERP_BILINEAR)
         
         return pix
     

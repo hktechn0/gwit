@@ -49,7 +49,7 @@ from timeline import Timeline
 from statusview import StatusView
 from timelinethread import BaseThread
 from twitterapi import TwitterAPI
-from iconstore import IconStore
+from iconstore import IconStore, IconThread
 from saveconfig import Config
 from userselection import UserSelection
 from listsselection import ListsSelection, ListsView
@@ -152,6 +152,7 @@ class Main(object):
         UserSelection.twitter = self.twitter
         UserSelection.iconstore = self.iconstore
         GetFriendsWizard.twitter = self.twitter
+        IconThread.twitter = self.twitter
         
         imgpath = os.path.join(os.path.dirname(__file__), "img/")
         StatusView.favico_off = gtk.gdk.pixbuf_new_from_file(
