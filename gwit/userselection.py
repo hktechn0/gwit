@@ -56,20 +56,26 @@ class UserSelection(gtk.VBox):
         self.entry.connect("focus-in-event", self.on_entry_focus_in)
         self.entry.connect("focus-out-event", self.on_entry_focus_out)
         hbox.pack_start(self.entry, padding = 5)
-        
+
         button_add = gtk.Button()
-        button_add.set_image(gtk.image_new_from_stock("gtk-add", gtk.ICON_SIZE_BUTTON))
+        button_add.set_image(
+            gtk.image_new_from_stock("gtk-add", gtk.ICON_SIZE_BUTTON))
         button_add.connect("clicked", self.on_button_add_clicked)
         hbox.pack_start(button_add, expand = False, padding = 5)
         
         # get followings/followers button
         button_refresh = gtk.Button()
-        button_refresh.set_image(gtk.image_new_from_stock("gtk-refresh", gtk.ICON_SIZE_BUTTON))
+        button_refresh.set_image(
+            gtk.image_new_from_stock("gtk-refresh", gtk.ICON_SIZE_BUTTON))
         button_refresh.connect("clicked", self.on_button_refresh_clicked)
         hbox.pack_start(button_refresh, expand = False, padding = 5)
         
-        # icon, screen_name, user.id, description, followicon, follwoericon, following, follower
-        self.store = gtk.ListStore(gtk.gdk.Pixbuf, str, gobject.TYPE_INT64, str, gtk.gdk.Pixbuf, gtk.gdk.Pixbuf, bool, bool)
+        # icon, text, user.id, screen_name, 
+        # followicon, follwoericon, following, follower,
+        # entry_completion_text
+        self.store = gtk.ListStore(
+            gtk.gdk.Pixbuf, str, gobject.TYPE_INT64, str, 
+            gtk.gdk.Pixbuf, gtk.gdk.Pixbuf, bool, bool, str)
         self.iconstore.add_store(self.store, 2)
         
         # sort order by screen_name ASC
@@ -122,9 +128,23 @@ class UserSelection(gtk.VBox):
         
         self.pack_start(hbox, expand = False, padding = 5)
         self.pack_start(self.paned)
-
+        
         self.pix_follow = self.render_icon("gtk-yes", gtk.ICON_SIZE_BUTTON)
         self.pix_nofollow = self.render_icon("gtk-no", gtk.ICON_SIZE_BUTTON)
+        
+        # Set entry completion
+        completion = gtk.EntryCompletion()
+        completion.connect("match-selected", self.on_completion_match_selected)
+        completion.set_inline_selection(True)
+        completion.set_inline_completion(True)
+        completion.set_match_func(self._entry_completion_match)
+        self.entry.set_completion(completion)
+        
+        completion.set_model(self.store)
+        completion.set_text_column(8)
+        pixbufcell = gtk.CellRendererPixbuf()
+        completion.pack_start(pixbufcell)
+        completion.add_attribute(pixbufcell, 'pixbuf', 0)        
         
         # User view scheduler run
         self.scheduler = sched.scheduler(self.user_count, self._delay)
@@ -132,6 +152,20 @@ class UserSelection(gtk.VBox):
         t.setDaemon(True)
         t.setName("userselection")
         t.start()
+    
+    def _entry_completion_match(self, completion, key, i):
+        model = completion.get_model()
+        user_id = model.get_value(i, 2)
+        user = self.users.get(user_id)
+        
+        if not user:
+            return False
+        elif user.screen_name.lower().startswith(key):
+            return True
+        elif user.name.lower().startswith(key):
+            return True
+        
+        return False
     
     def _delay(self, n):
         time.sleep(5)
@@ -159,8 +193,13 @@ class UserSelection(gtk.VBox):
             following = self.pix_follow if is_friend else self.pix_nofollow
             follower = self.pix_follow if is_follower else self.pix_nofollow
             
+            completion_text = "@%s - %s" % (
+                user.screen_name, TwitterTools.replace_amp(user.name))
+            
             gtk.gdk.threads_enter()
-            self.store.append((icon, text, user.id, user.screen_name, following, follower, is_friend, is_follower))
+            self.store.append((icon, text, user.id, user.screen_name,
+                               following, follower, is_friend, is_follower,
+                               completion_text))
             gtk.gdk.threads_leave()
         
         self.userids = now
@@ -281,7 +320,7 @@ Web: %s</span></small>
             button.set_image(gtk.image_new_from_stock("gtk-add", gtk.ICON_SIZE_BUTTON))
             button.set_label("Follow")
             self.twitter.following.remove(uid)
-
+    
     def on_column_clicked(self, column, n):
         nowsort, is_asc = self.treeview.get_model().get_sort_column_id()
         
@@ -294,3 +333,10 @@ Web: %s</span></small>
     def on_button_refresh_clicked(self, button):
         w = GetFriendsWizard()
         w.show_all()
+    
+    def on_completion_match_selected(self, completion, model, i):
+        user_id = model.get_value(i, 2)
+        user = self.users.get(user_id)
+        completion.get_entry().set_text(user.screen_name)
+        self.refresh_user_information(user)
+        return True
