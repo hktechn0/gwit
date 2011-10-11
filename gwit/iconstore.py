@@ -148,8 +148,13 @@ class IconThread(threading.Thread):
         loader.write(ico)
         pix = loader.get_pixbuf()
         
-        try: loader.close()
-        except: pix = None
+        try:
+            loader.close()
+        except:
+            pix = None
+        
+        if pix and pix.get_width() > 48:
+            pix = pix.scale_simple(48, 48, gtk.gdk.INTERP_BILINEAR)
         
         return pix
     
