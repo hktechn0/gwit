@@ -71,7 +71,10 @@ class TwitterTools(object):
             text = cls.reurl.sub(
                 '<span foreground="#0000FF" underline="single">\g<url></span>', text)
         else:
-            for i in status.entities.urls:
+            urls = status.entities.urls
+            if status.entities.get("media", None):
+                urls.extend(status.entities.media)
+            for i in urls:
                 url = i.display_url if i.expanded_url else i.url
                 text = text.replace(
                     i.url,'<span foreground="#0000FF" underline="single">%s</span>' % url)
@@ -94,6 +97,17 @@ class TwitterTools(object):
                     for i in status.entities.urls]
         else:
             return cls.get_urls_from_text(status.text)
+    
+    @classmethod
+    def get_media_urls(cls, status):
+        if cls.isretweet(status):
+            status = status.retweeted_status
+        
+        if status.entities and status.entities.get("media", None):
+            return [(i.url, i.display_url if i.expanded_url else i.url) 
+                    for i in status.entities.media]
+        else:
+            return []
     
     # User
     @classmethod
