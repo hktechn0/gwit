@@ -145,10 +145,10 @@ class IconThread(threading.Thread):
     # create pixbuf
     def load_pixbuf(self, ico):
         loader = gtk.gdk.PixbufLoader()
-        loader.write(ico)
-        pix = loader.get_pixbuf()
-        
+
         try:
+            loader.write(ico)
+            pix = loader.get_pixbuf()
             loader.close()
         except:
             pix = None
