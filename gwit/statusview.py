@@ -195,6 +195,7 @@ class StatusView(gtk.TreeView):
         # Get Urls
         urls = TwitterTools.get_urls(status)
         urls.extend(TwitterTools.get_media_urls(status))
+        
         # Get mentioned users
         users = TwitterTools.get_user_mentions(status)
         # Get Hashtags
@@ -203,6 +204,9 @@ class StatusView(gtk.TreeView):
         # URL Menu
         urlmenu = gtk.Menu()
         if urls:
+            # delete multiple urls
+            urls = dict(urls).items()
+            
             # if exist url in text, add menu
             for url, display_url in urls:
                 label = "%s..." % display_url[:47] if len(display_url) > 50 else display_url
