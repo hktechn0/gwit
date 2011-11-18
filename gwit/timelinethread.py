@@ -25,8 +25,6 @@
 ################################################################################
 
 
-import socket
-import mutex
 import threading
 import urllib2
 

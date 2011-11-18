@@ -37,6 +37,9 @@ import twoauth.streaming
 # Twitter API Class
 class TwitterAPI(object):
     def __init__(self, screen_name, ckey, csecret, atoken, asecret):
+        # set timeout
+        socket.setdefaulttimeout(90)
+        
         # Generate API Library instance
         self.api = twoauth.api(ckey, csecret, atoken, asecret, screen_name)
         self.sapi = twoauth.streaming.StreamingAPI(self.api.oauth)
