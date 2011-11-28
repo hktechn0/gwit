@@ -152,9 +152,9 @@ class TwitterAPI(object):
                                  user)
         
         if "faved_by" in self.statuses[status.id]:
-            self.statuses[status.id]["faved_by"].append(user.id)
+            self.statuses[status.id]["faved_by"].add(user.id)
         else:
-            self.statuses[status.id]["faved_by"] = [user.id]
+            self.statuses[status.id]["faved_by"] = set([user.id])
         
         self.on_tweet_event(status.id)
     
@@ -173,7 +173,7 @@ class TwitterAPI(object):
         if "faved_by" in self.statuses[status.id]:
             try:
                 self.statuses[status.id]["faved_by"].remove(user.id)
-            except ValueError:
+            except KeyError:
                 pass
         
         self.on_tweet_event(status.id)

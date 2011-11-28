@@ -158,17 +158,29 @@ class StatusView(gtk.TreeView):
     
         if "deleted" in status: return
         
+        status.favorited = not status.favorited
+        self.reset_fav_rt_ico(path)
+        
+        t = threading.Thread(target = self._favorite_status_in_thread,
+                             args = (status, path))
+        t.setName("status favorite")
+        t.setDaemon(True)
+        t.start()
+    
+    def _favorite_status_in_thread(self, status, path):
         # Toggle favorited
         if status.favorited:
-            self.twitter.api_wrapper(
-                self.twitter.api.favorite_destroy, status.id)
-            self.store[path][5] = self.favico_on
+            if not self.twitter.api_wrapper(
+                self.twitter.api.favorite_create, status.id):
+                status.favorited = False
         else:
-            self.twitter.api_wrapper(
-                self.twitter.api.favorite_create, status.id)
-            self.store[path][5] = self.favico_off
+            if not self.twitter.api_wrapper(
+                self.twitter.api.favorite_destroy, status.id):
+                status.favorited = True
         
-        status.favorited = not status.favorited
+        gtk.gdk.threads_enter()
+        self.reset_fav_rt_ico(path)
+        gtk.gdk.threads_leave()
     
     def retweet_selected_status(self):
         path, column = self.get_cursor()
@@ -179,12 +191,26 @@ class StatusView(gtk.TreeView):
         
         if "deleted" in status: return
         
+        status.retweeted = True
+        self.reset_fav_rt_ico(path)
+        
+        t = threading.Thread(target = self._retweet_status_in_thread,
+                             args = (status, path))
+        t.setName("status retweet")
+        t.setDaemon(True)
+        t.start()
+    
+    def _retweet_status_in_thread(self, status, path):
         # Rwtweeted
-        if not status.retweeted:
-            self.twitter.api_wrapper(
-                self.twitter.api.status_retweet, status.id)
-            self.store[path][6] = self.rtico_on
-            status.retweeted = True
+        # FIXME: Cannot delete retweeted status
+        if status.retweeted:
+            if not self.twitter.api_wrapper(
+                self.twitter.api.status_retweet, status.id):
+                status.retweeted = False
+        
+        gtk.gdk.threads_enter()
+        self.reset_fav_rt_ico(path)
+        gtk.gdk.threads_leave()
     
     # Set background color
     def set_color(self, colortuple):
