@@ -597,11 +597,11 @@ class StatusView(gtk.TreeView):
             self.new_timeline("@%s" % sname, "user_timeline", user = user.id)
         else:
             # force specify screen_name if not found
-            self.new_timeline("@%s" % sname, 
-                              "user_timeline", user = sname, sn = True)
+            self.new_timeline("@%s" % sname, "user_timeline",
+                              user = sname,is_screen_name = True)
         
         return True
-
+    
     def on_menuitem_hash_clicked(self, menuitem, hashtag):
         self.new_timeline("Stream: #%s" % hashtag, "filter", track = [hashtag])
         return True

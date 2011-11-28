@@ -84,7 +84,11 @@ class BaseThread(threading.Thread):
 class TimelineThread(BaseThread):
     def __init__(self, method, interval, counts, args = (), kwargs = {}):
         BaseThread.__init__(self, method, args, kwargs)
-        self.kwargs["include_entities"] = 1
+        
+        # force parameters
+        self.kwargs["include_entities"] = True
+        if method == "user_timeline":
+            self.kwargs["include_rts"] = True
         
         # Event lock
         self.lock = threading.Event()
