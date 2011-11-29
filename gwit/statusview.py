@@ -490,7 +490,10 @@ class StatusView(gtk.TreeView):
         if event.button == 3 and self.pmenu != None:
             status = self.get_selected_status()
             self.pmenu.show_all()
-
+            
+            if not status:
+                return
+            
             if "deleted" in status:
                 self.pmenu.get_children()[0].hide()
                 self.pmenu.get_children()[1].hide()
