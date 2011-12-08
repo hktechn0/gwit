@@ -34,6 +34,8 @@ import threading
 import twoauth
 import twoauth.streaming
 
+from twittertools import TwitterTools
+
 # Twitter API Class
 class TwitterAPI(object):
     def __init__(self, screen_name, ckey, csecret, atoken, asecret):
@@ -54,6 +56,7 @@ class TwitterAPI(object):
         self.statuses = dict()
         self.followers = set()
         self.following = set()
+        self.configuration = dict()
     
     @property
     def my_id(self):
@@ -71,27 +74,34 @@ class TwitterAPI(object):
     def me(self):
         self.users.get(self.my_id)
     
-    def init_twitpic(self, apikey):
-        import twoauth.twitpic
-        self.twitpic = twoauth.twitpic.Twitpic(self.api.oauth, apikey)
+    def update_configuration_bg(self):
+        threading.Thread(
+            target = self.update_configuration).start()
+    
+    def update_configuration(self):
+        for _ in range(5):
+            conf = self.api_wrapper(self.api.help_configuration)
+            if conf:
+                self.configuration = conf
+                break
     
     def get_followers_bg(self):
-        threading.Thread(target=self.get_followers).start()
+        threading.Thread(target = self.get_followers).start()
     def get_following_bg(self):
-        threading.Thread(target=self.get_following).start()
+        threading.Thread(target = self.get_following).start()
     
     def get_following(self):
         cursor = -1
         while cursor != 0:
-            r = self.api_wrapper(self.api.friends_ids, cursor = cursor)
-            self.following.update([int(i) for i in r["ids"] or {}])
+            r = self.api_wrapper(self.api.friends_ids, cursor = cursor) or {}
+            self.following.update([int(i) for i in r.get("ids", [])])
             cursor = r.get("next_cursor", 0)
     
     def get_followers(self):
         cursor = -1
         while cursor != 0:
-            r = self.api_wrapper(self.api.followers_ids, cursor = cursor)
-            self.followers.update([int(i) for i in r["ids"] or {}])
+            r = self.api_wrapper(self.api.followers_ids, cursor = cursor) or {}
+            self.followers.update([int(i) for i in r.get("ids", [])])
             cursor = r.get("next_cursor", 0)
     
     def add_statuses(self, statuses):
@@ -132,8 +142,19 @@ class TwitterAPI(object):
         return None
     
     def get_statuses(self, ids):
-        return tuple(self.statuses[i] for i in sorted(tuple(ids), reverse=True))
-
+        return tuple(
+            self.statuses[i] for i in sorted(tuple(ids), reverse=True))
+    
+    def destory_tweet(self, status):
+        threading.Thread(
+            target = self._destroy_tweet_in_thread, args = [status,]).start()
+    
+    def _destroy_tweet_in_thread(self, status):
+        self.api_wrapper(self.api.status_destroy, status.id)
+        status["deleted"] = True
+        if TwitterTools.isretweet(status):
+            self.statuses[status.retweeted_status.id]["retweeted"] = False
+    
     def delete_event(self, i):
         if i in self.statuses:
             self.statuses[i]["deleted"] = True
@@ -148,7 +169,8 @@ class TwitterAPI(object):
             self.statuses[status.id].favorited = True
         else:
             self.on_notify_event("@%s favorited tweet" % user.screen_name, 
-                                 "@%s: %s" % (status.user.screen_name, status.text),
+                                 "@%s: %s" % (status.user.screen_name,
+                                              status.text),
                                  user)
         
         if "faved_by" in self.statuses[status.id]:
@@ -167,7 +189,8 @@ class TwitterAPI(object):
             self.statuses[status.id].favorited = False
         else:
             self.on_notify_event("@%s unfavorited tweet" % user.screen_name, 
-                                 "@%s: %s" % (status.user.screen_name, status.text),
+                                 "@%s: %s" % (status.user.screen_name,
+                                              status.text),
                                  user)
         
         if "faved_by" in self.statuses[status.id]:
@@ -198,23 +221,29 @@ class TwitterAPI(object):
                 break
             except urllib2.HTTPError, e:
                 if e.code == 400:
-                    print >>sys.stderr, "[Error] Rate Limitting %s (%s)" % (e, method.func_name)
+                    print >>sys.stderr, "[Error] Rate Limitting %s (%s)" % (
+                        e, method.func_name)
                     break
                 elif e.code == 403:
-                    print >>sys.stderr, "[Error] Access Denied %s (%s)" % (e, method.func_name)
+                    print >>sys.stderr, "[Error] Access Denied %s (%s)" % (
+                        e, method.func_name)
                     break
                 elif e.code == 404:
-                    print >>sys.stderr, "[Error] Not Found %s (%s)" % (e, method.func_name)
+                    print >>sys.stderr, "[Error] Not Found %s (%s)" % (
+                        e, method.func_name)
                     break
                 
                 if i >= 3:
                     self.on_twitterapi_error(method, e)
                 
-                print >>sys.stderr, "[Error] %d: TwitterAPI %s (%s)" % (i, e, method.func_name)
+                print >>sys.stderr, "[Error] %d: TwitterAPI %s (%s)" % (
+                    i, e, method.func_name)
             except socket.timeout:
-                print >>sys.stderr, "[Error] %d: TwitterAPI timeout (%s)" % (i, method.func_name)
+                print >>sys.stderr, "[Error] %d: TwitterAPI timeout (%s)" % (
+                    i, method.func_name)
             except Exception, e:
-                print >>sys.stderr, "[Error] %d: TwitterAPI %s (%s)" % (i, e, method.func_name)
+                print >>sys.stderr, "[Error] %d: TwitterAPI %s (%s)" % (
+                    i, e, method.func_name)
             finally:
                 self.on_twitterapi_requested()
                 self.apilock.release()

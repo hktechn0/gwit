@@ -69,13 +69,10 @@ class Main(object):
     # My status, Mentions to me, Reply to, Reply to user, Selected user
     status_color = ("#CCCCFF", "#FFCCCC", "#FFCC99", "#FFFFCC", "#CCFFCC")
     
-    # Set Default Mention Flag
-    re = None
+    # Tweet parameters
+    twparams = dict()
     
     _toggle_change_flag = False
-    
-    # Twitpic API Key (gwit)
-    twitpic_apikey = "bf867400573d27a8fe61b09e3cbf5a50"
     
     # Constractor
     def __init__(self, screen_name, keys):
@@ -100,7 +97,6 @@ class Main(object):
         
         # Twitter class instance
         self.twitter = TwitterAPI(screen_name, *keys)
-        self.twitter.init_twitpic(self.twitpic_apikey)
         self.twitter.on_tweet_event = self.refresh_tweet
         self.twitter.on_notify_event = self.notify
         
@@ -109,7 +105,10 @@ class Main(object):
         # set event (show remaining api count)
         self.twitter.on_twitterapi_requested = self.on_timeline_refresh
         self.twitter.new_timeline = self.new_timeline
-        
+
+        # Get configuration
+        self.twitter.update_configuration_bg()
+
         # Get users
         self.twitter.get_followers_bg()
         if not self.userstream: self.twitter.get_following_bg()
@@ -131,6 +130,7 @@ class Main(object):
         self.btnupdate = self.builder.get_object("button1")
         self.charcount = self.builder.get_object("label1")
         self.dsettings = self.builder.get_object("dialog_settings")
+        self.imgtable = self.builder.get_object("table_images")
         
         self.menu_tweet = self.builder.get_object("menu_tweet")
         self.builder.get_object("menuitem_tweet").set_submenu(self.menu_tweet)
@@ -349,7 +349,7 @@ class Main(object):
         self.reply_to_status(status)
     
     def reply_to_status(self, status):
-        self.re = status.id
+        self.twparams["reply_to"] = status.id
         name = status.user.screen_name
         
         buf = self.textview.get_buffer()
@@ -432,19 +432,29 @@ class Main(object):
         self.btnupdate.set_sensitive(False)
         gtk.gdk.threads_leave()
         
-        if self.re != None:
-            args["in_reply_to_status_id"] = self.re
+        if self.twparams.get("reply_to", None):
+            args["in_reply_to_status_id"] = self.twparams.get("reply_to", None)
         elif self.msgfooter != "":
             status = u"%s %s" % (status, self.msgfooter)
         
-        resp = self.twitter.api_wrapper(self.twitter.api.status_update,
-                                        status, **args)
+        if self.twparams.get("media", None):            
+            resp = self.twitter.api_wrapper(
+                self.twitter.api.status_update_with_media,
+                status, self.twparams["media"], **args)
+        else:
+            resp = self.twitter.api_wrapper(
+                self.twitter.api.status_update, status, **args)
+        
+        if resp:
+            gtk.gdk.threads_enter()
+            self.clear_textview()
+            gtk.gdk.threads_leave()
+            self.twparams.pop("reply_to", None)
+            self.twparams.pop("media", None)
+            self.imgtable.forall(self.imgtable.remove)
+            self.imgtable.set_visible(False)
         
         gtk.gdk.threads_enter()
-        if resp != None:
-            self.clear_textview()
-            self.re = None
-        
         self.textview.set_sensitive(True)
         self.btnupdate.set_sensitive(True)
         self.textview.grab_focus()
@@ -482,6 +492,14 @@ class Main(object):
         for tl in self.timelines:
             if tl: tl.view.reset_status_text()
     
+    def message_dialog(self, message, 
+                       type = gtk.MESSAGE_ERROR,
+                       buttons = gtk.BUTTONS_OK):
+        md = gtk.MessageDialog(type = type, buttons = buttons)
+        md.set_markup(message)
+        r = md.run()
+        md.destroy()
+        return r
     
     ########################################
     # Original Events
@@ -516,7 +534,10 @@ class Main(object):
                 self.twitter.api.ratelimit_remaining,
                 self.twitter.api.ratelimit_limit)
         
-        self.label_apilimit.set_text("API: %s" % msg)
+        try:
+            self.label_apilimit.set_text("API: %s" % msg)
+        except:
+            pass
     
     # status selection changed event
     def on_status_selection_changed(self, status):
@@ -556,7 +577,7 @@ class Main(object):
         else:
             # Reload timeline if nothing in textview
             n = self.get_current_tab_n()
-            self.re = None
+            self.twparams.pop("reply_to", None)
             if self.timelines[n] != None:
                 self.timelines[n].reload()
     
@@ -577,9 +598,9 @@ class Main(object):
         menu = self.builder.get_object("menu_update")
         menu.popup(None, None, None, event.button, event.time)
     
-    # Image upload for twitpic
-    def on_menuitem_twitpic_activate(self, widget):
-        dialog = gtk.FileChooserDialog("Upload Image...")
+    # Add an image to tweet
+    def on_menuitem_add_image_activate(self, widget):
+        dialog = gtk.FileChooserDialog("Add an image...")
         dialog.add_button(gtk.STOCK_OPEN, gtk.RESPONSE_OK)
         dialog.add_button(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL)
         ret = dialog.run()
@@ -587,26 +608,77 @@ class Main(object):
         dialog.destroy()
         
         if ret == gtk.RESPONSE_OK:
-            self.textview.set_sensitive(False)
-            self.btnupdate.set_sensitive(False)
+            media = self.twparams.setdefault("media", list())
             
-            message = self.get_textview()
+            # duplicate image?
+            if filename in media:
+                self.message_dialog("Duplicate image.")
+                return
             
-            t = threading.Thread(target = self._twitpic_upload, args = (filename, message))
-            t.start()
+            # max_media_per_upload check
+            max_media = self.twitter.configuration.get("max_media_per_upload", 1)
+            if len(media) >= max_media:
+                self.message_dialog("You can upload max %d images per upload." % max_media)
+                return
+            
+            # ext check
+            if os.path.splitext(filename)[1].upper() not in [".JPG", ".JPEG", ".PNG", ".GIF"]:
+                self.message_dialog("File is not Image. Only JPG, PNG and GIF.")
+                return
+            
+            # filesize check
+            fsize = os.stat(filename).st_size
+            limit = self.twitter.configuration.get("photo_size_limit", 3145728)
+            if fsize > limit:
+                self.message_dialog("Image file size must be less than %d KB." % (limit / 1024))
+                return
+            
+            pix = gtk.gdk.pixbuf_new_from_file(filename)
+            ratio = float(pix.get_height()) / float(pix.get_width())
+            pix = pix.scale_simple(120, int(ratio * 120), gtk.gdk.INTERP_BILINEAR)
+            
+            img = gtk.Image()
+            img.set_from_pixbuf(pix)
+            box = gtk.EventBox()
+            box.add(img)         
+            box.connect("button-release-event", self.on_image_button_release, len(media))
+            
+            # add new row
+            if len(media) % 4 == 0:
+                self.imgtable.resize(len(media) / 4 + 1, 4)
+            
+            # attach image
+            self.imgtable.attach(
+                box, len(media) % 4, len(media) % 4 + 1,
+                len(media) / 4, len(media) / 4 + 1,
+                xoptions = gtk.SHRINK, yoptions = gtk.SHRINK,
+                xpadding = 0, ypadding = 10)
+            
+            cursor = gtk.gdk.Cursor(gtk.gdk.HAND1)
+            box.window.set_cursor(cursor)
+            
+            self.imgtable.set_visible(True)
+            self.imgtable.show_all()
+            
+            # add params
+            media.append(filename)
     
-    def _twitpic_upload(self, filename, message):
-        res = self.twitter.twitpic.upload(filename, message)
-        
-        try:
-            gtk.gdk.threads_enter()
-            self.add_textview(" %s" % res["url"])
-        except KeyError:
-            print >>sys.stderr, "[Error] Cannot upload Twitpic.\n%s" % (res)
-        finally:
-            self.textview.set_sensitive(True)
-            self.btnupdate.set_sensitive(True)
-            gtk.gdk.threads_leave()
+    def on_image_button_release(self, widget, event, media_num):
+        if event.button == 1:
+            # image clicked
+            if sys.platform == "win32":
+                os.startfile(self.twparams["media"][media_num])
+            else:
+                os.system("xdg-open %s" % self.twparams["media"][media_num])
+        elif event.button == 3:
+            # image delete
+            r = self.message_dialog("Are you sure you want to delete this image?",
+                                    gtk.MESSAGE_QUESTION, gtk.BUTTONS_YES_NO)
+            if r == gtk.RESPONSE_YES:
+                self.imgtable.remove(widget)
+                del self.twparams["media"][media_num]
+                if self.twparams["media"]:
+                    self.imgtable.set_visible(False)
     
     # Timeline Tab Close
     def on_tabclose_clicked(self, widget, uid):
@@ -638,7 +710,7 @@ class Main(object):
     def on_textbuffer1_changed(self, textbuffer):
         n = textbuffer.get_char_count()
 
-        if self.re == None and self.msgfooter != "":
+        if self.twparams.get("reply_to", None) and self.msgfooter != "":
             n += len(self.msgfooter) + 1
         
         if n <= 140:
@@ -710,18 +782,9 @@ class Main(object):
         
         params = {"track" : text.split(",")}
         self.new_timeline("Stream: %s" % text, "filter", **params)
-    
-    def on_menuitem_shorten_activate(self, menuitem):
-        self.textview.set_sensitive(False)
-        self.btnupdate.set_sensitive(False)
-        
-        text = self.get_textview()
-        text = TwitterTools.url_shorten(text)
-        self.clear_textview()
-        self.add_textview(text)
-        
-        self.textview.set_sensitive(True)
-        self.btnupdate.set_sensitive(True)
+
+    def on_destroy(self, widget, *args, **kwargs):
+        widget.destroy()
     
     ########################################
     # Tweet menu event
@@ -739,7 +802,7 @@ class Main(object):
         name = status.user.screen_name
         text = status.text
         
-        self.re = None
+        self.twparams.pop("reply_to", None)
         self.set_textview("RT @%s: %s" % (name, text), True)
     
     # Added user timeline tab
@@ -761,10 +824,7 @@ class Main(object):
     # Destroy status
     def on_menuitem_destroy_activate(self, menuitem):
         status = self.get_selected_status()
-        self.twitter.api_wrapper(self.twitter.api.status_destroy, status.id)
-        status["deleted"] = True
-        if TwitterTools.isretweet(status):
-            self.twitter.statuses[status.retweeted_status.id]["retweeted"] = False
+        self.twitter.destory_tweet(status)
     
     # view on twitter.com
     def on_menuitem_ontwitter_activate(self, menuitem):

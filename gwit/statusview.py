@@ -147,7 +147,7 @@ class StatusView(gtk.TreeView):
     def get_status_from_point(self, x, y):
         path = self.get_path_at_pos(x, y)
         return self.get_status(path) if path != None else None
-
+    
     def favorite_selected_status(self):
         path, column = self.get_cursor()
         return self.favorite_status(path)

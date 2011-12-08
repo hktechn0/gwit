@@ -112,6 +112,7 @@ http://www.tsukuba-linux.org/</property>
             <child>
               <object class="GtkButton" id="button3">
                 <property name="label">gtk-cancel</property>
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
@@ -128,6 +129,7 @@ http://www.tsukuba-linux.org/</property>
             <child>
               <object class="GtkButton" id="button4">
                 <property name="label">gtk-apply</property>
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
@@ -276,6 +278,7 @@ http://www.tsukuba-linux.org/</property>
                     <child>
                       <object class="GtkCheckButton" id="checkbutton_home">
                         <property name="label" translatable="yes">Auto</property>
+                        <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">False</property>
@@ -294,6 +297,7 @@ http://www.tsukuba-linux.org/</property>
                     <child>
                       <object class="GtkCheckButton" id="checkbutton_mentions">
                         <property name="label" translatable="yes">Auto</property>
+                        <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">False</property>
@@ -314,6 +318,7 @@ http://www.tsukuba-linux.org/</property>
                     <child>
                       <object class="GtkCheckButton" id="checkbutton_other">
                         <property name="label" translatable="yes">Auto</property>
+                        <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">False</property>
@@ -433,6 +438,7 @@ http://www.tsukuba-linux.org/</property>
                     <child>
                       <object class="GtkCheckButton" id="checkbutton_showicon">
                         <property name="label">gtk-yes</property>
+                        <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">False</property>
@@ -466,6 +472,7 @@ http://www.tsukuba-linux.org/</property>
                     <child>
                       <object class="GtkCheckButton" id="checkbutton_userstream">
                         <property name="label">gtk-yes</property>
+                        <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">False</property>
@@ -735,6 +742,7 @@ http://www.tsukuba-linux.org/</property>
                     <child>
                       <object class="GtkButton" id="button_color1">
                         <property name="label">gtk-select-color</property>
+                        <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
@@ -753,6 +761,7 @@ http://www.tsukuba-linux.org/</property>
                     <child>
                       <object class="GtkButton" id="button_color2">
                         <property name="label">gtk-select-color</property>
+                        <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
@@ -772,6 +781,7 @@ http://www.tsukuba-linux.org/</property>
                     <child>
                       <object class="GtkButton" id="button_color3">
                         <property name="label">gtk-select-color</property>
+                        <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
@@ -932,6 +942,7 @@ http://www.tsukuba-linux.org/</property>
                     <child>
                       <object class="GtkButton" id="button_color4">
                         <property name="label">gtk-select-color</property>
+                        <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
@@ -951,6 +962,7 @@ http://www.tsukuba-linux.org/</property>
                     <child>
                       <object class="GtkButton" id="button_color5">
                         <property name="label">gtk-select-color</property>
+                        <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
@@ -1043,12 +1055,6 @@ http://www.tsukuba-linux.org/</property>
     <property name="stock">gtk-find</property>
     <property name="icon-size">1</property>
   </object>
-  <object class="GtkImage" id="image14">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="stock">gtk-zoom-out</property>
-    <property name="icon-size">1</property>
-  </object>
   <object class="GtkImage" id="image15">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
@@ -1114,9 +1120,9 @@ http://www.tsukuba-linux.org/</property>
     <property name="can_focus">False</property>
     <child>
       <object class="GtkRadioMenuItem" id="menuitem_time_600">
+        <property name="use_action_appearance">False</property>
         <property name="visible">True</property>
         <property name="can_focus">False</property>
-        <property name="use_action_appearance">False</property>
         <property name="label" translatable="yes">Every 10 minutes</property>
         <property name="use_underline">True</property>
         <property name="draw_as_radio">True</property>
@@ -1125,9 +1131,9 @@ http://www.tsukuba-linux.org/</property>
     </child>
     <child>
       <object class="GtkRadioMenuItem" id="menuitem_time_300">
+        <property name="use_action_appearance">False</property>
         <property name="visible">True</property>
         <property name="can_focus">False</property>
-        <property name="use_action_appearance">False</property>
         <property name="label" translatable="yes">Every 5 minutes</property>
         <property name="use_underline">True</property>
         <property name="draw_as_radio">True</property>
@@ -1136,9 +1142,9 @@ http://www.tsukuba-linux.org/</property>
     </child>
     <child>
       <object class="GtkRadioMenuItem" id="menuitem_time_120">
+        <property name="use_action_appearance">False</property>
         <property name="visible">True</property>
         <property name="can_focus">False</property>
-        <property name="use_action_appearance">False</property>
         <property name="label" translatable="yes">Every 2 minutes</property>
         <property name="use_underline">True</property>
         <property name="draw_as_radio">True</property>
@@ -1147,9 +1153,9 @@ http://www.tsukuba-linux.org/</property>
     </child>
     <child>
       <object class="GtkRadioMenuItem" id="menuitem_time_60">
+        <property name="use_action_appearance">False</property>
         <property name="visible">True</property>
         <property name="can_focus">False</property>
-        <property name="use_action_appearance">False</property>
         <property name="label" translatable="yes">Every 1 minute</property>
         <property name="use_underline">True</property>
         <property name="draw_as_radio">True</property>
@@ -1158,9 +1164,9 @@ http://www.tsukuba-linux.org/</property>
     </child>
     <child>
       <object class="GtkRadioMenuItem" id="menuitem_time_30">
+        <property name="use_action_appearance">False</property>
         <property name="visible">True</property>
         <property name="can_focus">False</property>
-        <property name="use_action_appearance">False</property>
         <property name="label" translatable="yes">Every 30 seconds</property>
         <property name="use_underline">True</property>
         <property name="draw_as_radio">True</property>
@@ -1175,9 +1181,9 @@ http://www.tsukuba-linux.org/</property>
     </child>
     <child>
       <object class="GtkRadioMenuItem" id="menuitem_time_default">
+        <property name="use_action_appearance">False</property>
         <property name="visible">True</property>
         <property name="can_focus">False</property>
-        <property name="use_action_appearance">False</property>
         <property name="label" translatable="yes">Default ()</property>
         <property name="use_underline">True</property>
         <property name="draw_as_radio">True</property>
@@ -1186,9 +1192,9 @@ http://www.tsukuba-linux.org/</property>
     </child>
     <child>
       <object class="GtkRadioMenuItem" id="menuitem_time_none">
+        <property name="use_action_appearance">False</property>
         <property name="visible">True</property>
         <property name="can_focus">False</property>
-        <property name="use_action_appearance">False</property>
         <property name="label" translatable="yes">Stop</property>
         <property name="use_underline">True</property>
         <property name="draw_as_radio">True</property>
@@ -1202,9 +1208,9 @@ http://www.tsukuba-linux.org/</property>
     <child>
       <object class="GtkImageMenuItem" id="menuitem_reply">
         <property name="label" translatable="yes">Reply</property>
+        <property name="use_action_appearance">False</property>
         <property name="visible">True</property>
         <property name="can_focus">False</property>
-        <property name="use_action_appearance">False</property>
         <property name="image">image1</property>
         <property name="use_stock">False</property>
         <property name="always_show_image">True</property>
@@ -1214,9 +1220,9 @@ http://www.tsukuba-linux.org/</property>
     <child>
       <object class="GtkImageMenuItem" id="menuitem_retweet">
         <property name="label" translatable="yes">Retweet</property>
+        <property name="use_action_appearance">False</property>
         <property name="visible">True</property>
         <property name="can_focus">False</property>
-        <property name="use_action_appearance">False</property>
         <property name="image">image2</property>
         <property name="use_stock">False</property>
         <property name="always_show_image">True</property>
@@ -1226,9 +1232,9 @@ http://www.tsukuba-linux.org/</property>
     <child>
       <object class="GtkImageMenuItem" id="menuitem_reteet_with_comment">
         <property name="label" translatable="yes">Retweet with comment</property>
+        <property name="use_action_appearance">False</property>
         <property name="visible">True</property>
         <property name="can_focus">False</property>
-        <property name="use_action_appearance">False</property>
         <property name="image">image5</property>
         <property name="use_stock">False</property>
         <property name="always_show_image">True</property>
@@ -1238,9 +1244,9 @@ http://www.tsukuba-linux.org/</property>
     <child>
       <object class="GtkImageMenuItem" id="menuitem_fav">
         <property name="label" translatable="yes">Favorite</property>
+        <property name="use_action_appearance">False</property>
         <property name="visible">True</property>
         <property name="can_focus">False</property>
-        <property name="use_action_appearance">False</property>
         <property name="image">image3</property>
         <property name="use_stock">False</property>
         <property name="always_show_image">True</property>
@@ -1250,9 +1256,9 @@ http://www.tsukuba-linux.org/</property>
     <child>
       <object class="GtkImageMenuItem" id="menuitem_destroy">
         <property name="label" translatable="yes">Destroy</property>
+        <property name="use_action_appearance">False</property>
         <property name="visible">True</property>
         <property name="can_focus">False</property>
-        <property name="use_action_appearance">False</property>
         <property name="image">image8</property>
         <property name="use_stock">False</property>
         <property name="always_show_image">True</property>
@@ -1268,9 +1274,9 @@ http://www.tsukuba-linux.org/</property>
     <child>
       <object class="GtkImageMenuItem" id="menuitem_usertl">
         <property name="label" translatable="yes">User Timeline</property>
+        <property name="use_action_appearance">False</property>
         <property name="visible">True</property>
         <property name="can_focus">False</property>
-        <property name="use_action_appearance">False</property>
         <property name="image">image4</property>
         <property name="use_stock">False</property>
         <property name="always_show_image">True</property>
@@ -1280,9 +1286,9 @@ http://www.tsukuba-linux.org/</property>
     <child>
       <object class="GtkImageMenuItem" id="menuitem_detail">
         <property name="label" translatable="yes">View conversation</property>
+        <property name="use_action_appearance">False</property>
         <property name="visible">True</property>
         <property name="can_focus">False</property>
-        <property name="use_action_appearance">False</property>
         <property name="image">image11</property>
         <property name="use_stock">False</property>
         <property name="always_show_image">True</property>
@@ -1292,9 +1298,9 @@ http://www.tsukuba-linux.org/</property>
     <child>
       <object class="GtkImageMenuItem" id="menuitem_ontwitter">
         <property name="label" translatable="yes">View on Twitter.com</property>
+        <property name="use_action_appearance">False</property>
         <property name="visible">True</property>
         <property name="can_focus">False</property>
-        <property name="use_action_appearance">False</property>
         <property name="image">image15</property>
         <property name="use_stock">False</property>
         <property name="always_show_image">True</property>
@@ -1310,9 +1316,9 @@ http://www.tsukuba-linux.org/</property>
     <child>
       <object class="GtkImageMenuItem" id="menuitem_mentioned_user">
         <property name="label" translatable="yes">Mentioned users</property>
+        <property name="use_action_appearance">False</property>
         <property name="visible">True</property>
         <property name="can_focus">False</property>
-        <property name="use_action_appearance">False</property>
         <property name="image">image7</property>
         <property name="use_stock">False</property>
         <property name="always_show_image">True</property>
@@ -1321,9 +1327,9 @@ http://www.tsukuba-linux.org/</property>
     <child>
       <object class="GtkImageMenuItem" id="menuitem_hashtags">
         <property name="label" translatable="yes">Hashtags</property>
+        <property name="use_action_appearance">False</property>
         <property name="visible">True</property>
         <property name="can_focus">False</property>
-        <property name="use_action_appearance">False</property>
         <property name="image">image13</property>
         <property name="use_stock">False</property>
         <property name="always_show_image">True</property>
@@ -1332,9 +1338,9 @@ http://www.tsukuba-linux.org/</property>
     <child>
       <object class="GtkImageMenuItem" id="menuitem_urls">
         <property name="label" translatable="yes">URL</property>
+        <property name="use_action_appearance">False</property>
         <property name="visible">True</property>
         <property name="can_focus">False</property>
-        <property name="use_action_appearance">False</property>
         <property name="image">image6</property>
         <property name="use_stock">False</property>
         <property name="always_show_image">True</property>
@@ -1343,9 +1349,9 @@ http://www.tsukuba-linux.org/</property>
     <child>
       <object class="GtkImageMenuItem" id="menuitem_geo">
         <property name="label" translatable="yes">Geo</property>
+        <property name="use_action_appearance">False</property>
         <property name="visible">True</property>
         <property name="can_focus">False</property>
-        <property name="use_action_appearance">False</property>
         <property name="image">image16</property>
         <property name="use_stock">False</property>
         <property name="always_show_image">True</property>
@@ -1356,27 +1362,15 @@ http://www.tsukuba-linux.org/</property>
     <property name="visible">True</property>
     <property name="can_focus">False</property>
     <child>
-      <object class="GtkImageMenuItem" id="menuitem_twitpic">
-        <property name="label" translatable="yes">Upload Image (twitpic)</property>
+      <object class="GtkImageMenuItem" id="menuitem_add_image">
+        <property name="label" translatable="yes">Add an image</property>
+        <property name="use_action_appearance">False</property>
         <property name="visible">True</property>
         <property name="can_focus">False</property>
-        <property name="use_action_appearance">False</property>
         <property name="image">image10</property>
         <property name="use_stock">False</property>
         <property name="always_show_image">True</property>
-        <signal name="activate" handler="on_menuitem_twitpic_activate" swapped="no"/>
-      </object>
-    </child>
-    <child>
-      <object class="GtkImageMenuItem" id="menuitem_shorten">
-        <property name="label" translatable="yes">Shorten URL</property>
-        <property name="visible">True</property>
-        <property name="can_focus">False</property>
-        <property name="use_action_appearance">False</property>
-        <property name="image">image14</property>
-        <property name="use_stock">False</property>
-        <property name="always_show_image">True</property>
-        <signal name="activate" handler="on_menuitem_shorten_activate" swapped="no"/>
+        <signal name="activate" handler="on_menuitem_add_image_activate" swapped="no"/>
       </object>
     </child>
   </object>
@@ -1398,9 +1392,9 @@ http://www.tsukuba-linux.org/</property>
             <property name="can_focus">False</property>
             <child>
               <object class="GtkMenuItem" id="menuitem1">
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="use_action_appearance">False</property>
                 <property name="label" translatable="yes">gwit(_G)</property>
                 <property name="use_underline">True</property>
                 <child type="submenu">
@@ -1410,9 +1404,9 @@ http://www.tsukuba-linux.org/</property>
                     <child>
                       <object class="GtkImageMenuItem" id="imageitem_settings">
                         <property name="label">gtk-preferences</property>
+                        <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                         <property name="always_show_image">True</property>
@@ -1422,9 +1416,9 @@ http://www.tsukuba-linux.org/</property>
                     <child>
                       <object class="GtkImageMenuItem" id="menuitem_streaming">
                         <property name="label" translatable="yes">Streaming API</property>
+                        <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="image">image12</property>
                         <property name="use_stock">False</property>
                         <property name="always_show_image">True</property>
@@ -1440,9 +1434,9 @@ http://www.tsukuba-linux.org/</property>
                     <child>
                       <object class="GtkImageMenuItem" id="menuitem_quit">
                         <property name="label">gtk-quit</property>
+                        <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                         <property name="always_show_image">True</property>
@@ -1455,28 +1449,28 @@ http://www.tsukuba-linux.org/</property>
             </child>
             <child>
               <object class="GtkMenuItem" id="menuitem_tweet">
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="sensitive">False</property>
                 <property name="can_focus">False</property>
-                <property name="use_action_appearance">False</property>
                 <property name="label" translatable="yes">Tweet(_D)</property>
                 <property name="use_underline">True</property>
               </object>
             </child>
             <child>
               <object class="GtkMenuItem" id="menuitem_timeline">
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="use_action_appearance">False</property>
                 <property name="label" translatable="yes">Timeline(_T)</property>
                 <property name="use_underline">True</property>
               </object>
             </child>
             <child>
               <object class="GtkMenuItem" id="menuitem4">
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="use_action_appearance">False</property>
                 <property name="label" translatable="yes">Help(_H)</property>
                 <property name="use_underline">True</property>
                 <child type="submenu">
@@ -1486,9 +1480,9 @@ http://www.tsukuba-linux.org/</property>
                     <child>
                       <object class="GtkImageMenuItem" id="menuitem_about">
                         <property name="label">gtk-about</property>
+                        <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                         <property name="always_show_image">True</property>
@@ -1524,56 +1518,39 @@ http://www.tsukuba-linux.org/</property>
               </packing>
             </child>
             <child>
-              <object class="GtkHBox" id="hbox1">
+              <object class="GtkVBox" id="box1">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="spacing">10</property>
                 <child>
-                  <object class="GtkTextView" id="textview1">
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="wrap_mode">word</property>
-                    <property name="right_margin">1</property>
-                    <property name="buffer">textbuffer1</property>
-                    <property name="accepts_tab">False</property>
-                    <signal name="key-press-event" handler="on_textview1_key_press_event" swapped="no"/>
-                  </object>
-                  <packing>
-                    <property name="expand">True</property>
-                    <property name="fill">True</property>
-                    <property name="position">0</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkVButtonBox" id="vbuttonbox1">
+                  <object class="GtkHBox" id="hbox1">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
+                    <property name="spacing">10</property>
                     <child>
-                      <object class="GtkLabel" id="label1">
+                      <object class="GtkTextView" id="textview1">
                         <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label" translatable="yes">0</property>
+                        <property name="can_focus">True</property>
+                        <property name="wrap_mode">word</property>
+                        <property name="right_margin">1</property>
+                        <property name="buffer">textbuffer1</property>
+                        <property name="accepts_tab">False</property>
+                        <signal name="key-press-event" handler="on_textview1_key_press_event" swapped="no"/>
                       </object>
                       <packing>
-                        <property name="expand">False</property>
-                        <property name="fill">False</property>
+                        <property name="expand">True</property>
+                        <property name="fill">True</property>
                         <property name="position">0</property>
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkHBox" id="hbox2">
+                      <object class="GtkVButtonBox" id="vbuttonbox1">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <child>
-                          <object class="GtkButton" id="button1">
-                            <property name="label" translatable="yes"> Update </property>
+                          <object class="GtkLabel" id="label1">
                             <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                            <property name="receives_default">True</property>
-                            <property name="use_action_appearance">False</property>
-                            <property name="image">image9</property>
-                            <property name="relief">none</property>
-                            <signal name="clicked" handler="on_button1_clicked" swapped="no"/>
+                            <property name="can_focus">False</property>
+                            <property name="label" translatable="yes">0</property>
                           </object>
                           <packing>
                             <property name="expand">False</property>
@@ -1582,19 +1559,49 @@ http://www.tsukuba-linux.org/</property>
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkButton" id="button2">
+                          <object class="GtkHBox" id="hbox2">
                             <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                            <property name="receives_default">True</property>
-                            <property name="use_action_appearance">False</property>
-                            <property name="relief">none</property>
-                            <signal name="button-release-event" handler="on_button2_button_release_event" swapped="no"/>
+                            <property name="can_focus">False</property>
                             <child>
-                              <object class="GtkArrow" id="arrow1">
+                              <object class="GtkButton" id="button1">
+                                <property name="label" translatable="yes"> Update </property>
+                                <property name="use_action_appearance">False</property>
                                 <property name="visible">True</property>
-                                <property name="can_focus">False</property>
-                                <property name="arrow_type">down</property>
+                                <property name="can_focus">True</property>
+                                <property name="receives_default">True</property>
+                                <property name="use_action_appearance">False</property>
+                                <property name="image">image9</property>
+                                <property name="relief">none</property>
+                                <signal name="clicked" handler="on_button1_clicked" swapped="no"/>
                               </object>
+                              <packing>
+                                <property name="expand">False</property>
+                                <property name="fill">False</property>
+                                <property name="position">0</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkButton" id="button2">
+                                <property name="use_action_appearance">False</property>
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="receives_default">True</property>
+                                <property name="use_action_appearance">False</property>
+                                <property name="relief">none</property>
+                                <signal name="button-release-event" handler="on_button2_button_release_event" swapped="no"/>
+                                <child>
+                                  <object class="GtkArrow" id="arrow1">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="arrow_type">down</property>
+                                  </object>
+                                </child>
+                              </object>
+                              <packing>
+                                <property name="expand">False</property>
+                                <property name="fill">False</property>
+                                <property name="position">1</property>
+                              </packing>
                             </child>
                           </object>
                           <packing>
@@ -1609,6 +1616,32 @@ http://www.tsukuba-linux.org/</property>
                         <property name="fill">False</property>
                         <property name="position">1</property>
                       </packing>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="expand">True</property>
+                    <property name="fill">True</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkTable" id="table_images">
+                    <property name="can_focus">False</property>
+                    <property name="n_columns">4</property>
+                    <property name="column_spacing">5</property>
+                    <property name="row_spacing">10</property>
+                    <property name="homogeneous">True</property>
+                    <child>
+                      <placeholder/>
+                    </child>
+                    <child>
+                      <placeholder/>
+                    </child>
+                    <child>
+                      <placeholder/>
+                    </child>
+                    <child>
+                      <placeholder/>
                     </child>
                   </object>
                   <packing>

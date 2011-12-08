@@ -28,7 +28,6 @@
 import re
 import datetime
 import htmlentitydefs
-import bitly
 
 class TwitterTools(object):
     _urlpattern = u'''(?P<url>https?://[^\s　]*)'''
@@ -257,20 +256,3 @@ class TwitterTools(object):
                 string = string.replace("&%s;" % name, unichr(c))
         
         return string
-
-    @classmethod
-    def is_bitly_url(cls, urls):
-        if url.startswith(("http://bit.ly", "http://j.mp")):
-            return bitly.Bitly.expand(url)[0]
-        else:
-            return False
-    
-    @classmethod
-    def url_shorten(cls, text):
-        urls = TwitterTools.get_urls_from_text(text)
-        for longurl in urls:
-            shorturl = bitly.Bitly.shorten(longurl)
-            text = text.replace(longurl, shorturl)
-        
-        return text
-

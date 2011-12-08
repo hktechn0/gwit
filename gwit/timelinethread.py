@@ -25,6 +25,7 @@
 ################################################################################
 
 
+import sys
 import threading
 import urllib2
 
@@ -156,8 +157,12 @@ class StreamingThread(BaseThread):
         apimethod = getattr(self.twitter.sapi, self.method)
         stream = apimethod(*self.args, **self.kwargs)
         
-        stream.start()
-        while not self.die:
-            self.add_statuses(stream.pop())
-            stream.event.wait()
-        stream.stop()
+        try:
+            stream.start()
+            while not self.die:
+                self.add_statuses(stream.pop())
+                stream.event.wait()
+        except Exception(e):
+            print >>sys.stderr, "[Error] Streaming: %s" % e
+        finally:
+            stream.stop()
