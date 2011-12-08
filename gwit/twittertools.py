@@ -265,6 +265,6 @@ class TwitterTools(object):
         num_url = len(urls)
         
         for url, _ in urls:
-            text = text.replace(url, "")
+            text = text.replace(url, u"")
         
         return len(text) + url_length * num_url + media_length * num_media

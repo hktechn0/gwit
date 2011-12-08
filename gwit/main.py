@@ -723,11 +723,11 @@ class Main(object):
     
     # Character count
     def on_textbuffer1_changed(self, textbuffer):
-        text = self.get_textview()
+        text = self.get_textview().decode("utf-8")
         
         if self.msgfooter != "" and self.twparams.get("reply_to", None):
-            text += " " + self.msgfooter
-
+            text = u"%s %s" % (text, self.msgfooter)
+        
         n = TwitterTools.get_tweet_length(
             text, len(self.twparams.get("media", [])),
             self.twitter.configuration.get("short_url_length", 20),
