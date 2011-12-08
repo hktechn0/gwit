@@ -256,3 +256,15 @@ class TwitterTools(object):
                 string = string.replace("&%s;" % name, unichr(c))
         
         return string
+
+    @classmethod
+    def get_tweet_length(cls, text, num_media = 0,
+                         url_length = 20, https_url_length = 21,
+                         media_length = 21):
+        urls = cls.get_urls_from_text(text)
+        num_url = len(urls)
+        
+        for url, _ in urls:
+            text = text.replace(url, "")
+        
+        return len(text) + url_length * num_url + media_length * num_media

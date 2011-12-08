@@ -208,7 +208,8 @@ class Main(object):
         # Set statusbar (Show API Remaining)
         self.label_apilimit = gtk.Label()
         self.statusbar = self.builder.get_object("statusbar1")
-        self.statusbar.pack_start(self.label_apilimit, expand = False, padding = 10)
+        self.statusbar.pack_start(self.label_apilimit,
+                                  expand = False, padding = 10)
         self.statusbar.show_all()
         
         # Users tab append
@@ -301,7 +302,8 @@ class Main(object):
         box.show_all()
         
         if timeline != None:
-            button.connect("button-press-event", self.on_notebook_tabbar_button_press)
+            button.connect("button-press-event", 
+                           self.on_notebook_tabbar_button_press)
         
         # append
         self.notebook.append_page(widget, box)
@@ -403,7 +405,8 @@ class Main(object):
         dialog = gtk.ColorSelectionDialog(title)
         selection = dialog.get_color_selection()
         selection.set_current_color(gtk.gdk.color_parse(color))
-        selection.connect("color-changed", on_colorselection_color_changed, store)
+        selection.connect("color-changed", 
+                          on_colorselection_color_changed, store)
         
         selection.pack_start(label)
         selection.pack_start(swin)
@@ -562,7 +565,8 @@ class Main(object):
             message = "Oops! Couldn't reload timeline."
         
         self.statusbar.pop(0)        
-        self.statusbar.push(0, "[Error] %s %s (%s)" % (timeline.getName(), message, e.code))
+        self.statusbar.push(0, "[Error] %s %s (%s)" % (
+                timeline.getName(), message, e.code))
     
     ########################################
     # Gtk Signal Events
@@ -616,32 +620,40 @@ class Main(object):
                 return
             
             # max_media_per_upload check
-            max_media = self.twitter.configuration.get("max_media_per_upload", 1)
+            max_media = self.twitter.configuration.get("max_media_per_upload",
+                                                       1)
             if len(media) >= max_media:
-                self.message_dialog("You can upload max %d images per upload." % max_media)
+                self.message_dialog(
+                    "You can upload max %d images per upload." % max_media)
                 return
             
             # ext check
-            if os.path.splitext(filename)[1].upper() not in [".JPG", ".JPEG", ".PNG", ".GIF"]:
-                self.message_dialog("File is not Image. Only JPG, PNG and GIF.")
+            ext = os.path.splitext(filename)[1].upper()
+            if ext not in [".JPG", ".JPEG", ".PNG", ".GIF"]:
+                self.message_dialog(
+                    "File is not Image. Only JPG, PNG and GIF.")
                 return
             
             # filesize check
             fsize = os.stat(filename).st_size
             limit = self.twitter.configuration.get("photo_size_limit", 3145728)
             if fsize > limit:
-                self.message_dialog("Image file size must be less than %d KB." % (limit / 1024))
+                self.message_dialog(
+                    "Image file size must be less than %d KB." % (
+                        limit / 1024))
                 return
             
             pix = gtk.gdk.pixbuf_new_from_file(filename)
             ratio = float(pix.get_height()) / float(pix.get_width())
-            pix = pix.scale_simple(120, int(ratio * 120), gtk.gdk.INTERP_BILINEAR)
+            pix = pix.scale_simple(120, int(ratio * 120), 
+                                   gtk.gdk.INTERP_BILINEAR)
             
             img = gtk.Image()
             img.set_from_pixbuf(pix)
             box = gtk.EventBox()
             box.add(img)         
-            box.connect("button-release-event", self.on_image_button_release, len(media))
+            box.connect("button-release-event",
+                        self.on_image_button_release, len(media))
             
             # add new row
             if len(media) % 4 == 0:
@@ -672,8 +684,9 @@ class Main(object):
                 os.system("xdg-open %s" % self.twparams["media"][media_num])
         elif event.button == 3:
             # image delete
-            r = self.message_dialog("Are you sure you want to delete this image?",
-                                    gtk.MESSAGE_QUESTION, gtk.BUTTONS_YES_NO)
+            r = self.message_dialog(
+                "Are you sure you want to delete this image?",
+                gtk.MESSAGE_QUESTION, gtk.BUTTONS_YES_NO)
             if r == gtk.RESPONSE_YES:
                 self.imgtable.remove(widget)
                 del self.twparams["media"][media_num]
@@ -699,25 +712,35 @@ class Main(object):
             if m > n: self.tlhash[i] -= 1
         
         p = self.notebook.get_current_page()
-        self.on_notebook1_switch_page(self.notebook, self.notebook.get_nth_page(p), p)
+        self.on_notebook1_switch_page(
+            self.notebook, self.notebook.get_nth_page(p), p)
     
     # Tab right clicked
     def on_notebook_tabbar_button_press(self, widget, event):
         if event.button == 3:
-            self.menu_timeline.popup(None, None, None, event.button, event.time)
+            self.menu_timeline.popup(
+                None, None, None, event.button, event.time)
     
     # Character count
     def on_textbuffer1_changed(self, textbuffer):
-        n = textbuffer.get_char_count()
+        text = self.get_textview()
+        
+        if self.msgfooter != "" and self.twparams.get("reply_to", None):
+            text += " " + self.msgfooter
 
-        if self.twparams.get("reply_to", None) and self.msgfooter != "":
-            n += len(self.msgfooter) + 1
+        n = TwitterTools.get_tweet_length(
+            text, len(self.twparams.get("media", [])),
+            self.twitter.configuration.get("short_url_length", 20),
+            self.twitter.configuration.get("short_url_length_https", 20),
+            self.twitter.configuration.get("characters_reserved_per_media", 20)
+            )
         
         if n <= 140:
             self.charcount.set_text(str(n))
             self.btnupdate.set_sensitive(True)
         else:
-            self.charcount.set_markup("<b><span foreground='#FF0000'>%s</span></b>" % n)
+            self.charcount.set_markup(
+                "<b><span foreground='#FF0000'>%s</span></b>" % n)
             self.btnupdate.set_sensitive(False)
     
     # Help - About menu
@@ -772,7 +795,8 @@ class Main(object):
     def on_menuitem_streaming_activate(self, menuitem):
         dialog = gtk.MessageDialog(buttons = gtk.BUTTONS_OK)
         dialog.set_markup("Please enter track keywords.")
-        dialog.format_secondary_markup("Examples: <i>hashtag, username, keyword</i>\n(Split comma. Unnecessary #, @)")
+        dialog.format_secondary_markup(
+            "Examples: <i>hashtag, username, keyword</i>\n(Split comma. Unnecessary #, @)")
         entry = gtk.Entry()
         dialog.vbox.pack_start(entry)
         dialog.show_all()
@@ -829,7 +853,8 @@ class Main(object):
     # view on twitter.com
     def on_menuitem_ontwitter_activate(self, menuitem):
         status = self.get_selected_status()
-        url = "https://twitter.com/%s/status/%s" % (status.user.screen_name, status.id)
+        url = "https://twitter.com/%s/status/%s" % (
+            status.user.screen_name, status.id)
         webbrowser.open_new_tab(url)
     
     ########################################
