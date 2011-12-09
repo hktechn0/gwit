@@ -40,7 +40,7 @@ class SetupWizard:
     
     def __init__(self):
         setupglade = os.path.join(
-            os.path.dirname(__file__), "glade/setupwizard.glade")
+            os.path.dirname(__file__), "ui/setupwizard.ui")
         
         builder = gtk.Builder()
         self.builder = builder

@@ -54,7 +54,7 @@ class IconStore(object):
         self.iconthread = list()
         
         # load default icon
-        iconpath = os.path.join(os.path.dirname(__file__), "img/none.png")
+        iconpath = os.path.join(os.path.dirname(__file__), "images/none.png")
         self.default_icon = gtk.gdk.pixbuf_new_from_file(iconpath)
         
         for i in range(background_slot):

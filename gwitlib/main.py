@@ -120,7 +120,7 @@ class Main(object):
         # GtkBuilder instance
         self.builder = gtk.Builder()
         # Glade file input
-        gladefile = os.path.join(os.path.dirname(__file__), "glade/gwit.glade")
+        gladefile = os.path.join(os.path.dirname(__file__), "ui/gwit.ui")
         self.builder.add_from_file(gladefile)
         # Connect signals
         self.builder.connect_signals(self)
@@ -154,7 +154,7 @@ class Main(object):
         GetFriendsWizard.twitter = self.twitter
         IconThread.twitter = self.twitter
         
-        imgpath = os.path.join(os.path.dirname(__file__), "img/")
+        imgpath = os.path.join(os.path.dirname(__file__), "images/")
         StatusView.favico_off = gtk.gdk.pixbuf_new_from_file(
             imgpath + "favorite.png")
         StatusView.favico_hover = gtk.gdk.pixbuf_new_from_file(

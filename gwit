@@ -31,7 +31,7 @@ import sys
 import optparse
 from ConfigParser import SafeConfigParser
 
-__version__ = '0.9.1-beta'
+__version__ = '0.9.2-beta'
 __author__ = 'University of Tsukuba Linux User Group <staff@tsukuba-linux.org>'
 
 def print_version():
@@ -44,7 +44,7 @@ under the terms of the GNU General Public License.
 For more information about these matters, see the file named COPYING.""" % {
        "name" : "gwit",
        "version" : __version__,
-       "year" : "2010",
+       "year" : "2011",
        "copyright" : __author__,
        }
 
@@ -72,11 +72,11 @@ if __name__ == "__main__":
     if not os.path.isdir(conf_dir):
         os.mkdir(conf_dir)
     conf_path = os.path.join(conf_dir, "config")
-        
+    
     # Set gwit library path into python path
     script_path = os.path.realpath(__file__)
-    lib_path = os.path.join(os.path.dirname(script_path), "../")
-    sys.path.insert(0, os.path.realpath(lib_path))
+    #lib_path = os.path.join(os.path.dirname(script_path), "../")
+    #sys.path.insert(0, os.path.realpath(lib_path))
     
     # config file exist?
     fexist = os.path.isfile(conf_path)
@@ -87,7 +87,7 @@ if __name__ == "__main__":
 
     if not fexist or options.add:
         # Run Setup Wizard
-        from gwit import SetupWizard
+        from gwitlib import SetupWizard
         setup = SetupWizard()
         setup.main()
         
@@ -135,6 +135,6 @@ if __name__ == "__main__":
         exit()
     
     # Run Main()
-    from gwit import Main
+    from gwitlib import Main
     gwit = Main(user, keys)
     gwit.main()
