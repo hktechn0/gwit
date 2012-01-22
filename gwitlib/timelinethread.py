@@ -28,6 +28,7 @@
 import sys
 import threading
 import urllib2
+import time
 
 import twoauth
 
@@ -126,6 +127,8 @@ class TimelineThread(BaseThread):
             else:
                 self.lock.wait()
             
+            if self.die: break
+            
             apimethod = getattr(self.twitter.api, self.method)
             statuses = self.twitter.api_wrapper(apimethod, *self.args, **self.kwargs)
             
@@ -160,8 +163,18 @@ class StreamingThread(BaseThread):
         try:
             stream.start()
             while not self.die:
-                self.add_statuses(stream.pop())
                 stream.event.wait()
+                if self.die: break
+                
+                self.add_statuses(stream.pop())
+                
+                if not stream.is_connected:
+                    stream.stop()
+                    print >>sys.stderr, "[Info] Reconnect Stream(%s)..." % self.method
+                    time.sleep(5)
+                    
+                    stream = apimethod(*self.args, **self.kwargs)
+                    stream.start()
         except Exception, e:
             print >>sys.stderr, "[Error] Streaming: %s" % e
         finally:
