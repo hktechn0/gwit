@@ -304,7 +304,7 @@ Web: %s</span></small>
     
     def on_entry_focus_out(self, entry, direction):
         self.treeview.set_search_entry(None)
-
+    
     def on_follow_button_toggled(self, button):
         path, column = self.treeview.get_cursor()
         uid = self.treeview.get_model()[path][2]
@@ -328,7 +328,7 @@ Web: %s</span></small>
             self.treeview.get_model().set_sort_column_id(n, gtk.SORT_ASCENDING if is_asc != gtk.SORT_ASCENDING else gtk.SORT_DESCENDING)
         else:
             self.treeview.get_model().set_sort_column_id(n, gtk.SORT_ASCENDING if n == 1 else gtk.SORT_DESCENDING)
-
+    
     # open get followings followers wizard
     def on_button_refresh_clicked(self, button):
         w = GetFriendsWizard()

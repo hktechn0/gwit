@@ -99,39 +99,48 @@ There will add to user selection after few seconds.""")
             buf.insert_at_cursor(text)
             gtk.gdk.threads_leave()
         
-        users = dict()
+        users_n = 0
+        ids_to_get = list()
+        users_exist = set(self.twitter.users.keys())
+        
         log = self.page3.get_child().get_buffer()
         
         if self.chkfr.get_active():            
             p(log, "=== Getting friedns ===\n")
-            cursor = -1
-            while cursor != 0:
-                p(log, "GET: %s\n" % cursor)
-                
-                r = self.twitter.api_wrapper(self.twitter.api.friends, cursor = cursor)
-                cursor = r["next_cursor"]
-                users.update([(i.id, i) for i in r["users"]])
-                
-                p(log, "%d users\n" % len(users))
+            
+            p(log, "GET: friends_ids...\n")
+            self.twitter.get_following()
+            ids_to_get += list(self.twitter.following.difference(users_exist))
+            p(log, "Friends: %d users (Getting %d users)\n" % (
+                    len(self.twitter.following), len(ids_to_get)))
             
         if self.chkfo.get_active():
             p(log, "=== Getting followers ===\n")
-            cursor = -1
-            while cursor != 0:
-                p(log, "GET: %s\n" % cursor)
-                
-                r = self.twitter.api_wrapper(self.twitter.api.followers, cursor = cursor)
-                cursor = r["next_cursor"]
-                users.update([(i.id, i) for i in r["users"]])
-                
-                p(log, "%d users\n" % len(users))
+            
+            p(log, "GET: followers_ids...\n")
+            self.twitter.get_followers()
+            ids = list(self.twitter.followers.difference(users_exist))
+            ids_to_get += ids
+            p(log, "Followers: %d users (Getting %d users)\n" % (
+                    len(self.twitter.followers), len(ids)))
+        
+        p(log, "=== Getting user data ===\n")
+        while ids_to_get:
+            p(log, "GET: ")
+            
+            ids_now = ids_to_get[:100]
+            ids_to_get = ids_to_get[100:]
+            
+            r = self.twitter.api_wrapper(self.twitter.api.user_lookup, user_id = ids_now)
+            self.twitter.add_users(r)
+            
+            users_n += len(r)
+            p(log, "%d users\n" % users_n)
         
         p(log, "\nDone.\n")
         gtk.gdk.threads_enter()
         self.set_page_complete(self.page3, True)
         gtk.gdk.threads_leave()
-
-        self.twitter.add_users(users)
     
     def on_cancel_close(self, widget):
         widget.hide_all()

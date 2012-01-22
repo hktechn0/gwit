@@ -91,18 +91,26 @@ class TwitterAPI(object):
         threading.Thread(target = self.get_following).start()
     
     def get_following(self):
+        newset = set()
         cursor = -1
+        
         while cursor != 0:
             r = self.api_wrapper(self.api.friends_ids, cursor = cursor) or {}
-            self.following.update([int(i) for i in r.get("ids", [])])
+            newset.update([int(i) for i in r.get("ids", [])])
             cursor = r.get("next_cursor", 0)
+        
+        self.following = newset
     
     def get_followers(self):
+        newset = set()
         cursor = -1
+        
         while cursor != 0:
             r = self.api_wrapper(self.api.followers_ids, cursor = cursor) or {}
-            self.followers.update([int(i) for i in r.get("ids", [])])
+            newset.update([int(i) for i in r.get("ids", [])])
             cursor = r.get("next_cursor", 0)
+        
+        self.followers = newset
     
     def add_statuses(self, statuses):
         if isinstance(statuses, dict):
