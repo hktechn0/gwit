@@ -162,7 +162,7 @@ class StreamingThread(BaseThread):
             while not self.die:
                 self.add_statuses(stream.pop())
                 stream.event.wait()
-        except Exception(e):
+        except Exception, e:
             print >>sys.stderr, "[Error] Streaming: %s" % e
         finally:
             stream.stop()

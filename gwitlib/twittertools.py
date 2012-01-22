@@ -228,19 +228,24 @@ class TwitterTools(object):
 
     # Replace & -> &amp;
     @classmethod
-    def replace_amp(cls, string):
-        amp = string.find('&')
+    def replace_amp(cls, text):
+        amp = text.find('&')
         if amp == -1:
-            return string
+            return text
         
-        entity_match = cls.reamp.finditer(string)
+        entity_match = cls.reamp.finditer(text)
+        n = 0
         
         for m in entity_match:
-            if m.group("name") not in ["gt", "lt", "amp"]:
+            mname = m.groupdict().get("name", None)
+            if mname not in ["gt", "lt", "amp"]:
                 # cannot use htmlentitydefs cheeb(ry...
-                string = string.replace(m.group(), m.expand("&amp;%s" % m.group("after")))
+                startp = m.start("after") + n - 1
+                endp = m.end("after") + n
+                text = text[:startp] + m.expand("&amp;\g<after>") + text[endp:]
+                n += 4
         
-        return string
+        return text
     
     @classmethod
     def replace_htmlentity(cls, string):
