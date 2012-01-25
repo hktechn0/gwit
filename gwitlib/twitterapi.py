@@ -63,7 +63,7 @@ class TwitterAPI(object):
         if self._my_id != -1:
             return self._my_id
         else:
-            for user in self.users.itervalues():
+            for user in self.users.values():
                 if user.screen_name == self.my_name:
                     self._my_id = user.id
                     return user.id

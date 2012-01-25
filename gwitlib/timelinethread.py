@@ -169,10 +169,11 @@ class StreamingThread(BaseThread):
                 self.add_statuses(stream.pop())
                 
                 if not stream.is_connected:
-                    stream.stop()
+                    # disconnected stream
                     print >>sys.stderr, "[Info] Reconnect Stream(%s)..." % self.method
+                    stream.stop()
                     time.sleep(5)
-                    
+                    # restart
                     stream = apimethod(*self.args, **self.kwargs)
                     stream.start()
         except Exception, e:

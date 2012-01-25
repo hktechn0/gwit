@@ -72,6 +72,9 @@ class Main(object):
     # Tweet parameters
     twparams = dict()
     
+    # Streaming API filter
+    _filter_tab = None
+    
     _toggle_change_flag = False
     
     # Constractor
@@ -244,6 +247,15 @@ class Main(object):
         tl = Timeline()
         
         if method == "filter":
+            if self.get_filter_tab():
+                # filter method only one connection
+                self.message_dialog(
+                    "May create only one standing connection to the Streaming API.\n"
+                    "Please close existing Streaming API tab if you want.")
+                tl.destroy()
+                return
+            
+            # set Streaming API stream
             tl.set_stream("filter", kwargs)
         else:
             interval = self.get_default_interval(method)        
@@ -256,11 +268,13 @@ class Main(object):
         
         # Add Notebook (Tab view)
         uid = self.new_tab(tl, label, tl, kwargs.get("deny_close", False))
+        if method == "filter": self.set_filter_tab(uid)
         
         # Set color
         tl.view.set_color(self.status_color)
         
         if method == "mentions":
+            # memory mentions tab_id
             self.timeline_mention = uid
             tl.on_status_added = self.on_mentions_added
         else:
@@ -472,7 +486,21 @@ class Main(object):
             interval = self.interval[2]
 
         return interval
-
+    
+    def get_filter_tab(self):
+        if not self._filter_tab:
+            return None
+        elif self.tlhash.get(self._filter_tab, -1) < 0:
+            # filter tab already closed
+            self.set_filter_tab(None)
+            return None
+        else:
+            return self._filter_tab
+    
+    @classmethod
+    def set_filter_tab(cls, tab_id):
+        cls._filter_tab = tab_id
+    
     def save_settings(self):
         conf = (("DEFAULT", "interval", self.interval),
                 ("DEFAULT", "counts", self.scounts),
@@ -503,6 +531,7 @@ class Main(object):
         r = md.run()
         md.destroy()
         return r
+    
     
     ########################################
     # Original Events
@@ -806,7 +835,7 @@ class Main(object):
         
         params = {"track" : text.split(",")}
         self.new_timeline("Stream: %s" % text, "filter", **params)
-
+    
     def on_destroy(self, widget, *args, **kwargs):
         widget.destroy()
     
