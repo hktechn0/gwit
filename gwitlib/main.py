@@ -228,11 +228,19 @@ class Main(object):
     # Window close event
     def close(self, widget):
         # Save Allocation (window position, size)
-        alloc = repr(self.builder.get_object("window1").allocation)
+        window = self.builder.get_object("window1")
+        alloc = repr(window.allocation)
         Config.save("DEFAULT", "allocation", alloc)
         
-        self.save_settings()
+        # Stop Icon Refresh
+        self.iconstore.stop()
+    
+    def exit(self, widget):
+        # hide window quickly
+        while gtk.events_pending():
+            gtk.main_iteration()
         
+        # Stop Timeline
         for i in self.timelines:
             if i != None:
                 i.destroy()
@@ -240,6 +248,7 @@ class Main(object):
                 if i.stream != None: i.stream.join(1)
         
         gtk.main_quit()
+        self.save_settings()
     
     # Create new Timeline and append to notebook
     def new_timeline(self, label, method, userstream = False, *args, **kwargs):

@@ -94,6 +94,10 @@ class IconStore(object):
         if remove:
             self.stores.remove(remove)
 
+    def stop(self):
+        for t in self.iconthread:
+            t.stop()
+
 class IconThread(threading.Thread):
     twitter = None
     
@@ -105,16 +109,20 @@ class IconThread(threading.Thread):
         self.icons = icons
         self.stores = stores
         self.queue = Queue.Queue()
+        
+        self._die = False
     
     def put(self, user):
         self.queue.put(user)
     
     def run(self):
-        while True:
+        while not self._die:
             user = self.queue.get()
             
             # Icon Image Get
             for i in range(3):
+                if self._die: return
+                
                 try:
                     ico = urllib2.urlopen(user.profile_image_url).read()
                     #ico = self.twitter.api.user_profile_image(
@@ -136,6 +144,8 @@ class IconThread(threading.Thread):
                 # Icon Refresh
                 for store, n in self.stores:
                     for row in store:
+                        if self._die: return
+                        
                         # replace icon to all user's status
                         if row[n] == user.id:
                             gtk.gdk.threads_enter()
@@ -145,7 +155,7 @@ class IconThread(threading.Thread):
     # create pixbuf
     def load_pixbuf(self, ico):
         loader = gtk.gdk.PixbufLoader()
-
+        
         try:
             loader.write(ico)
             pix = loader.get_pixbuf()
@@ -198,3 +208,6 @@ class IconThread(threading.Thread):
         pimg.thumbnail((48, 48), Image.ANTIALIAS)
         pimg = pimg.convert("RGB")
         pimg.save(o, filetype)
+
+    def stop(self):
+        self._die = True
