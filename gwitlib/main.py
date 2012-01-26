@@ -227,10 +227,14 @@ class Main(object):
     
     # Window close event
     def close(self, widget):
-        # Save Allocation (window position, size)
         window = self.builder.get_object("window1")
+
+        # Save Allocation (window position, size)
         alloc = repr(window.allocation)
         Config.save("DEFAULT", "allocation", alloc)
+        
+        # hide window
+        window.hide_all()
         
         # Stop Icon Refresh
         self.iconstore.stop()
@@ -452,7 +456,7 @@ class Main(object):
     
     def _status_update(self, status):
         args = dict()
-
+        
         gtk.gdk.threads_enter()
         self.textview.set_sensitive(False)
         self.btnupdate.set_sensitive(False)
@@ -839,7 +843,7 @@ class Main(object):
         dialog.vbox.pack_start(entry)
         dialog.show_all()
         dialog.run()
-        text = entry.get_text()
+        text = entry.get_text().decode("utf-8")
         dialog.destroy()
         
         params = {"track" : text.split(",")}

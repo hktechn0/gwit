@@ -1442,6 +1442,7 @@ http://www.tsukuba-linux.org/</property>
                         <property name="use_stock">True</property>
                         <property name="always_show_image">True</property>
                         <signal name="activate" handler="close" swapped="no"/>
+                        <signal name="activate" handler="exit" after="yes" swapped="no"/>
                       </object>
                     </child>
                   </object>
