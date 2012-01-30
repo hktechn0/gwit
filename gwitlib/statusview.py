@@ -458,7 +458,10 @@ class StatusView(gtk.TreeView):
         self.render_event.set()
     
     def _reset_status_text_in_thread(self):
+        # FIX ME : cannot force reload when favorite, unfavorite, delete
         for row in self.store:
+            if self.render_event.is_set(): break
+            
             status_id = row[2]
             packed_row = self.status_pack(status_id)
             
