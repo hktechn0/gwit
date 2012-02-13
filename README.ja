@@ -10,46 +10,49 @@
 
 //////////////////////////////////////////////////
 
-【ソフト名】 gwit
-【製作者】 川田 裕貴（Hirotaka Kawata） 、米山 隆貴（Takaki Yoneyama）
-【開発協力】堀本 貴幸（Takayuki Horimoto）
-【種別】フリーウェア
-【開発言語】Python (>= 2.5)
-【開発環境】pyGtk <http://www.pygtk.org/> , python-twoauth <http://www.techno-st.net/python-twoauth/> 
-【動作環境】Linux, Windows
+【ソフト名】  gwit
+【製作者】    川田 裕貴（Hirotaka Kawata）, 米山 隆貴（Takaki Yoneyama）
+【開発協力】  堀本 貴幸（Takayuki Horimoto）
+【種別】      フリーウェア
+【開発言語】  Python (>= 2.5)
+【開発環境】  PyGtk <http://www.pygtk.org/> , python-twoauth <http://www.techno-st.net/python-twoauth/> 
+【動作環境】  Linux, Windows
 【バージョン】0.9.1-beta
-【最終更新日】2010/10/03
-【WEB】http://sourceforge.jp/projects/gwit/
+【最終更新日】2012/02/13
+【WEB】       http://sourceforge.jp/projects/gwit/
 
 ------------------------------------------------
 
 ◇ 概要 ◇
-	「gwit」（Gtk tWITter client）はオープンソースなTwitterクライアントです。
+	「gwit」（Gtk tWITter client）はオープンソースな Twitter クライアントです。
 
 ◇ 動作条件 ◇
-   	pyGtk が必要です。なるべく、最新版をインストールしてください。
+   	PyGtk が必要です。なるべく、最新版をインストールしてください。
 	python-twoauth は、配布版のパッケージに同梱されていますので、そのままお使いいただけます。
+	　こちらからもダウンロードいただけます。<https://github.com/techno/python-twoauth>
 	Python Imaging Library (PIL) をインストールすると、アイコンが表示される確率が高くなります。
-	notify-python (libnotify) をインストールすると、ポップアップが有効になります。
+	python-notify (libnotify) をインストールすると、ポップアップが有効になります。
 	
 ◇ インストール ・アンインストール ◇
 	適当なディレクトリに解凍してください。
-	`python bin/gwit` を実行するとセットアップウィザードが表示されます。
+	その後 `sudo python setup.py install` とすると、自動的にインストールされます。
+	初回起動時にセットアップウィザードが表示されます。
 	あとは、指示にしたがって認証情報を設定すれば、起動します。
 	設定ファイルは ~/.gwit/config に保存されます。
 
 ◇ ライセンス ◇
-	「gwit」はGNU General Public License (GPL) version 3に基づいています。
-	より詳しく知りたい方はCOPYINGを参照してください。
+	「gwit」は GNU General Public License (GPL) version 3 に基づいています。
+	より詳しく知りたい方は COPYING を参照してください。
 
 ◇ バグ ◇
 	パッチやバグの報告は製作者まで連絡してください。
+	Hirotaka Kawata <techno@tsukuba-linux.org>
 
 ------------------------------------------------
 ◇ 企画 ◇
 	「gwit」は「TsukuLUG Make」の企画の一部です。
 	「TsukuLUG Make」については以下のwebサイトをご覧ください。	
-	http://www.tsukuba-linux.org/mediawiki/index.php?title=つくらぐ_Make
+	http://www.tsukuba-linux.org/
 
 ◇ 連絡先 ◇
 	つくらぐ：http://www.tsukuba-linux.org/
