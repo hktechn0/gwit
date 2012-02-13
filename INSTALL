@@ -1,0 +1,12 @@
+Require:
+- Python 2.x (>= 2.6)
+- python-twoauth (include) <https://github.com/techno/python-twoauth>
+- pygtk
+
+Optional:
+- python-imaging (PIL Python Imaging Library)
+- python-notify (Python binding for libnotify)
+
+Installation:
+$ sudo python setup.py install
+$ gwit
