@@ -468,6 +468,8 @@ class StatusView(gtk.TreeView):
             gtk.gdk.threads_enter()
             self.store[row.path] = packed_row
             gtk.gdk.threads_leave()
+            self.store.row_changed(
+                row.path, self.store.get_iter(row.path))
     
     ########################################
     # Gtk Signal Events    

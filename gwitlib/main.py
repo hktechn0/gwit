@@ -65,6 +65,7 @@ class Main(object):
     alloc = gtk.gdk.Rectangle(0, 0, 240, 320)
     scounts = (20, 200)
     iconmode = True
+    iconcache = True
     userstream = True
     # My status, Mentions to me, Reply to, Reply to user, Selected user
     status_color = ("#CCCCFF", "#FFCCCC", "#FFCC99", "#FFFFCC", "#CCFFCC")
@@ -108,10 +109,10 @@ class Main(object):
         # set event (show remaining api count)
         self.twitter.on_twitterapi_requested = self.on_timeline_refresh
         self.twitter.new_timeline = self.new_timeline
-
+        
         # Get configuration
         self.twitter.update_configuration_bg()
-
+        
         # Get users
         self.twitter.get_followers_bg()
         if not self.userstream: self.twitter.get_following_bg()
@@ -156,6 +157,7 @@ class Main(object):
         UserSelection.iconstore = self.iconstore
         GetFriendsWizard.twitter = self.twitter
         IconThread.twitter = self.twitter
+        IconThread.use_icon_cache = self.iconcache
         
         imgpath = os.path.join(os.path.dirname(__file__), "images/")
         StatusView.favico_off = gtk.gdk.pixbuf_new_from_file(
@@ -185,19 +187,17 @@ class Main(object):
         gtk.main()
     
     def read_settings(self):
-        try:
-            # Read settings
-            d = Config.get_section("DEFAULT")
-            self.interval = eval(d["interval"])
-            self.alloc = eval(d["allocation"])
-            self.scounts = eval(d["counts"])
-            self.iconmode = eval(d["iconmode"])
-            self.userstream = eval(d["userstream"])
-            self.status_color = eval(d["color"])
-            u = Config.get_section(self.twitter.my_name)
-            self.msgfooter = u["footer"]
-        except Exception, e:
-            print "[Error] Read settings: %s" % e
+        # Read settings
+        d = Config.get_section("DEFAULT")
+        self.interval = eval(d.get("interval", str(self.interval)))
+        self.alloc = eval(d.get("allocation", str(self.alloc)))
+        self.scounts = eval(d.get("counts", str(self.scounts)))
+        self.iconmode = eval(d.get("iconmode", str(self.iconmode)))
+        self.iconcache = eval(d.get("iconcache", str(self.iconcache)))
+        self.userstream = eval(d.get("userstream", str(self.userstream)))
+        self.status_color = eval(d.get("color", str(self.status_color)))
+        u = Config.get_section(self.twitter.my_name)
+        self.msgfooter = u.get("footer", "")
     
     # Initialize Tabs (in another thread)
     def initialize(self):
@@ -518,6 +518,7 @@ class Main(object):
         conf = (("DEFAULT", "interval", self.interval),
                 ("DEFAULT", "counts", self.scounts),
                 ("DEFAULT", "iconmode", self.iconmode),
+                ("DEFAULT", "iconcache", self.iconcache),
                 ("DEFAULT", "userstream", self.userstream),
                 ("DEFAULT", "color", self.status_color),
                 (self.twitter.my_name, "footer", self.msgfooter))
@@ -960,6 +961,8 @@ class Main(object):
         self.builder.get_object("spinbutton_maxn").set_value(self.scounts[1])
         # show icons
         self.builder.get_object("checkbutton_showicon").set_active(self.iconmode)
+        # icon cache
+        self.builder.get_object("checkbutton_iconcache").set_active(self.iconcache)
         # userstream
         self.builder.get_object("checkbutton_userstream").set_active(self.userstream)
         
@@ -1015,6 +1018,9 @@ class Main(object):
         
         # show icons
         self.iconmode = self.builder.get_object("checkbutton_showicon").get_active()
+        
+        # icon cache
+        self.iconcache = self.builder.get_object("checkbutton_iconcache").get_active()
         
         # userstream
         self.userstream = self.builder.get_object("checkbutton_userstream").get_active()

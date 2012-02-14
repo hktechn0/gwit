@@ -30,11 +30,13 @@ pygtk.require('2.0')
 import gtk
 
 import sys
+import os
+import os.path
 import threading
 import urllib2
 import cStringIO
 import time
-import os.path
+import hashlib
 import random
 import Queue
 try:
@@ -64,12 +66,12 @@ class IconStore(object):
     
     def get(self, user):
         # get from cache
-        icon = self.icons.get(user.id)
+        icon = self.icons.get(user.profile_image_url)
         
         if not icon:
             icon = self.default_icon
             if user.id not in self.icons:
-                self.icons[user.id] = None
+                self.icons[user.profile_image_url] = None
                 self.new(user)
         
         return icon
@@ -93,13 +95,15 @@ class IconStore(object):
         
         if remove:
             self.stores.remove(remove)
-
+    
     def stop(self):
         for t in self.iconthread:
             t.stop()
 
 class IconThread(threading.Thread):
+    ICON_STORE_PATH = os.path.expanduser("~/.gwit/ico/")
     twitter = None
+    use_icon_cache = True
     
     def __init__(self, icons, stores):
         threading.Thread.__init__(self)
@@ -111,6 +115,9 @@ class IconThread(threading.Thread):
         self.queue = Queue.Queue()
         
         self._die = False
+
+        if not os.path.exists(self.ICON_STORE_PATH):
+            os.mkdir(self.ICON_STORE_PATH)
     
     def put(self, user):
         self.queue.put(user)
@@ -119,14 +126,22 @@ class IconThread(threading.Thread):
         while not self._die:
             user = self.queue.get()
             
-            # Icon Image Get
+            sha1 = hashlib.sha1(user.profile_image_url).hexdigest()
+            ico_path = "%s%s" % (self.ICON_STORE_PATH, sha1)
+            
+            if self.use_icon_cache and os.path.exists(ico_path):
+                ico = open(ico_path).read()
+            else:
+                ico = None
+            
+            # Icon image get from web
             for i in range(3):
+                if ico: break
                 if self._die: return
                 
                 try:
                     ico = urllib2.urlopen(user.profile_image_url).read()
-                    #ico = self.twitter.api.user_profile_image(
-                    #    user.screen_name, size = "normal")
+                    if ico: open(ico_path, "w").write(ico)
                     break
                 except Exception, e:
                     ico = None
@@ -136,10 +151,11 @@ class IconThread(threading.Thread):
             icopix = self.convert_pixbuf(ico)
             
             if icopix == None:
-                print >>sys.stderr, "[warning] Can't convert icon image: %s" % user.screen_name
+                print >>sys.stderr, "[warning] Can't convert icon image: %s" % (
+                    user.screen_name)
             else:
                 # Add iconstore
-                self.icons[user.id] = icopix
+                self.icons[user.profile_image_url] = icopix
                 
                 # Icon Refresh
                 for store, n in self.stores:
@@ -149,8 +165,10 @@ class IconThread(threading.Thread):
                         # replace icon to all user's status
                         if row[n] == user.id:
                             gtk.gdk.threads_enter()
-                            store[row.path][0] = self.icons.get(user.id)
+                            store[row.path][0] = icopix
                             gtk.gdk.threads_leave()
+                            # FIXME: slow magic???
+                            store.row_changed(row.path, store.get_iter(row.path))
     
     # create pixbuf
     def load_pixbuf(self, ico):
@@ -208,6 +226,6 @@ class IconThread(threading.Thread):
         pimg.thumbnail((48, 48), Image.ANTIALIAS)
         pimg = pimg.convert("RGB")
         pimg.save(o, filetype)
-
+    
     def stop(self):
         self._die = True
