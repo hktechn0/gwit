@@ -99,6 +99,24 @@ class IconStore(object):
     def stop(self):
         for t in self.iconthread:
             t.stop()
+        
+        path = IconThread.ICON_STORE_PATH
+        stats = [(f, os.stat(os.path.join(path, f)))
+                 for f in os.listdir(path)]
+        
+        # icon cache > 10MB
+        cache_size = sum([s.st_size for _, s in stats])
+        if cache_size > 10000000:
+            # sort by last access time
+            def get_st_atime(stat): return stat[1].st_atime
+            stats.sort(key = get_st_atime)
+            
+            # remove cache
+            for f, s in stats:
+                try: os.remove(os.path.join(path, f))
+                except: continue
+                cache_size -= s.st_size
+                if cache_size < 10000000: break
 
 class IconThread(threading.Thread):
     ICON_STORE_PATH = os.path.expanduser("~/.gwit/ico/")
@@ -129,6 +147,7 @@ class IconThread(threading.Thread):
             sha1 = hashlib.sha1(user.profile_image_url).hexdigest()
             ico_path = "%s%s" % (self.ICON_STORE_PATH, sha1)
             
+            # read from icon cache
             if self.use_icon_cache and os.path.exists(ico_path):
                 ico = open(ico_path).read()
             else:
@@ -141,7 +160,11 @@ class IconThread(threading.Thread):
                 
                 try:
                     ico = urllib2.urlopen(user.profile_image_url).read()
-                    if ico: open(ico_path, "w").write(ico)
+                    
+                    # save to icon cache
+                    if self.use_icon_cache and ico:
+                        open(ico_path, "w").write(ico)
+                    
                     break
                 except Exception, e:
                     ico = None
