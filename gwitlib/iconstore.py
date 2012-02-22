@@ -50,6 +50,10 @@ else:
 class IconStore(object):
     iconmode = True
     
+    # Cache attrs
+    ICON_CACHE_PATH = os.path.expanduser("~/.gwit/ico/")
+    ICON_CACHE_MAX = 10 * 1024 * 1024 # 10MB
+    
     def __init__(self, background_slot = 5):
         self.icons = dict()
         self.stores = list()
@@ -100,13 +104,13 @@ class IconStore(object):
         for t in self.iconthread:
             t.stop()
         
-        path = IconThread.ICON_STORE_PATH
+        path = IconStore.ICON_CACHE_PATH
         stats = [(f, os.stat(os.path.join(path, f)))
                  for f in os.listdir(path)]
         
-        # icon cache > 10MB
+        # icon cache > ICON_CACHE_MAX
         cache_size = sum([s.st_size for _, s in stats])
-        if cache_size > 10000000:
+        if cache_size > IconStore.ICON_CACHE_MAX:
             # sort by last access time
             def get_st_atime(stat): return stat[1].st_atime
             stats.sort(key = get_st_atime)
@@ -116,10 +120,9 @@ class IconStore(object):
                 try: os.remove(os.path.join(path, f))
                 except: continue
                 cache_size -= s.st_size
-                if cache_size < 10000000: break
+                if cache_size < IconStore.ICON_CACHE_MAX: break
 
 class IconThread(threading.Thread):
-    ICON_STORE_PATH = os.path.expanduser("~/.gwit/ico/")
     twitter = None
     use_icon_cache = True
     
@@ -133,9 +136,9 @@ class IconThread(threading.Thread):
         self.queue = Queue.Queue()
         
         self._die = False
-
-        if not os.path.exists(self.ICON_STORE_PATH):
-            os.mkdir(self.ICON_STORE_PATH)
+        
+        if not os.path.exists(IconStore.ICON_CACHE_PATH):
+            os.mkdir(IconStore.ICON_CACHE_PATH)
     
     def put(self, user):
         self.queue.put(user)
@@ -145,11 +148,11 @@ class IconThread(threading.Thread):
             user = self.queue.get()
             
             sha1 = hashlib.sha1(user.profile_image_url).hexdigest()
-            ico_path = "%s%s" % (self.ICON_STORE_PATH, sha1)
+            ico_path = os.path.join(IconStore.ICON_CACHE_PATH, sha1)
             
             # read from icon cache
             if self.use_icon_cache and os.path.exists(ico_path):
-                ico = open(ico_path).read()
+                ico = open(ico_path, "rb").read()
             else:
                 ico = None
             
@@ -163,7 +166,7 @@ class IconThread(threading.Thread):
                     
                     # save to icon cache
                     if self.use_icon_cache and ico:
-                        open(ico_path, "w").write(ico)
+                        open(ico_path, "wb").write(ico)
                     
                     break
                 except Exception, e:
