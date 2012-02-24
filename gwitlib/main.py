@@ -77,6 +77,7 @@ class Main(object):
     _filter_tab = None
     
     _toggle_change_flag = False
+    _text_delete_flag = False
     
     # Constractor
     def __init__(self, screen_name, keys):
@@ -765,12 +766,43 @@ class Main(object):
                 None, None, None, event.button, event.time)
     
     # Character count
-    def on_textbuffer1_changed(self, textbuffer):
+    def on_textbuffer1_changed(self, buf):
         text = self.get_textview().decode("utf-8")
         
+        # reply to user suggesstions
+        cursor = buf.get_property("cursor-position")
+        rspace = text.rfind(" ", 0, cursor)
+        rat = text.rfind("@", 0, cursor)
+        
+        # is reply?
+        if rat == 0 or (rspace > 0 and rat > rspace):
+            replyto = text[rat + 1:cursor]
+            users = self.twitter.get_users_startswith(replyto)
+        else:
+            replyto = None
+        
+        # clear old suggesstions
+        if buf.get_has_selection():
+            buf.delete_selection(True, True)
+            self._text_delete_flag = False
+        
+        # print screen_name suggesstions
+        if replyto and users and not self._text_delete_flag:
+            users.sort(key = lambda u: u.screen_name)
+            postfix = users[0].screen_name[len(replyto):]
+            cursor_iter = buf.get_iter_at_mark(buf.get_insert())
+            
+            buf.insert_at_cursor(postfix)
+            buf.select_range(buf.get_iter_at_offset(cursor),
+                             buf.get_iter_at_mark(buf.get_insert()))
+        
+        self._text_delete_flag = False
+        
+        # add footer
         if self.msgfooter != "" and self.twparams.get("reply_to", None):
             text = u"%s %s" % (text, self.msgfooter)
         
+        # calculate tweet length
         n = TwitterTools.get_tweet_length(
             text, len(self.twparams.get("media", [])),
             self.twitter.configuration.get("short_url_length", 20),
@@ -786,11 +818,14 @@ class Main(object):
                 "<b><span foreground='#FF0000'>%s</span></b>" % n)
             self.btnupdate.set_sensitive(False)
     
+    def on_textbuffer1_delete_range(self, buf, start, end):
+        self._text_delete_flag = True
+    
     # Help - About menu
     def on_menuitem_about_activate(self, menuitem):
         self.builder.get_object("dialog_about").show_all()
         return True
-
+    
     # About dialog closed
     def on_dialog_about_response(self, dialog, response_id):
         dialog.hide_all()

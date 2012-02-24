@@ -103,7 +103,7 @@ class TwitterTools(object):
             status = status.retweeted_status
         
         if status.entities and status.entities.get("media", None):
-            return [(i.url, i.display_url if i.expanded_url else i.url) 
+            return [(i.url, i.display_url if i.expanded_url else i.url)
                     for i in status.entities.media]
         else:
             return []
@@ -114,7 +114,7 @@ class TwitterTools(object):
         if status.entities:
             return [i.screen_name for i in status.entities.user_mentions]
         else:
-            match = cls.reuser.finditer(status.text)      
+            match = cls.reuser.finditer(status.text)
             return [i.group('user') for i in match]
     
     # Hashtags
@@ -261,7 +261,7 @@ class TwitterTools(object):
                 string = string.replace("&%s;" % name, unichr(c))
         
         return string
-
+    
     @classmethod
     def get_tweet_length(cls, text, num_media = 0,
                          url_length = 20, https_url_length = 21,

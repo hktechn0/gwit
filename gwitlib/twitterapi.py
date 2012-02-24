@@ -53,6 +53,7 @@ class TwitterAPI(object):
         
         # User, Status Buffer
         self.users = dict()
+        self.screen_name = dict()
         self.statuses = dict()
         self.followers = set()
         self.following = set()
@@ -140,14 +141,15 @@ class TwitterAPI(object):
     
     def add_user(self, user):
         self.users[user.id] = user
+        self.screen_name[user.screen_name] = user.id
     
     def get_user_from_screen_name(self, screen_name):
-        # search user from screen_name
-        for user in self.users.values():
-            if user.screen_name == screen_name:
-                return user
-        
-        return None
+        return self.users.get(self.screen_name.get(screen_name, None), None)
+    
+    def get_users_startswith(self, prefix):
+        # find users screen_name starts with hogehoge
+        return [user for user in self.users.values()
+                if user.screen_name.lower().startswith(prefix.lower())]
     
     def get_statuses(self, ids):
         return tuple(

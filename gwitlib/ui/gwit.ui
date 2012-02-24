@@ -1411,6 +1411,7 @@ http://www.tsukuba-linux.org/</property>
   </object>
   <object class="GtkTextBuffer" id="textbuffer1">
     <signal name="changed" handler="on_textbuffer1_changed" swapped="no"/>
+    <signal name="delete-range" handler="on_textbuffer1_delete_range" swapped="no"/>
   </object>
   <object class="GtkWindow" id="window1">
     <property name="width_request">400</property>
