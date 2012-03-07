@@ -121,20 +121,27 @@ class TwitterAPI(object):
             map(self.add_status, statuses)
     
     def add_status(self, status, overwrite = True):
-        found = status.id in self.statuses
-        if overwrite or not found:
-            # fix: twitter api response is broken?
-            if found: status.retweeted = self.statuses[status.id].retweeted
-            self.statuses[status.id] = status
+        found = self.statuses.get(status.id, None)
         
+        if not found:
+            self.statuses[status.id] = status
+        elif overwrite:
+            # FIXME: twitter api response is broken?
+            status.retweeted = found.retweeted
+            status.favorited = found.favorited
+            status["faved_by"] = found.get("faved_by", set())
+            found.update(status)
+        
+        # user
         self.add_user(status.user)
         status["user"] = self.users[status.user.id]
         
         # hashtag
         self.hashtags.update(TwitterTools.get_hashtags(status))
         
+        # RT
         if status.retweeted_status:
-            self.add_status(status.retweeted_status, overwrite = False)
+            self.add_status(status.retweeted_status, False)
             status["retweeted_status"] = self.statuses[status.retweeted_status.id]
     
     def add_users(self, users):
@@ -144,7 +151,13 @@ class TwitterAPI(object):
             map(self.add_user, users)
     
     def add_user(self, user):
-        self.users[user.id] = user
+        u = self.users.get(user.id, None)
+        
+        if u:
+            u.update(user)
+        else:
+            self.users[user.id] = user
+        
         self.screen_name[user.screen_name] = user.id
     
     def get_user_from_screen_name(self, screen_name):
