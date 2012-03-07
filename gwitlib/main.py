@@ -773,13 +773,25 @@ class Main(object):
         cursor = buf.get_property("cursor-position")
         rspace = text.rfind(" ", 0, cursor)
         rat = text.rfind("@", 0, cursor)
+        rhash = text.rfind("#", 0, cursor)
+        
+        prefix = postfix = None
         
         # is reply?
         if rat == 0 or (rspace > 0 and rat > rspace):
-            replyto = text[rat + 1:cursor]
-            users = self.twitter.get_users_startswith(replyto)
-        else:
-            replyto = None
+            prefix = text[rat + 1:cursor]
+            users = self.twitter.get_users_startswith(prefix)
+            if users:
+                users.sort(key = lambda u: u.screen_name)
+                postfix = users[0].screen_name[len(prefix):]
+        
+        # is hash?
+        if rhash == 0 or (rspace > 0 and rhash > rspace):
+            prefix = text[rhash + 1:cursor]
+            hashtags = [h for h in self.twitter.hashtags if h.startswith(prefix)]
+            if hashtags:
+                hashtags.sort()
+                postfix = hashtags[0][len(prefix):]
         
         # clear old suggesstions
         if buf.get_has_selection():
@@ -787,11 +799,8 @@ class Main(object):
             self._text_delete_flag = False
         
         # print screen_name suggesstions
-        if replyto and users and not self._text_delete_flag:
-            users.sort(key = lambda u: u.screen_name)
-            postfix = users[0].screen_name[len(replyto):]
+        if prefix and postfix and not self._text_delete_flag:
             cursor_iter = buf.get_iter_at_mark(buf.get_insert())
-            
             buf.insert_at_cursor(postfix)
             buf.select_range(buf.get_iter_at_offset(cursor),
                              buf.get_iter_at_mark(buf.get_insert()))

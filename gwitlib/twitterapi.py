@@ -58,6 +58,7 @@ class TwitterAPI(object):
         self.followers = set()
         self.following = set()
         self.configuration = dict()
+        self.hashtags = set()
     
     @property
     def my_id(self):
@@ -128,6 +129,9 @@ class TwitterAPI(object):
         
         self.add_user(status.user)
         status["user"] = self.users[status.user.id]
+        
+        # hashtag
+        self.hashtags.update(TwitterTools.get_hashtags(status))
         
         if status.retweeted_status:
             self.add_status(status.retweeted_status, overwrite = False)
