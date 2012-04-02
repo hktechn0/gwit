@@ -75,7 +75,7 @@ class IconStore(object):
         if not icon:
             icon = self.default_icon
             if user.id not in self.icons:
-                self.icons[user.profile_image_url] = None
+                self.icons[user.profile_image_url] = self.default_icon
                 self.new(user)
         
         return icon
@@ -163,15 +163,20 @@ class IconThread(threading.Thread):
                 
                 try:
                     ico = urllib2.urlopen(user.profile_image_url).read()
-                    
-                    # save to icon cache
-                    if self.use_icon_cache and ico:
-                        open(ico_path, "wb").write(ico)
-                    
-                    break
                 except Exception, e:
                     ico = None
-                    print >>sys.stderr, "[Error] %d: IconStore %s" % (i, e)
+                    print >>sys.stderr, "[Error] %d: Icon %s" % (i, e)
+                    time.sleep(3)
+                    continue
+                
+                if self.use_icon_cache and ico:
+                    try:
+                        # save to icon cache
+                        self.save_icon_cache(ico, ico_path)
+                    except Exception, e:
+                        print >>sys.stderr, "[Error] %d: IconCache %s" % (i, e)
+                
+                break
             
             # Get pixbuf
             icopix = self.convert_pixbuf(ico)
@@ -252,6 +257,16 @@ class IconThread(threading.Thread):
         pimg.thumbnail((48, 48), Image.ANTIALIAS)
         pimg = pimg.convert("RGB")
         pimg.save(o, filetype)
+    
+    # save icon thumbnail to filesystem cache
+    def save_icon_cache(self, ico, ico_path):
+        open(ico_path, "wb").write(ico)
+        
+        if USE_PIL: 
+            ico = Image.open(ico_path)
+            if ico.size != (48, 48):
+                ico.thumbnail((48, 48), Image.ANTIALIAS)
+                ico.save(ico_path, "PNG")
     
     def stop(self):
         self._die = True
