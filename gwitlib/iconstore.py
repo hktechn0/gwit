@@ -52,12 +52,14 @@ class IconStore(object):
     
     # Cache attrs
     ICON_CACHE_PATH = os.path.expanduser("~/.gwit/ico/")
-    ICON_CACHE_MAX = 10 * 1024 * 1024 # 10MB
+    ICON_CACHE_MAX = 10 * 1024 * 1024    # 10MB
     
-    def __init__(self, background_slot = 5):
+    def __init__(self, background_slot = 2):
         self.icons = dict()
         self.stores = list()
         self.iconthread = list()
+        
+        self.background_slot = background_slot
         
         # load default icon
         iconpath = os.path.join(os.path.dirname(__file__), "images/none.png")
@@ -83,7 +85,7 @@ class IconStore(object):
     def new(self, user):
         # New Icon thread start if iconmode is True
         if self.iconmode:
-            n = random.randint(0, 4)
+            n = random.randint(0, self.background_slot - 1)
             self.iconthread[n].put(user)
     
     def add_store(self, store, n):

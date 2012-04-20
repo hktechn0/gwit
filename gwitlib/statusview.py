@@ -155,7 +155,7 @@ class StatusView(gtk.TreeView):
     # favorited
     def favorite_status(self, path):
         status = self.get_status(path)
-    
+        
         if "deleted" in status: return
         
         status.favorited = not status.favorited
@@ -334,8 +334,8 @@ class StatusView(gtk.TreeView):
             gtk.gdk.threads_enter()
             self.store.prepend(i)
             gtk.gdk.threads_leave()
-        
-        self.color_status()
+            self.color_status_row(self.store[
+                    self.store.get_path(self.store.get_iter_first())])
     
     def status_pack(self, i):
         status = self.twitter.statuses[i]
@@ -399,59 +399,66 @@ class StatusView(gtk.TreeView):
             self.render_event.wait()
             self.render_event.clear()
 
-            status = self._render_color_only
+            # render color_status only if selected changed
+            selected = self._render_color_only
             self._render_color_only = False
             
-            if status == False:
+            if selected == False:
                 self._reset_status_text_in_thread()
-                status = None
+                selected = None
             
-            self._color_status_in_thread(status)
+            self._color_status_in_thread(selected)
     
     # Color status
-    def color_status(self, status = None):
-        self._render_color_only = status
+    def color_status(self, selected = None):
+        self._render_color_only = selected
         self.render_event.set()
     
-    def _color_status_in_thread(self, status = None):
-        myname = self.twitter.my_name
-        myid = self.twitter.my_id
-        
+    def _color_status_in_thread(self, selected = None):
         # if not set target status
-        if status == None:
-            status = self.get_selected_status()
+        if selected == None:
+            selected = self.get_selected_status() or False
         
         for row in self.store:
             if self.render_event.is_set(): break
-            
-            bg = None
-            
-            status_id = row[2]
-            s = self.twitter.statuses[status_id]
-            u = s.user
-            
-            if u.id == myid:
-                # My status (Blue)
-                bg = self.color[0]
-            elif s.in_reply_to_user_id == myid or \
-                    s.text.find("@%s" % myname) != -1:
-                # Reply to me (Red)
-                bg = self.color[1]
-            
-            if status:
-                if s.id == status.in_reply_to_status_id:
-                    # Reply to (Orange)
-                    bg = self.color[2]
-                elif u.id == status.in_reply_to_user_id:
-                    # Reply to other (Yellow)
-                    bg = self.color[3]
-                elif u.id == status.user.id:
-                    # Selected user (Green)
-                    bg = self.color[4]
-            
-            gtk.gdk.threads_enter()
-            self.store[row.path][4] = bg
-            gtk.gdk.threads_leave()
+            self.color_status_row(row, selected)
+    
+    def color_status_row(self, row, selected = None):
+        # selected == `False` if called from _color_status_in_thread
+        if selected == None:
+            selected = self.get_selected_status()
+        
+        myname = self.twitter.my_name
+        myid = self.twitter.my_id
+        
+        bg = None
+        
+        status_id = row[2]
+        s = self.twitter.statuses[status_id]
+        u = s.user
+        
+        if u.id == myid:
+            # My status (Blue)
+            bg = self.color[0]
+        elif s.in_reply_to_user_id == myid or \
+                s.text.find("@%s" % myname) != -1:
+            # Reply to me (Red)
+            bg = self.color[1]
+        
+        if selected:
+            if s.id == selected.in_reply_to_status_id:
+                # Reply to (Orange)
+                bg = self.color[2]
+            elif u.id == selected.in_reply_to_user_id:
+                # Reply to other (Yellow)
+                bg = self.color[3]
+            elif u.id == selected.user.id:
+                # Selected user (Green)
+                bg = self.color[4]
+        
+        gtk.gdk.threads_enter()
+        self.store[row.path][4] = bg
+        gtk.gdk.threads_leave()
     
     # Reset all data to change row height
     def reset_status_text(self):
