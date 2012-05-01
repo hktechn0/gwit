@@ -332,10 +332,10 @@ class StatusView(gtk.TreeView):
         # New Status Prepend to Liststore (Add row)
         for i in statuses:
             gtk.gdk.threads_enter()
-            self.store.prepend(i)
+            treeiter = self.store.prepend(i)
             gtk.gdk.threads_leave()
-            self.color_status_row(self.store[
-                    self.store.get_path(self.store.get_iter_first())])
+            self.color_status_row(
+                self.store[self.store.get_path(treeiter)])
     
     def status_pack(self, i):
         status = self.twitter.statuses[i]
