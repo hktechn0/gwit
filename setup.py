@@ -8,7 +8,7 @@ setup(name = "gwit",
       author = "University of Tsukuba Linux User Group",
       author_email = "staff@tsukuba-linux.org",
       url = "http://gwit.sourceforge.jp/",
-      packages = ["gwitlib"],
+      packages = ["gwitlib", "twoauth"],
       scripts = ["gwit"],
       package_data = {"gwitlib": ["images/*", "ui/*"]}
       )

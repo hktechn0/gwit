@@ -1,0 +1,3 @@
+[submodule "python-twoauth"]
+	path = python-twoauth
+	url = git@github.com:techno/python-twoauth.git
