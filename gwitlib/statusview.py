@@ -75,6 +75,7 @@ class StatusView(gtk.TreeView):
         self.connect("leave-notify-event", self.on_treeview_leave_notify)
         self.connect("destroy", self.on_treeview_destroy)
         self.connect("button-press-event", self.on_treeview_button_press)
+        self.connect("key-press-event", self.on_treeview_key_press)
         
         # Setup icon column (visible is False if no-icon)
         cell_p = gtk.CellRendererPixbuf()
@@ -523,6 +524,23 @@ class StatusView(gtk.TreeView):
                 self.retweet_status(path)
             elif self.get_columns().index(column) == 3:
                 self.favorite_status(path)
+    
+    # shortcut key
+    def on_treeview_key_press(self, treeview, event):
+        if event.keyval == ord('f'):
+            # f: favorite
+            self.favorite_selected_status()
+        elif event.keyval == ord('r'):
+            # r: Retweet
+            self.retweet_selected_status()
+        elif event.keyval == ord('d'):
+            # d: destroy
+            status = self.get_selected_status()
+            self.twitter.destory_tweet(status)
+        else:
+            return False
+        
+        return True
     
     def reset_fav_rt_ico(self, path, fav = True, rt = True):
         if path != None:
