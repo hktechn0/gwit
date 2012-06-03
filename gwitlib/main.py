@@ -926,7 +926,8 @@ class Main(object):
     def on_menuitem_detail_activate(self, menuitem):
         status = self.get_selected_status()
         detail = StatusDetail(status)
-        self.new_tab(detail, "S: %d" % status.id)
+        self.new_tab(detail, "%s: %s..." % (
+                status.user.screen_name, status.text[:10]))
     
     # favorite
     def on_menuitem_fav_activate(self, menuitem):

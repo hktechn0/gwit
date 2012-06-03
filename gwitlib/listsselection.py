@@ -136,11 +136,10 @@ class ListsView(gtk.ScrolledWindow):
     def on_treeview_row_activated(self, treeview, path, view_column):
         listid = treeview.get_model()[path][3]
         l = self.lists[listid]
-        listlabel = "@%s/%s" % (l["user"]["screen_name"], l["name"])
+        listlabel = "%s/%s" % (l["user"]["screen_name"], l["name"])
         auth = True if l["mode"] == "private" else False
-        self.twitter.new_timeline("L: %s" % listlabel, "lists_statuses",
+        self.twitter.new_timeline(listlabel, "lists_statuses",
                                   list_id = l["id"], user = l["user"]["id"], auth = auth)
-
 
 class ListsSelection(gtk.Notebook):
     def __init__(self):
